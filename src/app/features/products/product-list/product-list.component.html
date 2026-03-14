@@ -1,0 +1,166 @@
+<div class="container-fluid py-4">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h4 class="fw-bold mb-1" style="color: #1e3a5f">Manajemen Produk</h4>
+      <p class="text-muted small mb-0">Total {{ totalItems }} produk terdaftar</p>
+    </div>
+    <a routerLink="/products/add" class="btn btn-primary">
+      <i class="bi bi-plus-lg me-2"></i>Tambah Produk
+    </a>
+  </div>
+
+  <!-- Filter -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-12 col-md-4">
+          <div class="input-group">
+            <span class="input-group-text bg-white">
+              <i class="bi bi-search text-muted"></i>
+            </span>
+            <input
+              type="text"
+              class="form-control border-start-0"
+              placeholder="Cari nama, SKU, barcode..."
+              [(ngModel)]="searchQuery"
+              (keyup.enter)="onSearch()"
+            />
+          </div>
+        </div>
+        <div class="col-12 col-md-3">
+          <select class="form-select" [(ngModel)]="selectedCategory" (change)="onFilter()">
+            <option value="">Semua Kategori</option>
+            <option *ngFor="let cat of categories" [value]="cat._id">{{ cat.name }}</option>
+          </select>
+        </div>
+        <div class="col-12 col-md-2">
+          <select class="form-select" [(ngModel)]="selectedStatus" (change)="onFilter()">
+            <option value="">Semua Status</option>
+            <option value="menipis">Stok Menipis</option>
+            <option value="habis">Stok Habis</option>
+          </select>
+        </div>
+        <div class="col-12 col-md-3 d-flex gap-2">
+          <button class="btn btn-primary flex-grow-1" (click)="onSearch()">
+            <i class="bi bi-search me-1"></i>Cari
+          </button>
+          <button class="btn btn-outline-secondary" (click)="resetFilter()">
+            <i class="bi bi-arrow-counterclockwise"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+
+      <!-- Loading -->
+      <div *ngIf="isLoading" class="text-center py-5">
+        <div class="spinner-border text-primary"></div>
+        <p class="mt-2 text-muted">Memuat data...</p>
+      </div>
+
+      <!-- Empty -->
+      <div *ngIf="!isLoading && products.length === 0" class="text-center py-5 text-muted">
+        <i class="bi bi-box-seam fs-1 d-block mb-2"></i>
+        <p>Tidak ada produk ditemukan</p>
+        <a routerLink="/products/add" class="btn btn-primary btn-sm">Tambah Produk</a>
+      </div>
+
+      <!-- Table -->
+      <div *ngIf="!isLoading && products.length > 0" class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-4">Produk</th>
+              <th>Kategori</th>
+              <th>Harga Beli</th>
+              <th>Harga Jual</th>
+              <th>Stok</th>
+              <th>Status</th>
+              <th class="text-center">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let product of products">
+              <td class="ps-4">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="product-img">
+                    <i class="bi bi-box-seam"></i>
+                  </div>
+                  <div>
+                    <div class="fw-semibold">{{ product.name }}</div>
+                    <div class="text-muted small">{{ product.sku }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="badge rounded-pill"
+                  [style.background]="product.category?.color || '#6b7280'"
+                  style="font-size: 12px; padding: 5px 10px;">
+                  {{ product.category?.name || '-' }}
+                </span>
+              </td>
+              <td>{{ product.buyPrice | rupiah }}</td>
+              <td>{{ product.sellPrice | rupiah }}</td>
+              <td>
+                <span class="fw-semibold">{{ product.stock }}</span>
+                <span class="text-muted small ms-1">{{ product.unit }}</span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="getStockBadge(product)">
+                  {{ getStockLabel(product) }}
+                </span>
+              </td>
+              <td class="text-center">
+                <div class="d-flex justify-content-center gap-2">
+                  <a [routerLink]="['/products', product._id, 'edit']"
+                    class="btn btn-sm btn-outline-primary"
+                    title="Edit">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                  <button
+                    class="btn btn-sm btn-outline-danger"
+                    (click)="deleteProduct(product._id, product.name)"
+                    title="Hapus">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div *ngIf="!isLoading && totalPages > 1"
+        class="d-flex justify-content-between align-items-center px-4 py-3 border-top">
+        <small class="text-muted">
+          Halaman {{ currentPage }} dari {{ totalPages }}
+        </small>
+        <nav>
+          <ul class="pagination pagination-sm mb-0">
+            <li class="page-item" [class.disabled]="currentPage === 1">
+              <button class="page-link" (click)="changePage(currentPage - 1)">
+                <i class="bi bi-chevron-left"></i>
+              </button>
+            </li>
+            <li class="page-item active">
+              <span class="page-link">{{ currentPage }}</span>
+            </li>
+            <li class="page-item" [class.disabled]="currentPage === totalPages">
+              <button class="page-link" (click)="changePage(currentPage + 1)">
+                <i class="bi bi-chevron-right"></i>
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+
+    </div>
+  </div>
+</div>

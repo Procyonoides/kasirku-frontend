@@ -1,0 +1,228 @@
+<div class="container-fluid py-4">
+
+  <!-- Header -->
+  <div class="mb-4">
+    <h4 class="fw-bold mb-1" style="color: #1e3a5f">Laporan</h4>
+    <p class="text-muted small mb-0">Analisis penjualan dan keuangan toko</p>
+  </div>
+
+  <!-- Tabs -->
+  <div class="report-tabs mb-4">
+    <button class="report-tab" [class.active]="activeTab === 'sales'"
+      (click)="switchTab('sales')">
+      <i class="bi bi-graph-up me-2"></i>Penjualan
+    </button>
+    <button class="report-tab" [class.active]="activeTab === 'profit'"
+      (click)="switchTab('profit')">
+      <i class="bi bi-cash-stack me-2"></i>Laba Rugi
+    </button>
+    <button class="report-tab" [class.active]="activeTab === 'top-products'"
+      (click)="switchTab('top-products')">
+      <i class="bi bi-trophy me-2"></i>Produk Terlaris
+    </button>
+    <button class="report-tab" [class.active]="activeTab === 'cashflow'"
+      (click)="switchTab('cashflow')">
+      <i class="bi bi-arrow-left-right me-2"></i>Arus Kas
+    </button>
+  </div>
+
+  <!-- Date Filter -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <div class="row g-3 align-items-end">
+        <div class="col-12 col-md-4">
+          <label class="form-label small fw-semibold text-muted">Dari Tanggal</label>
+          <input type="date" class="form-control" [(ngModel)]="dateFrom" />
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label small fw-semibold text-muted">Sampai Tanggal</label>
+          <input type="date" class="form-control" [(ngModel)]="dateTo" />
+        </div>
+        <div class="col-12 col-md-4">
+          <button class="btn btn-primary w-100" (click)="onFilter()">
+            <i class="bi bi-funnel me-2"></i>Tampilkan Laporan
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary"></div>
+    <p class="mt-2 text-muted">Memuat laporan...</p>
+  </div>
+
+  <!-- ── SALES REPORT ── -->
+  <div *ngIf="!isLoading && activeTab === 'sales' && salesData">
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-3">
+        <div class="report-stat-card">
+          <div class="rsc-label">Total Transaksi</div>
+          <div class="rsc-value">{{ salesData.summary?.totalTransactions || 0 }}</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="report-stat-card">
+          <div class="rsc-label">Total Omzet</div>
+          <div class="rsc-value">{{ salesData.summary?.totalRevenue || 0 | rupiah }}</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="report-stat-card">
+          <div class="rsc-label">Rata-rata/Transaksi</div>
+          <div class="rsc-value">{{ salesData.summary?.averageTransaction || 0 | rupiah }}</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="report-stat-card">
+          <div class="rsc-label">Item Terjual</div>
+          <div class="rsc-value">{{ salesData.summary?.totalItems || 0 }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white py-3">
+        <h6 class="fw-bold mb-0"><i class="bi bi-table me-2 text-primary"></i>Detail Harian</h6>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-4">Tanggal</th>
+                <th>Transaksi</th>
+                <th>Item Terjual</th>
+                <th>Omzet</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of salesData.daily">
+                <td class="ps-4">{{ row._id | date:'dd MMM yyyy' }}</td>
+                <td>{{ row.transactions }}</td>
+                <td>{{ row.items }}</td>
+                <td class="fw-semibold">{{ row.revenue | rupiah }}</td>
+              </tr>
+              <tr *ngIf="!salesData.daily?.length">
+                <td colspan="4" class="text-center text-muted py-4">Tidak ada data</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PROFIT LOSS ── -->
+  <div *ngIf="!isLoading && activeTab === 'profit' && profitData">
+    <div class="row g-3 mb-4">
+      <div class="col-12 col-md-4">
+        <div class="report-stat-card stat-green">
+          <div class="rsc-label">Total Pendapatan</div>
+          <div class="rsc-value">{{ profitData.revenue | rupiah }}</div>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="report-stat-card stat-red">
+          <div class="rsc-label">Total HPP</div>
+          <div class="rsc-value">{{ profitData.cogs | rupiah }}</div>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="report-stat-card" [class.stat-blue]="profitData.profit >= 0" [class.stat-red]="profitData.profit < 0">
+          <div class="rsc-label">Laba Bersih</div>
+          <div class="rsc-value">{{ profitData.profit | rupiah }}</div>
+          <div class="rsc-sub">Margin: {{ profitData.margin || 0 }}%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TOP PRODUCTS ── -->
+  <div *ngIf="!isLoading && activeTab === 'top-products'">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white py-3">
+        <h6 class="fw-bold mb-0"><i class="bi bi-trophy me-2 text-warning"></i>Produk Terlaris</h6>
+      </div>
+      <div class="card-body">
+        <div *ngIf="topProducts.length === 0" class="text-center py-4 text-muted">
+          <i class="bi bi-box-seam fs-1 d-block mb-2"></i>Belum ada data
+        </div>
+        <div *ngFor="let p of topProducts; let i = index" class="top-product-row">
+          <div class="top-rank" [class.rank-gold]="i===0" [class.rank-silver]="i===1" [class.rank-bronze]="i===2">
+            {{ i + 1 }}
+          </div>
+          <div class="flex-grow-1">
+            <div class="d-flex justify-content-between mb-1">
+              <span class="fw-semibold">{{ p.productName }}</span>
+              <span class="text-muted small">{{ p.totalQuantity }} terjual</span>
+            </div>
+            <div class="progress" style="height:6px;">
+              <div class="progress-bar bg-primary" [style.width.%]="(p.totalQuantity / getMaxQty()) * 100"></div>
+            </div>
+          </div>
+          <div class="top-revenue">{{ p.totalRevenue | rupiah }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CASHFLOW ── -->
+  <div *ngIf="!isLoading && activeTab === 'cashflow' && cashflowData">
+    <div class="row g-3 mb-4">
+      <div class="col-12 col-md-4">
+        <div class="report-stat-card stat-green">
+          <div class="rsc-label">Total Pemasukan</div>
+          <div class="rsc-value">{{ cashflowData.totalIncome | rupiah }}</div>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="report-stat-card stat-red">
+          <div class="rsc-label">Total Pengeluaran</div>
+          <div class="rsc-value">{{ cashflowData.totalExpense | rupiah }}</div>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="report-stat-card" [class.stat-blue]="cashflowData.netCashflow >= 0" [class.stat-red]="cashflowData.netCashflow < 0">
+          <div class="rsc-label">Net Cashflow</div>
+          <div class="rsc-value">{{ cashflowData.netCashflow | rupiah }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white py-3">
+        <h6 class="fw-bold mb-0"><i class="bi bi-arrow-left-right me-2 text-primary"></i>Detail Arus Kas</h6>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-4">Tanggal</th>
+                <th>Pemasukan</th>
+                <th>Pengeluaran</th>
+                <th>Net</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of cashflowData.daily">
+                <td class="ps-4">{{ row._id | date:'dd MMM yyyy' }}</td>
+                <td class="text-success">{{ row.income | rupiah }}</td>
+                <td class="text-danger">{{ row.expense | rupiah }}</td>
+                <td class="fw-semibold" [class.text-success]="row.net >= 0" [class.text-danger]="row.net < 0">
+                  {{ row.net | rupiah }}
+                </td>
+              </tr>
+              <tr *ngIf="!cashflowData.daily?.length">
+                <td colspan="4" class="text-center text-muted py-4">Tidak ada data</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

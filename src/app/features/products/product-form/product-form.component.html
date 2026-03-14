@@ -1,0 +1,203 @@
+<div class="container-fluid py-4">
+  <div class="row justify-content-center">
+    <div class="col-12 col-xl-8">
+
+      <!-- Header -->
+      <div class="d-flex align-items-center gap-3 mb-4">
+        <a routerLink="/products" class="btn btn-outline-secondary btn-sm">
+          <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+          <h4 class="fw-bold mb-0" style="color: #1e3a5f">
+            {{ isEditMode ? 'Edit Produk' : 'Tambah Produk' }}
+          </h4>
+          <p class="text-muted small mb-0">
+            {{ isEditMode ? 'Perbarui informasi produk' : 'Isi detail produk baru' }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div *ngIf="isLoading" class="text-center py-5">
+        <div class="spinner-border text-primary"></div>
+      </div>
+
+      <form *ngIf="!isLoading" [formGroup]="form" (ngSubmit)="onSubmit()">
+
+        <!-- Error -->
+        <div *ngIf="errorMsg" class="alert alert-danger mb-4">
+          <i class="bi bi-exclamation-circle me-2"></i>{{ errorMsg }}
+        </div>
+
+        <div class="row g-4">
+
+          <!-- Info Dasar -->
+          <div class="col-12">
+            <div class="card border-0 shadow-sm">
+              <div class="card-header bg-white py-3">
+                <h6 class="fw-bold mb-0">
+                  <i class="bi bi-info-circle me-2 text-primary"></i>Informasi Dasar
+                </h6>
+              </div>
+              <div class="card-body">
+                <div class="row g-3">
+
+                  <div class="col-12">
+                    <label class="form-label fw-semibold">Nama Produk <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" formControlName="name"
+                      placeholder="cth: Aqua 600ml"
+                      [class.is-invalid]="isInvalid('name')" />
+                    <div class="invalid-feedback">Nama produk wajib diisi (min. 2 karakter)</div>
+                  </div>
+
+                  <div class="col-12 col-md-6">
+                    <label class="form-label fw-semibold">SKU</label>
+                    <input type="text" class="form-control" formControlName="sku"
+                      placeholder="Auto-generate jika kosong" />
+                    <div class="form-text">Kode unik produk (opsional)</div>
+                  </div>
+
+                  <div class="col-12 col-md-6">
+                    <label class="form-label fw-semibold">Barcode</label>
+                    <input type="text" class="form-control" formControlName="barcode"
+                      placeholder="Scan atau isi manual" />
+                  </div>
+
+                  <div class="col-12 col-md-6">
+                    <label class="form-label fw-semibold">Kategori <span class="text-danger">*</span></label>
+                    <select class="form-select" formControlName="category"
+                      [class.is-invalid]="isInvalid('category')">
+                      <option value="">-- Pilih Kategori --</option>
+                      <option *ngFor="let cat of categories" [value]="cat._id">
+                        {{ cat.name }}
+                      </option>
+                    </select>
+                    <div class="invalid-feedback">Kategori wajib dipilih</div>
+                  </div>
+
+                  <div class="col-12 col-md-6">
+                    <label class="form-label fw-semibold">Satuan <span class="text-danger">*</span></label>
+                    <select class="form-select" formControlName="unit">
+                      <option value="pcs">pcs</option>
+                      <option value="botol">botol</option>
+                      <option value="bungkus">bungkus</option>
+                      <option value="kg">kg</option>
+                      <option value="gram">gram</option>
+                      <option value="liter">liter</option>
+                      <option value="lusin">lusin</option>
+                      <option value="dus">dus</option>
+                      <option value="karton">karton</option>
+                    </select>
+                  </div>
+
+                  <div class="col-12">
+                    <label class="form-label fw-semibold">Deskripsi</label>
+                    <textarea class="form-control" formControlName="description"
+                      rows="3" placeholder="Deskripsi produk (opsional)"></textarea>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Harga -->
+          <div class="col-12">
+            <div class="card border-0 shadow-sm">
+              <div class="card-header bg-white py-3">
+                <h6 class="fw-bold mb-0">
+                  <i class="bi bi-cash-coin me-2 text-primary"></i>Harga
+                </h6>
+              </div>
+              <div class="card-body">
+                <div class="row g-3">
+
+                  <div class="col-12 col-md-6">
+                    <label class="form-label fw-semibold">Harga Beli <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                      <span class="input-group-text">Rp</span>
+                      <input type="number" class="form-control" formControlName="buyPrice"
+                        min="0" [class.is-invalid]="isInvalid('buyPrice')" />
+                      <div class="invalid-feedback">Harga beli tidak valid</div>
+                    </div>
+                  </div>
+
+                  <div class="col-12 col-md-6">
+                    <label class="form-label fw-semibold">Harga Jual <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                      <span class="input-group-text">Rp</span>
+                      <input type="number" class="form-control" formControlName="sellPrice"
+                        min="1" [class.is-invalid]="isInvalid('sellPrice')" />
+                      <div class="invalid-feedback">Harga jual harus lebih dari 0</div>
+                    </div>
+                  </div>
+
+                  <!-- Profit Preview -->
+                  <div class="col-12">
+                    <div class="profit-preview" [class.profit-positive]="profit > 0" [class.profit-negative]="profit < 0">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-semibold">Estimasi Keuntungan</span>
+                        <div class="text-end">
+                          <span class="fw-bold fs-5">
+                            Rp {{ profit | number }}
+                          </span>
+                          <span class="ms-2 badge" [class.bg-success]="profit > 0" [class.bg-danger]="profit <= 0">
+                            {{ profitPercent }}%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stok -->
+          <div class="col-12">
+            <div class="card border-0 shadow-sm">
+              <div class="card-header bg-white py-3">
+                <h6 class="fw-bold mb-0">
+                  <i class="bi bi-box-seam me-2 text-primary"></i>Stok
+                </h6>
+              </div>
+              <div class="card-body">
+                <div class="row g-3">
+
+                  <div class="col-12 col-md-6">
+                    <label class="form-label fw-semibold">Stok Awal <span class="text-danger">*</span></label>
+                    <input type="number" class="form-control" formControlName="stock"
+                      min="0" [class.is-invalid]="isInvalid('stock')" />
+                    <div class="invalid-feedback">Stok tidak boleh negatif</div>
+                  </div>
+
+                  <div class="col-12 col-md-6">
+                    <label class="form-label fw-semibold">Stok Minimum <span class="text-danger">*</span></label>
+                    <input type="number" class="form-control" formControlName="minStock" min="0" />
+                    <div class="form-text">Peringatan akan muncul jika stok ≤ nilai ini</div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="col-12 d-flex gap-3 justify-content-end pb-4">
+            <a routerLink="/products" class="btn btn-outline-secondary px-4">
+              Batal
+            </a>
+            <button type="submit" class="btn btn-primary px-4" [disabled]="isSubmitting">
+              <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
+              <i *ngIf="!isSubmitting" class="bi bi-check-lg me-2"></i>
+              {{ isEditMode ? 'Simpan Perubahan' : 'Tambah Produk' }}
+            </button>
+          </div>
+
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>

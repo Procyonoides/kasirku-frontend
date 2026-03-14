@@ -1,0 +1,90 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AuthService } from '../../core/auth/auth.service';
+
+@Component({
+  selector: 'app-settings',
+  standalone: true,
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  templateUrl: './settings.component.html',
+  styleUrl: './settings.component.css'
+})
+export class SettingsComponent implements OnInit {
+  activeTab: 'profile' | 'password' = 'profile';
+
+  profileForm!: FormGroup;
+  passwordForm!: FormGroup;
+
+  profileSubmitting = false;
+  profileSuccess = false;
+  profileError = '';
+
+  passwordSubmitting = false;
+  passwordSuccess = false;
+  passwordError = '';
+
+  showCurrentPassword = false;
+  showNewPassword = false;
+  showConfirmPassword = false;
+
+  constructor(
+    private fb: FormBuilder,
+    public authService: AuthService
+  ) {}
+
+  ngOnInit() {
+    const user = this.authService.currentUser();
+    this.profileForm = this.fb.group({
+      name: [user?.name || '', [Validators.required, Validators.minLength(2)]],
+      username: [user?.username || '', [Validators.required, Validators.minLength(3)]],
+      email: [user?.email || '', [Validators.email]],
+    });
+
+    this.passwordForm = this.fb.group({
+      currentPassword: ['', Validators.required],
+      newPassword: ['', [Validators.required, Validators.minLength(6)]],
+      confirmPassword: ['', Validators.required],
+    }, { validators: this.passwordMatchValidator });
+  }
+
+  passwordMatchValidator(group: FormGroup) {
+    const np = group.get('newPassword')?.value;
+    const cp = group.get('confirmPassword')?.value;
+    return np === cp ? null : { mismatch: true };
+  }
+
+  isInvalid(form: FormGroup, field: string): boolean {
+    const c = form.get(field);
+    return !!(c?.invalid && c?.touched);
+  }
+
+  submitProfile() {
+    if (this.profileForm.invalid) { this.profileForm.markAllAsTouched(); return; }
+    this.profileSubmitting = true;
+    this.profileSuccess = false;
+    this.profileError = '';
+
+    // TODO: panggil API update profile jika sudah ada endpoint-nya
+    setTimeout(() => {
+      this.profileSubmitting = false;
+      this.profileSuccess = true;
+      setTimeout(() => this.profileSuccess = false, 3000);
+    }, 800);
+  }
+
+  submitPassword() {
+    if (this.passwordForm.invalid) { this.passwordForm.markAllAsTouched(); return; }
+    this.passwordSubmitting = true;
+    this.passwordSuccess = false;
+    this.passwordError = '';
+
+    // TODO: panggil API change password jika sudah ada endpoint-nya
+    setTimeout(() => {
+      this.passwordSubmitting = false;
+      this.passwordSuccess = true;
+      this.passwordForm.reset();
+      setTimeout(() => this.passwordSuccess = false, 3000);
+    }, 800);
+  }
+}

@@ -1,0 +1,160 @@
+<div class="container-fluid py-4">
+
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h4 class="fw-bold mb-1" style="color: #1e3a5f">Dashboard</h4>
+      <p class="text-muted small mb-0">Selamat datang! Ini ringkasan toko hari ini.</p>
+    </div>
+    <a routerLink="/pos" class="btn btn-primary">
+      <i class="bi bi-cart-plus me-2"></i>Transaksi Baru
+    </a>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary"></div>
+    <p class="mt-2 text-muted">Memuat data...</p>
+  </div>
+
+  <div *ngIf="!isLoading && stats">
+
+    <!-- Stat Cards -->
+    <div class="row g-3 mb-4">
+      <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card stat-blue">
+          <div class="stat-icon"><i class="bi bi-graph-up-arrow"></i></div>
+          <div>
+            <div class="stat-label">Omzet Hari Ini</div>
+            <div class="stat-value">{{ stats.today.revenue | rupiah }}</div>
+            <div class="stat-sub">{{ stats.today.transactions }} transaksi</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card stat-green">
+          <div class="stat-icon"><i class="bi bi-currency-dollar"></i></div>
+          <div>
+            <div class="stat-label">Profit Hari Ini</div>
+            <div class="stat-value">{{ stats.today.profit | rupiah }}</div>
+            <div class="stat-sub">Bulan: {{ stats.month.revenue | rupiah }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card stat-orange">
+          <div class="stat-icon"><i class="bi bi-box-seam"></i></div>
+          <div>
+            <div class="stat-label">Total Produk</div>
+            <div class="stat-value">{{ stats.inventory.total }}</div>
+            <div class="stat-sub">
+              <span *ngIf="stats.inventory.lowStock > 0" class="text-warning">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                {{ stats.inventory.lowStock }} menipis
+              </span>
+              <span *ngIf="stats.inventory.lowStock === 0">Semua stok aman</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-sm-6 col-xl-3">
+        <div class="stat-card stat-purple">
+          <div class="stat-icon"><i class="bi bi-people"></i></div>
+          <div>
+            <div class="stat-label">Total Pelanggan</div>
+            <div class="stat-value">{{ stats.customers.total }}</div>
+            <div class="stat-sub">
+              <span *ngIf="stats.customers.debtors > 0" class="text-warning">
+                <i class="bi bi-exclamation-circle-fill"></i>
+                {{ stats.customers.debtors }} berhutang
+              </span>
+              <span *ngIf="stats.customers.debtors === 0">Tidak ada hutang</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart + Recent -->
+    <div class="row g-3 mb-3">
+
+      <!-- Sales Chart -->
+      <div class="col-12 col-xl-7">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
+            <h6 class="fw-bold mb-0">
+              <i class="bi bi-bar-chart-line me-2 text-primary"></i>Grafik Penjualan
+            </h6>
+            <div class="btn-group btn-group-sm">
+              <button class="btn" [class.btn-primary]="selectedPeriod==='7d'" [class.btn-outline-primary]="selectedPeriod!=='7d'" (click)="changePeriod('7d')">7 Hari</button>
+              <button class="btn" [class.btn-primary]="selectedPeriod==='30d'" [class.btn-outline-primary]="selectedPeriod!=='30d'" (click)="changePeriod('30d')">30 Hari</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div *ngIf="salesChart.length === 0" class="text-center py-4 text-muted">
+              <i class="bi bi-bar-chart fs-1 d-block mb-2"></i>
+              Belum ada data penjualan
+            </div>
+            <div *ngIf="salesChart.length > 0" class="chart-container">
+              <div class="chart-bars">
+                <div *ngFor="let item of salesChart" class="chart-bar-wrap" [title]="item._id + ': ' + (item.revenue | rupiah)">
+                  <div class="chart-bar-value">{{ item.revenue | rupiah:false }}</div>
+                  <div class="chart-bar" [style.height.%]="(item.revenue / getMaxRevenue()) * 100"></div>
+                  <div class="chart-bar-label">{{ item._id | slice:5 }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Transactions -->
+      <div class="col-12 col-xl-5">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
+            <h6 class="fw-bold mb-0">
+              <i class="bi bi-receipt me-2 text-primary"></i>Transaksi Terbaru
+            </h6>
+            <a routerLink="/transactions" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
+          </div>
+          <div class="card-body p-0">
+            <div *ngIf="recentTransactions.length === 0" class="text-center py-4 text-muted">
+              <i class="bi bi-receipt fs-1 d-block mb-2"></i>
+              Belum ada transaksi
+            </div>
+            <div *ngFor="let tx of recentTransactions" class="transaction-item px-3 py-2 border-bottom">
+              <div class="d-flex align-items-center gap-3">
+                <div class="tx-icon">
+                  <i class="bi {{ getPaymentIcon(tx.paymentMethod) }}"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <div class="fw-semibold small">{{ tx.invoiceNumber }}</div>
+                  <div class="text-muted" style="font-size:12px">{{ tx.customerName }}</div>
+                </div>
+                <div class="text-end">
+                  <div class="fw-bold small" style="color:#1e3a5f">{{ tx.grandTotal | rupiah }}</div>
+                  <span class="badge" [ngClass]="getStatusBadge(tx.status)">{{ tx.status }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Low Stock Alert -->
+    <div class="row" *ngIf="stats.inventory.lowStock > 0">
+      <div class="col-12">
+        <div class="alert alert-warning d-flex justify-content-between align-items-center">
+          <div>
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>Peringatan Stok!</strong> Ada {{ stats.inventory.lowStock }} produk dengan stok menipis.
+          </div>
+          <a routerLink="/products" class="btn btn-sm btn-warning">Lihat Produk</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

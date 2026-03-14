@@ -1,0 +1,158 @@
+<div class="container-fluid py-4">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h4 class="fw-bold mb-1" style="color: #1e3a5f">Riwayat Transaksi</h4>
+      <p class="text-muted small mb-0">Total {{ totalItems }} transaksi</p>
+    </div>
+    <a routerLink="/pos" class="btn btn-primary">
+      <i class="bi bi-cart-plus me-2"></i>Transaksi Baru
+    </a>
+  </div>
+
+  <!-- Summary Card -->
+  <div class="summary-bar mb-4">
+    <div class="summary-item">
+      <div class="summary-label">Total Transaksi</div>
+      <div class="summary-value">{{ totalItems }}</div>
+    </div>
+    <div class="summary-divider"></div>
+    <div class="summary-item">
+      <div class="summary-label">Pendapatan (Selesai)</div>
+      <div class="summary-value text-success">{{ getTotalRevenue() | rupiah }}</div>
+    </div>
+    <div class="summary-divider"></div>
+    <div class="summary-item">
+      <div class="summary-label">Ditampilkan</div>
+      <div class="summary-value">{{ transactions.length }} data</div>
+    </div>
+  </div>
+
+  <!-- Filter -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-12 col-md-3">
+          <label class="form-label small fw-semibold text-muted">Dari Tanggal</label>
+          <input type="date" class="form-control" [(ngModel)]="dateFrom" />
+        </div>
+        <div class="col-12 col-md-3">
+          <label class="form-label small fw-semibold text-muted">Sampai Tanggal</label>
+          <input type="date" class="form-control" [(ngModel)]="dateTo" />
+        </div>
+        <div class="col-12 col-md-3">
+          <label class="form-label small fw-semibold text-muted">Status</label>
+          <select class="form-select" [(ngModel)]="selectedStatus">
+            <option value="">Semua Status</option>
+            <option value="selesai">Selesai</option>
+            <option value="hutang">Hutang</option>
+            <option value="dibatalkan">Dibatalkan</option>
+          </select>
+        </div>
+        <div class="col-12 col-md-3 d-flex align-items-end gap-2">
+          <button class="btn btn-primary flex-grow-1" (click)="onFilter()">
+            <i class="bi bi-funnel me-1"></i>Filter
+          </button>
+          <button class="btn btn-outline-secondary" (click)="resetFilter()">
+            <i class="bi bi-arrow-counterclockwise"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+
+      <div *ngIf="isLoading" class="text-center py-5">
+        <div class="spinner-border text-primary"></div>
+        <p class="mt-2 text-muted">Memuat data...</p>
+      </div>
+
+      <div *ngIf="!isLoading && transactions.length === 0" class="text-center py-5 text-muted">
+        <i class="bi bi-receipt fs-1 d-block mb-2"></i>
+        <p>Tidak ada transaksi pada periode ini</p>
+        <a routerLink="/pos" class="btn btn-primary btn-sm">Buat Transaksi</a>
+      </div>
+
+      <div *ngIf="!isLoading && transactions.length > 0" class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-4">Invoice</th>
+              <th>Pelanggan</th>
+              <th>Pembayaran</th>
+              <th>Items</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Waktu</th>
+              <th class="text-center">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let tx of transactions">
+              <td class="ps-4">
+                <span class="fw-semibold" style="color:#1e3a5f">{{ tx.invoiceNumber }}</span>
+              </td>
+              <td>{{ tx.customerName || 'Umum' }}</td>
+              <td>
+                <i class="bi {{ getPaymentIcon(tx.paymentMethod) }} me-1 text-primary"></i>
+                {{ tx.paymentMethod | titlecase }}
+              </td>
+              <td>
+                <span class="badge bg-light text-dark border">
+                  {{ tx.items?.length || 0 }} item
+                </span>
+              </td>
+              <td class="fw-semibold">{{ tx.grandTotal | rupiah }}</td>
+              <td>
+                <span class="badge" [ngClass]="getStatusClass(tx.status)">
+                  {{ tx.status | titlecase }}
+                </span>
+              </td>
+              <td class="text-muted small">
+                {{ tx.createdAt | date:'dd/MM HH:mm' }}
+              </td>
+              <td class="text-center">
+                <button
+                  *ngIf="tx.status === 'selesai' || tx.status === 'hutang'"
+                  class="btn btn-sm btn-outline-danger"
+                  (click)="cancelTransaction(tx._id, tx.invoiceNumber)"
+                  title="Batalkan">
+                  <i class="bi bi-x-circle"></i>
+                </button>
+                <span *ngIf="tx.status === 'dibatalkan'" class="text-muted small">-</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div *ngIf="!isLoading && totalPages > 1"
+        class="d-flex justify-content-between align-items-center px-4 py-3 border-top">
+        <small class="text-muted">Halaman {{ currentPage }} dari {{ totalPages }}</small>
+        <nav>
+          <ul class="pagination pagination-sm mb-0">
+            <li class="page-item" [class.disabled]="currentPage === 1">
+              <button class="page-link" (click)="changePage(currentPage - 1)">
+                <i class="bi bi-chevron-left"></i>
+              </button>
+            </li>
+            <li class="page-item active">
+              <span class="page-link">{{ currentPage }}</span>
+            </li>
+            <li class="page-item" [class.disabled]="currentPage === totalPages">
+              <button class="page-link" (click)="changePage(currentPage + 1)">
+                <i class="bi bi-chevron-right"></i>
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+
+    </div>
+  </div>
+</div>

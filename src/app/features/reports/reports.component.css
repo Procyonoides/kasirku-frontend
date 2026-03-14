@@ -1,0 +1,67 @@
+.report-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.report-tab {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1.5px solid #e2e8f0;
+  background: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #64748b;
+}
+.report-tab:hover { border-color: #2563eb; color: #2563eb; }
+.report-tab.active { background: #2563eb; color: white; border-color: #2563eb; }
+
+.report-stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  border-left: 4px solid #2563eb;
+}
+.stat-green { border-left-color: #16a34a; }
+.stat-red   { border-left-color: #dc2626; }
+.stat-blue  { border-left-color: #2563eb; }
+
+.rsc-label { font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+.rsc-value { font-size: 22px; font-weight: 700; color: #1e3a5f; margin-top: 4px; }
+.rsc-sub   { font-size: 12px; color: #64748b; margin-top: 2px; }
+
+.table th {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748b;
+  font-weight: 600;
+  border-bottom: 2px solid #e2e8f0;
+}
+.table td { font-size: 14px; border-color: #f1f5f9; }
+
+.top-product-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+.top-product-row:last-child { border-bottom: none; }
+
+.top-rank {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 14px;
+  flex-shrink: 0;
+}
+.rank-gold   { background: #fef9c3; color: #854d0e; }
+.rank-silver { background: #f1f5f9; color: #475569; }
+.rank-bronze { background: #fef3c7; color: #92400e; }
+
+.top-revenue { font-weight: 700; color: #1e3a5f; min-width: 100px; text-align: right; font-size: 14px; }

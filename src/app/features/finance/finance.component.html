@@ -1,0 +1,209 @@
+<div class="container-fluid py-4">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h4 class="fw-bold mb-1" style="color: #1e3a5f">Catatan Keuangan</h4>
+      <p class="text-muted small mb-0">Kelola pemasukan dan pengeluaran</p>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-success" (click)="openModal('income')">
+        <i class="bi bi-plus-circle me-2"></i>Pemasukan
+      </button>
+      <button class="btn btn-danger" (click)="openModal('expense')">
+        <i class="bi bi-dash-circle me-2"></i>Pengeluaran
+      </button>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="row g-3 mb-4" *ngIf="summary">
+    <div class="col-12 col-md-4">
+      <div class="finance-card finance-income">
+        <div class="finance-icon"><i class="bi bi-arrow-down-circle"></i></div>
+        <div>
+          <div class="finance-label">Total Pemasukan</div>
+          <div class="finance-value">{{ summary.totalIncome | rupiah }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="finance-card finance-expense">
+        <div class="finance-icon"><i class="bi bi-arrow-up-circle"></i></div>
+        <div>
+          <div class="finance-label">Total Pengeluaran</div>
+          <div class="finance-value">{{ summary.totalExpense | rupiah }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="finance-card" [class.finance-profit]="summary.balance >= 0" [class.finance-loss]="summary.balance < 0">
+        <div class="finance-icon"><i class="bi bi-wallet2"></i></div>
+        <div>
+          <div class="finance-label">Saldo Bersih</div>
+          <div class="finance-value">{{ summary.balance | rupiah }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-12 col-md-3">
+          <label class="form-label small fw-semibold text-muted">Dari Tanggal</label>
+          <input type="date" class="form-control" [(ngModel)]="dateFrom" />
+        </div>
+        <div class="col-12 col-md-3">
+          <label class="form-label small fw-semibold text-muted">Sampai Tanggal</label>
+          <input type="date" class="form-control" [(ngModel)]="dateTo" />
+        </div>
+        <div class="col-12 col-md-3">
+          <label class="form-label small fw-semibold text-muted">Jenis</label>
+          <select class="form-select" [(ngModel)]="selectedType">
+            <option value="">Semua</option>
+            <option value="income">Pemasukan</option>
+            <option value="expense">Pengeluaran</option>
+          </select>
+        </div>
+        <div class="col-12 col-md-3 d-flex align-items-end gap-2">
+          <button class="btn btn-primary flex-grow-1" (click)="onFilter()">
+            <i class="bi bi-funnel me-1"></i>Filter
+          </button>
+          <button class="btn btn-outline-secondary" (click)="resetFilter()">
+            <i class="bi bi-arrow-counterclockwise"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+
+      <div *ngIf="isLoading" class="text-center py-5">
+        <div class="spinner-border text-primary"></div>
+        <p class="mt-2 text-muted">Memuat data...</p>
+      </div>
+
+      <div *ngIf="!isLoading && records.length === 0" class="text-center py-5 text-muted">
+        <i class="bi bi-wallet2 fs-1 d-block mb-2"></i>
+        <p>Belum ada catatan keuangan</p>
+      </div>
+
+      <div *ngIf="!isLoading && records.length > 0" class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-4">Tanggal</th>
+              <th>Jenis</th>
+              <th>Kategori</th>
+              <th>Keterangan</th>
+              <th>Nominal</th>
+              <th class="text-center">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of records">
+              <td class="ps-4 text-muted small">{{ r.date | date:'dd MMM yyyy' }}</td>
+              <td>
+                <span class="badge" [ngClass]="getTypeClass(r.type)">
+                  {{ getTypeLabel(r.type) }}
+                </span>
+              </td>
+              <td class="fw-semibold">{{ r.category }}</td>
+              <td class="text-muted small">{{ r.description || '-' }}</td>
+              <td>
+                <span class="fw-bold" [class.text-success]="r.type === 'income'" [class.text-danger]="r.type === 'expense'">
+                  {{ r.type === 'income' ? '+' : '-' }}{{ r.amount | rupiah }}
+                </span>
+              </td>
+              <td class="text-center">
+                <button class="btn btn-sm btn-outline-danger" (click)="deleteRecord(r._id)">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div *ngIf="!isLoading && totalPages > 1"
+        class="d-flex justify-content-between align-items-center px-4 py-3 border-top">
+        <small class="text-muted">Halaman {{ currentPage }} dari {{ totalPages }}</small>
+        <nav>
+          <ul class="pagination pagination-sm mb-0">
+            <li class="page-item" [class.disabled]="currentPage === 1">
+              <button class="page-link" (click)="changePage(currentPage - 1)">
+                <i class="bi bi-chevron-left"></i>
+              </button>
+            </li>
+            <li class="page-item active">
+              <span class="page-link">{{ currentPage }}</span>
+            </li>
+            <li class="page-item" [class.disabled]="currentPage === totalPages">
+              <button class="page-link" (click)="changePage(currentPage + 1)">
+                <i class="bi bi-chevron-right"></i>
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-backdrop-custom" *ngIf="showModal" (click)="closeModal()"></div>
+<div class="modal-custom" *ngIf="showModal">
+  <div class="modal-custom-dialog">
+    <div class="modal-custom-header">
+      <h6 class="fw-bold mb-0">
+        <i class="bi me-2" [class.bi-plus-circle]="formType === 'income'" [class.bi-dash-circle]="formType === 'expense'"></i>
+        {{ formType === 'income' ? 'Tambah Pemasukan' : 'Tambah Pengeluaran' }}
+      </h6>
+      <button class="btn-close-custom" (click)="closeModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="modal-custom-body">
+      <div *ngIf="formError" class="alert alert-danger py-2 small">
+        <i class="bi bi-exclamation-circle me-1"></i>{{ formError }}
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Tanggal</label>
+        <input type="date" class="form-control" [(ngModel)]="formDate" />
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Kategori <span class="text-danger">*</span></label>
+        <select class="form-select" [(ngModel)]="formCategory">
+          <option value="">-- Pilih Kategori --</option>
+          <option *ngFor="let cat of currentCategories" [value]="cat">{{ cat }}</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Nominal <span class="text-danger">*</span></label>
+        <div class="input-group">
+          <span class="input-group-text">Rp</span>
+          <input type="number" class="form-control" [(ngModel)]="formAmount" min="1" placeholder="0" />
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Keterangan</label>
+        <textarea class="form-control" [(ngModel)]="formDescription" rows="2" placeholder="Keterangan (opsional)"></textarea>
+      </div>
+    </div>
+    <div class="modal-custom-footer">
+      <button class="btn btn-outline-secondary" (click)="closeModal()">Batal</button>
+      <button class="btn" [class.btn-success]="formType === 'income'" [class.btn-danger]="formType === 'expense'"
+        (click)="submitForm()" [disabled]="formSubmitting">
+        <span *ngIf="formSubmitting" class="spinner-border spinner-border-sm me-1"></span>
+        Simpan
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,56 @@
+<div class="d-flex" style="min-height: 100vh;">
+
+  <!-- Sidebar -->
+  <div class="sidebar" [style.width]="isSidebarOpen() ? '240px' : '64px'">
+    <div class="sidebar-header">
+      <span class="sidebar-logo">🏪</span>
+      <span class="sidebar-title" *ngIf="isSidebarOpen()">KasirKu</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a *ngFor="let item of menuItems"
+        [routerLink]="item.path"
+        routerLinkActive="active"
+        class="nav-item">
+        <i class="bi {{ item.icon }}"></i>
+        <span *ngIf="isSidebarOpen()" class="nav-label">{{ item.label }}</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-avatar">
+        {{ authService.currentUser()?.name?.charAt(0)?.toUpperCase() }}
+      </div>
+      <ng-container *ngIf="isSidebarOpen()">
+        <div class="user-details ms-2 flex-grow-1 overflow-hidden">
+          <div class="user-name">{{ authService.currentUser()?.name }}</div>
+          <div class="user-role">{{ authService.currentUser()?.role }}</div>
+        </div>
+        <button class="btn-logout" (click)="logout()">
+          <i class="bi bi-box-arrow-right"></i>
+        </button>
+      </ng-container>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="flex-grow-1 d-flex flex-column" style="min-width: 0; overflow: hidden;">
+
+    <!-- Topbar -->
+    <div class="topbar d-flex align-items-center justify-content-between px-4">
+      <button class="btn-toggle" (click)="toggleSidebar()">
+        <i class="bi bi-list"></i>
+      </button>
+      <span class="topbar-date">
+        <i class="bi bi-calendar3 me-1"></i>
+        {{ today | date:'EEEE, d MMMM y' : '' : 'id' }}
+      </span>
+    </div>
+
+    <!-- Page Content -->
+    <div class="page-content flex-grow-1">
+      <router-outlet></router-outlet>
+    </div>
+
+  </div>
+</div>

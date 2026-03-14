@@ -1,0 +1,54 @@
+<div class="login-wrapper">
+  <div class="login-card">
+
+    <div class="login-header">
+      <div class="logo">🏪</div><br/>
+      <h1>KasirKu</h1>
+      <p>Masuk ke akun Anda</p>
+    </div>
+
+    <div class="error-box" *ngIf="errorMessage">
+      ⚠️ {{ errorMessage }}
+    </div>
+
+    <form (ngSubmit)="onLogin()">
+
+      <div class="form-group">
+        <label>Username</label>
+        <input
+            type="text"
+            [(ngModel)]="username"
+            name="username"
+            placeholder="Masukkan username"
+            [disabled]="isLoading"
+        />
+    </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <div class="input-password">
+          <input
+            [type]="showPassword ? 'text' : 'password'"
+            [(ngModel)]="password"
+            name="password"
+            placeholder="••••••••"
+            [disabled]="isLoading"
+          />
+          <button type="button" class="toggle-pw" (click)="togglePassword()">
+            {{ showPassword ? '🙈' : '👁️' }}
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-login" [disabled]="isLoading">
+        {{ isLoading ? 'Memproses...' : 'Masuk' }}
+      </button>
+
+    </form>
+
+    <div class="login-footer">
+      <small>KasirKu v1.0 &mdash; Sistem Kasir & Keuangan</small>
+    </div>
+
+  </div>
+</div>

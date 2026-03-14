@@ -1,0 +1,126 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule, NgClass } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { CustomerService } from '../../../core/services/api.service';
+import { Customer } from '../../../shared/models';
+import { RupiahPipe } from '../../../shared/pipes';
+
+@Component({
+  selector: 'app-customer-list',
+  standalone: true,
+  imports: [CommonModule, NgClass, RouterLink, FormsModule, RupiahPipe],
+  templateUrl: './customer-list.component.html',
+  styleUrl: './customer-list.component.css'
+})
+export class CustomerListComponent implements OnInit {
+  customers: Customer[] = [];
+  isLoading = true;
+  searchQuery = '';
+  filterDebt = false;
+  currentPage = 1;
+  totalPages = 1;
+  totalItems = 0;
+  showModal = false;
+  modalMode: 'add' | 'edit' = 'add';
+  selectedCustomer: Customer | null = null;
+
+  // Form fields
+  formName = '';
+  formPhone = '';
+  formAddress = '';
+  formError = '';
+  formSubmitting = false;
+
+  constructor(private customerService: CustomerService) {}
+
+  ngOnInit() { this.loadCustomers(); }
+
+  loadCustomers() {
+    this.isLoading = true;
+    const params: any = { page: this.currentPage, limit: 20 };
+    if (this.searchQuery) params.search = this.searchQuery;
+
+    const req = this.filterDebt
+      ? this.customerService.getDebtors()
+      : this.customerService.getAll(params);
+
+    req.subscribe({
+      next: (res) => {
+        this.customers = res.data;
+        this.totalItems = res.pagination?.total || res.data.length;
+        this.totalPages = res.pagination?.pages || 1;
+        this.isLoading = false;
+      },
+      error: () => { this.isLoading = false; }
+    });
+  }
+
+  onSearch() { this.currentPage = 1; this.loadCustomers(); }
+
+  toggleDebtFilter() {
+    this.filterDebt = !this.filterDebt;
+    this.currentPage = 1;
+    this.loadCustomers();
+  }
+
+  changePage(page: number) {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+    this.loadCustomers();
+  }
+
+  openAdd() {
+    this.modalMode = 'add';
+    this.formName = '';
+    this.formPhone = '';
+    this.formAddress = '';
+    this.formError = '';
+    this.selectedCustomer = null;
+    this.showModal = true;
+  }
+
+  openEdit(customer: Customer) {
+    this.modalMode = 'edit';
+    this.formName = customer.name;
+    this.formPhone = customer.phone || '';
+    this.formAddress = customer.address || '';
+    this.formError = '';
+    this.selectedCustomer = customer;
+    this.showModal = true;
+  }
+
+  closeModal() { this.showModal = false; }
+
+  submitForm() {
+    if (!this.formName.trim()) { this.formError = 'Nama pelanggan wajib diisi'; return; }
+    this.formSubmitting = true;
+    this.formError = '';
+
+    const data = { name: this.formName, phone: this.formPhone, address: this.formAddress };
+
+    const req = this.modalMode === 'add'
+      ? this.customerService.create(data)
+      : this.customerService.update(this.selectedCustomer!._id, data);
+
+    req.subscribe({
+      next: () => { this.showModal = false; this.formSubmitting = false; this.loadCustomers(); },
+      error: (err) => { this.formError = err?.error?.message || 'Terjadi kesalahan'; this.formSubmitting = false; }
+    });
+  }
+
+  deleteCustomer(id: string, name: string) {
+    if (!confirm(`Hapus pelanggan "${name}"?`)) return;
+    this.customerService.delete(id).subscribe({ next: () => this.loadCustomers() });
+  }
+
+  getTierBadge(tier: string): string {
+    const map: Record<string, string> = {
+      regular: 'bg-secondary',
+      silver: 'badge-silver',
+      gold: 'badge-gold',
+      platinum: 'badge-platinum'
+    };
+    return map[tier] || 'bg-secondary';
+  }
+}
