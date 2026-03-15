@@ -1,1 +1,190 @@
-<p>customer-detail works!</p>
+<div class="container-fluid py-4">
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary"></div>
+  </div>
+
+  <div *ngIf="!isLoading && customer">
+
+    <!-- Header -->
+    <div class="d-flex align-items-center gap-3 mb-4">
+      <a routerLink="/customers" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i>
+      </a>
+      <div>
+        <h4 class="fw-bold mb-0" style="color: #1e3a5f">Detail Pelanggan</h4>
+        <p class="text-muted small mb-0">Riwayat transaksi dan hutang</p>
+      </div>
+    </div>
+
+    <div class="row g-4">
+
+      <!-- Profile Card -->
+      <div class="col-12 col-md-4">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body text-center py-4">
+            <div class="customer-avatar mx-auto mb-3">
+              {{ customer.name.charAt(0).toUpperCase() }}
+            </div>
+            <h5 class="fw-bold mb-1">{{ customer.name }}</h5>
+            <span class="badge mb-3" [ngClass]="getTierBadge(customer.customerTier)">
+              {{ customer.customerTier | titlecase }}
+            </span>
+            <div class="customer-info-list">
+              <div class="customer-info-item" *ngIf="customer.phone">
+                <i class="bi bi-telephone text-primary"></i>
+                <span>{{ customer.phone }}</span>
+              </div>
+              <div class="customer-info-item" *ngIf="customer.address">
+                <i class="bi bi-geo-alt text-primary"></i>
+                <span>{{ customer.address }}</span>
+              </div>
+              <div class="customer-info-item">
+                <i class="bi bi-calendar text-primary"></i>
+                <span>Bergabung {{ customer.createdAt | date:'dd MMM yyyy' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="card border-0 shadow-sm mt-3">
+          <div class="card-body">
+            <h6 class="fw-bold mb-3">Statistik</h6>
+            <div class="stat-row">
+              <span class="text-muted small">Total Belanja</span>
+              <span class="fw-bold">{{ customer.totalSpent | rupiah }}</span>
+            </div>
+            <div class="stat-row">
+              <span class="text-muted small">Total Transaksi</span>
+              <span class="fw-bold">{{ customer.totalTransactions }}</span>
+            </div>
+            <div class="stat-row">
+              <span class="text-muted small">Poin</span>
+              <span class="fw-bold text-warning">{{ customer.points }} poin</span>
+            </div>
+            <div class="stat-row" *ngIf="customer.currentDebt > 0">
+              <span class="text-muted small">Hutang</span>
+              <span class="fw-bold text-danger">{{ customer.currentDebt | rupiah }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Debt Warning -->
+        <div class="alert alert-danger mt-3" *ngIf="customer.currentDebt > 0">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          <strong>Ada hutang!</strong><br>
+          <span class="small">Total hutang: {{ customer.currentDebt | rupiah }}</span>
+          <div class="mt-2">
+            <button class="btn btn-sm btn-danger w-100"
+              *ngIf="getDebtTransactions().length > 0"
+              (click)="openPayDebt(getDebtTransactions()[0])">
+              <i class="bi bi-cash-coin me-1"></i>Bayar Hutang
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transaction History -->
+      <div class="col-12 col-md-8">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-white py-3">
+            <h6 class="fw-bold mb-0">
+              <i class="bi bi-receipt me-2 text-primary"></i>Riwayat Transaksi
+            </h6>
+          </div>
+          <div class="card-body p-0">
+            <div *ngIf="transactions.length === 0" class="text-center py-5 text-muted">
+              <i class="bi bi-receipt fs-1 d-block mb-2"></i>
+              Belum ada transaksi
+            </div>
+            <div class="table-responsive" *ngIf="transactions.length > 0">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th class="ps-4">Invoice</th>
+                    <th>Total</th>
+                    <th>Pembayaran</th>
+                    <th>Status</th>
+                    <th>Tanggal</th>
+                    <th class="text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let tx of transactions">
+                    <td class="ps-4 fw-semibold" style="color:#1e3a5f">{{ tx.invoiceNumber }}</td>
+                    <td>{{ tx.grandTotal | rupiah }}</td>
+                    <td>{{ tx.paymentMethod | titlecase }}</td>
+                    <td>
+                      <span class="badge" [ngClass]="getStatusClass(tx.status)">
+                        {{ tx.status | titlecase }}
+                      </span>
+                    </td>
+                    <td class="text-muted small">{{ tx.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                    <td class="text-center">
+                      <button *ngIf="tx.status === 'hutang'"
+                        class="btn btn-sm btn-warning"
+                        (click)="openPayDebt(tx)">
+                        <i class="bi bi-cash-coin me-1"></i>Bayar
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Pay Debt Modal -->
+<div class="modal-backdrop-custom" *ngIf="showPayDebtModal" (click)="closePayDebt()"></div>
+<div class="modal-custom" *ngIf="showPayDebtModal">
+  <div class="modal-custom-dialog">
+    <div class="modal-custom-header">
+      <h6 class="fw-bold mb-0">
+        <i class="bi bi-cash-coin me-2 text-warning"></i>Bayar Hutang
+      </h6>
+      <button class="btn-close-custom" (click)="closePayDebt()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="modal-custom-body">
+      <div *ngIf="payError" class="alert alert-danger py-2 small">{{ payError }}</div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Invoice</label>
+        <input type="text" class="form-control" [value]="selectedDebtTx?.invoiceNumber" disabled />
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Total Hutang</label>
+        <input type="text" class="form-control" [value]="selectedDebtTx?.grandTotal | rupiah" disabled />
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Nominal Bayar <span class="text-danger">*</span></label>
+        <div class="input-group">
+          <span class="input-group-text">Rp</span>
+          <input type="number" class="form-control" [(ngModel)]="payAmount" min="1" />
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Metode Pembayaran</label>
+        <select class="form-select" [(ngModel)]="payMethod">
+          <option value="tunai">Tunai</option>
+          <option value="transfer">Transfer</option>
+          <option value="qris">QRIS</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-custom-footer">
+      <button class="btn btn-outline-secondary" (click)="closePayDebt()">Batal</button>
+      <button class="btn btn-warning" (click)="submitPayDebt()" [disabled]="paySubmitting">
+        <span *ngIf="paySubmitting" class="spinner-border spinner-border-sm me-1"></span>
+        Bayar
+      </button>
+    </div>
+  </div>
+</div>

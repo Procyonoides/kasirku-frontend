@@ -1,0 +1,137 @@
+<div class="container-fluid py-4">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h4 class="fw-bold mb-1" style="color: #1e3a5f">Manajemen User</h4>
+      <p class="text-muted small mb-0">Kelola akun dan hak akses pengguna</p>
+    </div>
+    <button class="btn btn-primary" (click)="openAdd()">
+      <i class="bi bi-person-plus me-2"></i>Tambah User
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary"></div>
+  </div>
+
+  <!-- User Cards -->
+  <div *ngIf="!isLoading" class="row g-3">
+    <div *ngFor="let user of users" class="col-12 col-md-6 col-xl-4">
+      <div class="user-card" [class.inactive]="!user.isActive">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="user-avatar">{{ user.name.charAt(0).toUpperCase() }}</div>
+          <div class="flex-grow-1">
+            <div class="fw-bold">{{ user.name }}</div>
+            <div class="text-muted small">&#64;{{ user.username }}</div>
+          </div>
+          <span class="badge" [ngClass]="getRoleBadge(user.role)">{{ user.role }}</span>
+        </div>
+
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div class="small text-muted">
+            <i class="bi bi-clock me-1"></i>
+            {{ user.lastLogin ? (user.lastLogin | date:'dd/MM/yyyy HH:mm') : 'Belum pernah login' }}
+          </div>
+          <span class="badge" [class.bg-success]="user.isActive" [class.bg-secondary]="!user.isActive">
+            {{ user.isActive ? 'Aktif' : 'Nonaktif' }}
+          </span>
+        </div>
+
+        <div class="d-flex gap-2" *ngIf="user.role !== 'owner'">
+          <button class="btn btn-sm btn-outline-primary flex-grow-1" (click)="openEdit(user)">
+            <i class="bi bi-pencil me-1"></i>Edit
+          </button>
+          <button class="btn btn-sm btn-outline-warning" (click)="openResetPassword(user)" title="Reset Password">
+            <i class="bi bi-key"></i>
+          </button>
+          <button class="btn btn-sm" (click)="toggleActive(user)"
+            [class.btn-outline-secondary]="user.isActive"
+            [class.btn-outline-success]="!user.isActive"
+            [title]="user.isActive ? 'Nonaktifkan' : 'Aktifkan'">
+            <i class="bi" [class.bi-person-slash]="user.isActive" [class.bi-person-check]="!user.isActive"></i>
+          </button>
+          <button class="btn btn-sm btn-outline-danger" (click)="deleteUser(user._id, user.name)" title="Hapus">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+
+        <div *ngIf="user.role === 'owner'" class="text-center text-muted small py-1">
+          <i class="bi bi-shield-check me-1"></i>Akun Owner tidak dapat diubah
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Tambah/Edit -->
+<div class="modal-backdrop-custom" *ngIf="showModal" (click)="closeModal()"></div>
+<div class="modal-custom" *ngIf="showModal">
+  <div class="modal-custom-dialog">
+    <div class="modal-custom-header">
+      <h6 class="fw-bold mb-0">
+        {{ modalMode === 'add' ? 'Tambah User' : 'Edit User' }}
+      </h6>
+      <button class="btn-close-custom" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="modal-custom-body">
+      <div *ngIf="formError" class="alert alert-danger py-2 small">{{ formError }}</div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Nama <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" [(ngModel)]="formName" placeholder="Nama lengkap" />
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Username <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" [(ngModel)]="formUsername" placeholder="Username" />
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">
+          Password <span class="text-danger" *ngIf="modalMode === 'add'">*</span>
+          <span class="text-muted small" *ngIf="modalMode === 'edit'">(kosongkan jika tidak diubah)</span>
+        </label>
+        <input type="password" class="form-control" [(ngModel)]="formPassword" placeholder="Password" />
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Role</label>
+        <select class="form-select" [(ngModel)]="formRole">
+          <option value="kasir">Kasir</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-custom-footer">
+      <button class="btn btn-outline-secondary" (click)="closeModal()">Batal</button>
+      <button class="btn btn-primary" (click)="submitForm()" [disabled]="formSubmitting">
+        <span *ngIf="formSubmitting" class="spinner-border spinner-border-sm me-1"></span>
+        {{ modalMode === 'add' ? 'Tambah' : 'Simpan' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Reset Password Modal -->
+<div class="modal-backdrop-custom" *ngIf="showResetModal" (click)="closeResetModal()"></div>
+<div class="modal-custom" *ngIf="showResetModal">
+  <div class="modal-custom-dialog">
+    <div class="modal-custom-header">
+      <h6 class="fw-bold mb-0"><i class="bi bi-key me-2 text-warning"></i>Reset Password</h6>
+      <button class="btn-close-custom" (click)="closeResetModal()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="modal-custom-body">
+      <div *ngIf="resetError" class="alert alert-danger py-2 small">{{ resetError }}</div>
+      <p class="text-muted small mb-3">Reset password untuk user <strong>&#64;{{ resetUsername }}</strong></p>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Password Baru <span class="text-danger">*</span></label>
+        <input type="password" class="form-control" [(ngModel)]="resetPassword" placeholder="Min. 6 karakter" />
+      </div>
+    </div>
+    <div class="modal-custom-footer">
+      <button class="btn btn-outline-secondary" (click)="closeResetModal()">Batal</button>
+      <button class="btn btn-warning" (click)="submitReset()" [disabled]="resetSubmitting">
+        <span *ngIf="resetSubmitting" class="spinner-border spinner-border-sm me-1"></span>
+        Reset Password
+      </button>
+    </div>
+  </div>
+</div>

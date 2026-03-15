@@ -99,7 +99,7 @@
               <div class="chart-bars">
                 <div *ngFor="let item of salesChart" class="chart-bar-wrap" [title]="item._id + ': ' + (item.revenue | rupiah)">
                   <div class="chart-bar-value">{{ item.revenue | rupiah:false }}</div>
-                  <div class="chart-bar" [style.height.%]="(item.revenue / getMaxRevenue()) * 100"></div>
+                  <div class="chart-bar" [style.height]="(item.revenue / getMaxRevenue() * 160) + 'px'"></div>
                   <div class="chart-bar-label">{{ item._id | slice:5 }}</div>
                 </div>
               </div>

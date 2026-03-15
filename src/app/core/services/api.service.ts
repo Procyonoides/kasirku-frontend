@@ -68,6 +68,9 @@ export class CustomerService {
   getAll(params?: any): Observable<ApiResponse<Customer[]>> {
     return this.http.get<ApiResponse<Customer[]>>(this.url, { params });
   }
+  getById(id: string): Observable<any> {
+    return this.http.get(`${this.url}/${id}`);
+  }
   getDebtors(): Observable<any> {
     return this.http.get<any>(`${this.url}/debtors`);
   }
@@ -172,4 +175,19 @@ export class ReportService {
   getCashflow(params?: any): Observable<any> {
     return this.http.get<any>(`${this.url}/cashflow`, { params });
   }
+}
+
+// ─── Users Service ───────────────────────────────────────────
+@Injectable({ providedIn: 'root' })
+export class UserService {
+  private url = `${environment.apiUrl}/users`;
+  constructor(private http: HttpClient) {}
+
+  getAll(): Observable<any> { return this.http.get(this.url); }
+  getOne(id: string): Observable<any> { return this.http.get(`${this.url}/${id}`); }
+  create(data: any): Observable<any> { return this.http.post(this.url, data); }
+  update(id: string, data: any): Observable<any> { return this.http.put(`${this.url}/${id}`, data); }
+  resetPassword(id: string, newPassword: string): Observable<any> { return this.http.patch(`${this.url}/${id}/reset-password`, { newPassword }); }
+  toggleActive(id: string): Observable<any> { return this.http.patch(`${this.url}/${id}/toggle-active`, {}); }
+  delete(id: string): Observable<any> { return this.http.delete(`${this.url}/${id}`); }
 }

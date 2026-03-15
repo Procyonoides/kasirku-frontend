@@ -8,13 +8,15 @@
     </div>
 
     <nav class="sidebar-nav">
-      <a *ngFor="let item of menuItems"
-        [routerLink]="item.path"
-        routerLinkActive="active"
-        class="nav-item">
-        <i class="bi {{ item.icon }}"></i>
-        <span *ngIf="isSidebarOpen()" class="nav-label">{{ item.label }}</span>
-      </a>
+      <ng-container *ngFor="let item of menuItems">
+        <a *ngIf="canAccess(item.roles)"
+          [routerLink]="item.path"
+          routerLinkActive="active"
+          class="nav-item">
+          <i class="bi {{ item.icon }}"></i>
+          <span *ngIf="isSidebarOpen()" class="nav-label">{{ item.label }}</span>
+        </a>
+      </ng-container>
     </nav>
 
     <div class="sidebar-footer">

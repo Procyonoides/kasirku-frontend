@@ -169,14 +169,14 @@ export class PosComponent implements OnInit {
 
     const payload = {
       items: this.cart.map(i => ({
-        product: i.product._id,
-        quantity: i.quantity,
+        productId: i.product._id,
+        qty: i.quantity,
         price: i.product.sellPrice,
         subtotal: i.subtotal
       })),
       customer: this.selectedCustomer?._id || null,
       paymentMethod: this.paymentMethod,
-      discount: this.discount,
+      discountPercent: this.subtotal > 0 ? (this.discount / this.subtotal) * 100 : 0,
       amountPaid: this.paymentMethod === 'tunai' ? this.amountPaid : this.grandTotal,
       notes: this.notes
     };

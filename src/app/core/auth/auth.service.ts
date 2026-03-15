@@ -85,4 +85,13 @@ export class AuthService {
       return true; // Kalau token tidak valid, anggap expired
     }
   }
+
+  updateProfile(data: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/update-profile`, data);
+  }
+
+  changePassword(data: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/change-password`, data);
+  }
+
 }

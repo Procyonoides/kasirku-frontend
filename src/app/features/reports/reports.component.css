@@ -1,3 +1,10 @@
+@media print {
+  app-main-layout > *:not(router-outlet) { display: none; }
+  .report-tabs, .card:has(input[type="date"]), .d-flex.gap-2 { display: none !important; }
+  .report-stat-card { border: 1px solid #ccc !important; box-shadow: none !important; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
 .report-tabs {
   display: flex;
   gap: 8px;

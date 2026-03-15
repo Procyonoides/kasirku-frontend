@@ -66,11 +66,21 @@ export class SettingsComponent implements OnInit {
     this.profileError = '';
 
     // TODO: panggil API update profile jika sudah ada endpoint-nya
-    setTimeout(() => {
-      this.profileSubmitting = false;
-      this.profileSuccess = true;
-      setTimeout(() => this.profileSuccess = false, 3000);
-    }, 800);
+    this.authService.updateProfile(this.profileForm.value).subscribe({
+      next: (res) => {
+        this.profileSubmitting = false;
+        this.profileSuccess = true;
+        // Update local storage
+        const user = { ...this.authService.currentUser(), ...this.profileForm.value };
+        localStorage.setItem('user', JSON.stringify(user));
+        this.authService.currentUser.set(user);
+        setTimeout(() => this.profileSuccess = false, 3000);
+      },
+      error: (err) => {
+        this.profileError = err?.error?.message || 'Terjadi kesalahan';
+        this.profileSubmitting = false;
+      }
+    });
   }
 
   submitPassword() {
@@ -80,11 +90,17 @@ export class SettingsComponent implements OnInit {
     this.passwordError = '';
 
     // TODO: panggil API change password jika sudah ada endpoint-nya
-    setTimeout(() => {
-      this.passwordSubmitting = false;
-      this.passwordSuccess = true;
-      this.passwordForm.reset();
-      setTimeout(() => this.passwordSuccess = false, 3000);
-    }, 800);
+    this.authService.changePassword(this.passwordForm.value).subscribe({
+      next: () => {
+        this.passwordSubmitting = false;
+        this.passwordSuccess = true;
+        this.passwordForm.reset();
+        setTimeout(() => this.passwordSuccess = false, 3000);
+      },
+      error: (err) => {
+        this.passwordError = err?.error?.message || 'Terjadi kesalahan';
+        this.passwordSubmitting = false;
+      }
+    });
   }
 }

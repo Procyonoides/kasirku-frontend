@@ -71,40 +71,44 @@
           </thead>
           <tbody>
             <tr *ngFor="let c of customers">
-              <td class="ps-4">
-                <div class="d-flex align-items-center gap-3">
-                  <div class="customer-avatar">
-                    {{ c.name.charAt(0).toUpperCase() }}
-                  </div>
-                  <div>
-                    <div class="fw-semibold">{{ c.name }}</div>
-                    <div class="text-muted small">{{ c.address || '-' }}</div>
-                  </div>
-                </div>
-              </td>
-              <td>{{ c.phone || '-' }}</td>
-            <td>
-                <span class="badge" [ngClass]="getTierBadge(c.customerTier || '')">
-                    {{ c.customerTier | titlecase }}
-                </span>
-            </td>
-            <td>{{ c.totalSpent | rupiah }}</td>
-            <td>
-                <span *ngIf="c.currentDebt > 0" class="fw-semibold text-danger">
-                    {{ c.currentDebt | rupiah }}
-                </span>
-                <span *ngIf="c.currentDebt === 0" class="text-muted">-</span>
-            </td>
-              <td class="text-center">
-                <div class="d-flex justify-content-center gap-2">
-                  <button class="btn btn-sm btn-outline-primary" (click)="openEdit(c)" title="Edit">
-                    <i class="bi bi-pencil"></i>
-                  </button>
-                  <button class="btn btn-sm btn-outline-danger" (click)="deleteCustomer(c._id, c.name)" title="Hapus">
-                    <i class="bi bi-trash"></i>
-                  </button>
-                </div>
-              </td>
+                <td class="ps-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="customer-avatar">
+                            {{ c.name.charAt(0).toUpperCase() }}
+                        </div>
+                        <div>
+                            <div class="fw-semibold">{{ c.name }}</div>
+                            <div class="text-muted small">{{ c.address || '-' }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>{{ c.phone || '-' }}</td>
+                <td>
+                    <span class="badge" [ngClass]="getTierBadge(c.customerTier || '')">
+                        {{ c.customerTier | titlecase }}
+                    </span>
+                </td>
+                <td>{{ c.totalSpent | rupiah }}</td>
+                <td>
+                    <span *ngIf="c.currentDebt > 0" class="fw-semibold text-danger">
+                        {{ c.currentDebt | rupiah }}
+                    </span>
+                    <span *ngIf="c.currentDebt === 0" class="text-muted">-</span>
+                </td>
+                <td class="text-center">
+                    <div class="d-flex justify-content-center gap-2">
+                        <button class="btn btn-sm btn-outline-primary" (click)="openEdit(c)" title="Edit">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" (click)="deleteCustomer(c._id, c.name)" title="Hapus">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                        <a [routerLink]="['/customers', c._id]" class="btn btn-sm btn-outline-info" title="Detail">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                    </div>
+                    
+                </td>
             </tr>
           </tbody>
         </table>
