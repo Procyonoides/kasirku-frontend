@@ -4,12 +4,26 @@ import { FormsModule } from '@angular/forms';
 import { ReportService } from '../../core/services/api.service';
 import { RupiahPipe } from '../../shared/pipes';
 import jsPDF from 'jspdf';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
+import { ProfitLossComponent } from './profit-loss/profit-loss.component';
+import { TopProductsComponent } from './top-products/top-products.component';
+import { SalesComponent } from './sales/sales.component';
+import { CashflowComponent } from './cashflow/cashflow.component';
 
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [CommonModule, FormsModule, RupiahPipe, NgClass],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    RupiahPipe, 
+    NgClass, 
+    ProfitLossComponent, 
+    TopProductsComponent, 
+    SalesComponent, 
+    CashflowComponent
+  ],
   templateUrl: './reports.component.html',
   styleUrl: './reports.component.css'
 })
@@ -44,16 +58,18 @@ export class ReportsComponent implements OnInit {
     switch (this.activeTab) {
       case 'sales':
         this.reportService.getSalesReport(params).subscribe({
-          next: (res) => { 
-            this.salesData = res.data; // langsung array
-            this.isLoading = false; 
-          },
+          next: (res) => { this.salesData = res.data; this.isLoading = false; },
           error: () => { this.isLoading = false; }
         });
         break;
       case 'profit':
         this.reportService.getProfitLoss(params).subscribe({
-          next: (res) => { this.profitData = res.data; this.isLoading = false; },
+          //next: (res) => { this.profitData = res.data; this.isLoading = false; }
+          next: (res) => { 
+            console.log('profitData:', res.data); // tambah ini sementara
+            this.profitData = res.data; 
+            this.isLoading = false; 
+          },
           error: () => { this.isLoading = false; }
         });
         break;
@@ -79,11 +95,6 @@ export class ReportsComponent implements OnInit {
 
   onFilter() { this.loadReport(); }
 
-  getMaxQty(): number {
-    if (!this.topProducts.length) return 1;
-    return Math.max(...this.topProducts.map(p => p.totalQuantity));
-  }
-
   getTabLabel(): string {
     const map: Record<string, string> = {
       'sales': 'Penjualan',
@@ -94,264 +105,12 @@ export class ReportsComponent implements OnInit {
     return map[this.activeTab] || '';
   }
 
-  exportPDF() {
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const margin = 14;
-    let y = 20;
-
-    // Header
-    pdf.setFillColor(30, 58, 95);
-    pdf.rect(0, 0, pageWidth, 35, 'F');
-    pdf.setTextColor(255, 255, 255);
-    pdf.setFontSize(18);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('KasirKu', margin, 15);
-    pdf.setFontSize(11);
-    pdf.setFont('helvetica', 'normal');
-    pdf.text(`Laporan ${this.getTabLabel()}`, margin, 23);
-    pdf.setFontSize(9);
-    pdf.text(`Periode: ${this.dateFrom} s/d ${this.dateTo}`, margin, 30);
-    pdf.text(`Dicetak: ${new Date().toLocaleString('id-ID')}`, pageWidth - margin - 60, 30);
-
-    y = 45;
-    pdf.setTextColor(0, 0, 0);
-
-    switch (this.activeTab) {
-
-      case 'sales':
-        if (!this.salesData?.length) return;
-
-        const totalTx = this.getSalesTotalTransactions();
-        const totalRev = this.getSalesTotalRevenue();
-        const avgTx = totalTx > 0 ? Math.round(totalRev / totalTx) : 0;
-        const totalItems = this.salesData.reduce((s: number, r: any) => s + (r.items || 0), 0);
-
-        // 4 Summary boxes
-        const boxes = [
-          { label: 'TOTAL TRANSAKSI', value: `${totalTx}` },
-          { label: 'TOTAL OMZET', value: `Rp ${totalRev.toLocaleString('id-ID')}` },
-          { label: 'RATA-RATA/TRANSAKSI', value: `Rp ${avgTx.toLocaleString('id-ID')}` },
-          { label: 'ITEM TERJUAL', value: `${totalItems}` },
-        ];
-
-        const boxW = (pageWidth - margin * 2 - 9) / 4;
-        boxes.forEach((box, i) => {
-          const bx = margin + i * (boxW + 3);
-          pdf.setFillColor(240, 246, 255);
-          pdf.roundedRect(bx, y, boxW, 22, 2, 2, 'F');
-          pdf.setFontSize(7);
-          pdf.setTextColor(100, 116, 139);
-          pdf.setFont('helvetica', 'normal');
-          pdf.text(box.label, bx + 3, y + 7);
-          pdf.setFontSize(11);
-          pdf.setTextColor(30, 58, 95);
-          pdf.setFont('helvetica', 'bold');
-          pdf.text(box.value, bx + 3, y + 17);
-        });
-        y += 28;
-
-        // Grafik batang sederhana
-        if (this.salesData.length > 0) {
-          pdf.setFontSize(9);
-          pdf.setFont('helvetica', 'bold');
-          pdf.setTextColor(30, 58, 95);
-          pdf.text('Grafik Penjualan', margin, y + 5);
-          y += 8;
-
-          const chartH = 35;
-          const chartW = pageWidth - margin * 2;
-          const maxRev = Math.max(...this.salesData.map((r: any) => r.revenue));
-          const barW = Math.min(20, (chartW / this.salesData.length) - 3);
-
-          // Chart background
-          pdf.setFillColor(248, 250, 252);
-          pdf.rect(margin, y, chartW, chartH, 'F');
-
-          this.salesData.forEach((row: any, i: number) => {
-            const barH = maxRev > 0 ? (row.revenue / maxRev) * (chartH - 10) : 2;
-            const bx = margin + i * (chartW / this.salesData.length) + 2;
-            const by = y + chartH - barH - 2;
-
-            pdf.setFillColor(37, 99, 235);
-            pdf.roundedRect(bx, by, barW, barH, 1, 1, 'F');
-
-            pdf.setFontSize(6);
-            pdf.setTextColor(100, 116, 139);
-            pdf.setFont('helvetica', 'normal');
-            const label = row._id?.slice(5) || '';
-            pdf.text(label, bx, y + chartH + 4);
-          });
-          y += chartH + 10;
-        }
-
-        // Table header
-        pdf.setFillColor(30, 58, 95);
-        pdf.rect(margin, y, pageWidth - margin * 2, 8, 'F');
-        pdf.setTextColor(255, 255, 255);
-        pdf.setFontSize(9);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text('TANGGAL', margin + 3, y + 5.5);
-        pdf.text('TRANSAKSI', margin + 60, y + 5.5);
-        pdf.text('PROFIT', margin + 100, y + 5.5);
-        pdf.text('OMZET', margin + 145, y + 5.5);
-        y += 8;
-
-        pdf.setFont('helvetica', 'normal');
-        this.salesData.forEach((row: any, i: number) => {
-          if (i % 2 === 0) {
-            pdf.setFillColor(248, 250, 252);
-            pdf.rect(margin, y, pageWidth - margin * 2, 7, 'F');
-          }
-          pdf.setTextColor(50, 50, 50);
-          pdf.text(row._id || '-', margin + 3, y + 5);
-          pdf.text(`${row.transactions}`, margin + 60, y + 5);
-          pdf.setTextColor(22, 163, 74);
-          pdf.text(`Rp ${(row.profit || 0).toLocaleString('id-ID')}`, margin + 100, y + 5);
-          pdf.setTextColor(30, 58, 95);
-          pdf.setFont('helvetica', 'bold');
-          pdf.text(`Rp ${row.revenue.toLocaleString('id-ID')}`, margin + 145, y + 5);
-          pdf.setFont('helvetica', 'normal');
-          y += 7;
-          if (y > 270) { pdf.addPage(); y = 20; }
-        });
-        break;
-
-      case 'profit':
-        if (!this.profitData) return;
-
-        const items = [
-          { label: 'Total Pendapatan', value: this.profitData.revenue, color: [22, 163, 74] },
-          { label: 'Total HPP (Harga Pokok)', value: this.profitData.cogs, color: [220, 38, 38] },
-          { label: 'Laba Bersih', value: this.profitData.profit, color: this.profitData.profit >= 0 ? [37, 99, 235] : [220, 38, 38] },
-        ];
-
-        items.forEach(item => {
-          pdf.setFillColor(248, 250, 252);
-          pdf.roundedRect(margin, y, pageWidth - margin * 2, 18, 3, 3, 'F');
-          pdf.setFontSize(10);
-          pdf.setTextColor(100, 116, 139);
-          pdf.setFont('helvetica', 'normal');
-          pdf.text(item.label, margin + 4, y + 7);
-          pdf.setFontSize(14);
-          pdf.setTextColor(item.color[0], item.color[1], item.color[2]);
-          pdf.setFont('helvetica', 'bold');
-          pdf.text(`Rp ${item.value.toLocaleString('id-ID')}`, margin + 4, y + 15);
-          pdf.setFontSize(10);
-          pdf.setTextColor(100, 116, 139);
-          pdf.setFont('helvetica', 'normal');
-          pdf.text(`Margin: ${this.profitData.margin || 0}%`, pageWidth - margin - 30, y + 15);
-          y += 24;
-        });
-        break;
-
-      case 'top-products':
-        if (!this.topProducts.length) return;
-
-        pdf.setFillColor(30, 58, 95);
-        pdf.rect(margin, y, pageWidth - margin * 2, 8, 'F');
-        pdf.setTextColor(255, 255, 255);
-        pdf.setFontSize(9);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text('RANK', margin + 3, y + 5.5);
-        pdf.text('PRODUK', margin + 20, y + 5.5);
-        pdf.text('QTY TERJUAL', margin + 120, y + 5.5);
-        pdf.text('PENDAPATAN', margin + 155, y + 5.5);
-        y += 8;
-
-        pdf.setFont('helvetica', 'normal');
-        this.topProducts.forEach((p: any, i: number) => {
-          if (i % 2 === 0) {
-            pdf.setFillColor(248, 250, 252);
-            pdf.rect(margin, y, pageWidth - margin * 2, 7, 'F');
-          }
-          const rankColors: any = { 0: [234, 179, 8], 1: [148, 163, 184], 2: [205, 127, 50] };
-          if (rankColors[i]) {
-            pdf.setTextColor(rankColors[i][0], rankColors[i][1], rankColors[i][2]);
-            pdf.setFont('helvetica', 'bold');
-          } else {
-            pdf.setTextColor(50, 50, 50);
-            pdf.setFont('helvetica', 'normal');
-          }
-          pdf.text(`#${i + 1}`, margin + 3, y + 5);
-          pdf.setTextColor(50, 50, 50);
-          pdf.setFont('helvetica', 'normal');
-          pdf.text(p.productName || '-', margin + 20, y + 5);
-          pdf.text(`${p.totalQuantity}`, margin + 120, y + 5);
-          pdf.text(`Rp ${p.totalRevenue.toLocaleString('id-ID')}`, margin + 155, y + 5);
-          y += 7;
-          if (y > 270) { pdf.addPage(); y = 20; }
-        });
-        break;
-
-      case 'cashflow':
-        if (!this.cashflowData) return;
-
-        pdf.setFillColor(240, 246, 255);
-        pdf.roundedRect(margin, y, 55, 22, 3, 3, 'F');
-        pdf.roundedRect(margin + 60, y, 55, 22, 3, 3, 'F');
-        pdf.roundedRect(margin + 120, y, 55, 22, 3, 3, 'F');
-        pdf.setFontSize(8);
-        pdf.setTextColor(100, 116, 139);
-        pdf.text('PEMASUKAN', margin + 3, y + 7);
-        pdf.text('PENGELUARAN', margin + 63, y + 7);
-        pdf.text('NET CASHFLOW', margin + 123, y + 7);
-        pdf.setFontSize(10);
-        pdf.setFont('helvetica', 'bold');
-        pdf.setTextColor(22, 163, 74);
-        pdf.text(`Rp ${this.cashflowData.totalIncome.toLocaleString('id-ID')}`, margin + 3, y + 17);
-        pdf.setTextColor(220, 38, 38);
-        pdf.text(`Rp ${this.cashflowData.totalExpense.toLocaleString('id-ID')}`, margin + 63, y + 17);
-        pdf.setTextColor(this.cashflowData.netCashflow >= 0 ? 37 : 220, this.cashflowData.netCashflow >= 0 ? 99 : 38, this.cashflowData.netCashflow >= 0 ? 235 : 38);
-        pdf.text(`Rp ${this.cashflowData.netCashflow.toLocaleString('id-ID')}`, margin + 123, y + 17);
-        y += 30;
-
-        pdf.setFillColor(30, 58, 95);
-        pdf.rect(margin, y, pageWidth - margin * 2, 8, 'F');
-        pdf.setTextColor(255, 255, 255);
-        pdf.setFontSize(9);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text('TANGGAL', margin + 3, y + 5.5);
-        pdf.text('PEMASUKAN', margin + 55, y + 5.5);
-        pdf.text('PENGELUARAN', margin + 105, y + 5.5);
-        pdf.text('NET', margin + 155, y + 5.5);
-        y += 8;
-
-        pdf.setFont('helvetica', 'normal');
-        if (this.cashflowData.daily?.length) {
-          this.cashflowData.daily.forEach((row: any, i: number) => {
-            if (i % 2 === 0) {
-              pdf.setFillColor(248, 250, 252);
-              pdf.rect(margin, y, pageWidth - margin * 2, 7, 'F');
-            }
-            pdf.setTextColor(50, 50, 50);
-            pdf.text(row._id || '-', margin + 3, y + 5);
-            pdf.setTextColor(22, 163, 74);
-            pdf.text(`Rp ${row.income.toLocaleString('id-ID')}`, margin + 55, y + 5);
-            pdf.setTextColor(220, 38, 38);
-            pdf.text(`Rp ${row.expense.toLocaleString('id-ID')}`, margin + 105, y + 5);
-            pdf.setTextColor(row.net >= 0 ? 37 : 220, row.net >= 0 ? 99 : 38, row.net >= 0 ? 235 : 38);
-            pdf.text(`Rp ${row.net.toLocaleString('id-ID')}`, margin + 155, y + 5);
-            y += 7;
-            if (y > 270) { pdf.addPage(); y = 20; }
-          });
-        }
-        break;
-    }
-
-    // Footer
-    pdf.setTextColor(150, 150, 150);
-    pdf.setFontSize(8);
-    pdf.setFont('helvetica', 'normal');
-    pdf.text(`KasirKu - Sistem Kasir & Keuangan`, margin, 287);
-    pdf.text(`Halaman 1`, pageWidth - margin - 15, 287);
-
-    pdf.save(`laporan-${this.activeTab}-${this.dateFrom}-${this.dateTo}.pdf`);
-  }
-
-  exportExcel() {
+  // ─────────────────────────────────────────────────────────────────
+  // EXPORT EXCEL (ExcelJS — support full styling)
+  // ─────────────────────────────────────────────────────────────────
+  async exportExcel() {
     let data: any[] = [];
-    let sheetName = this.getTabLabel();
+    const sheetName = this.getTabLabel();
 
     switch (this.activeTab) {
       case 'sales':
@@ -359,28 +118,30 @@ export class ReportsComponent implements OnInit {
         data = this.salesData.map((row: any) => ({
           'Tanggal': row._id,
           'Transaksi': row.transactions,
-          'Profit (Rp)': row.profit,
+          'Profit (Rp)': row.profit || 0,
           'Omzet (Rp)': row.revenue
         }));
         break;
+
       case 'profit':
         if (!this.profitData) return;
-        data = [{
-          'Pendapatan (Rp)': this.profitData.revenue,
-          'HPP (Rp)': this.profitData.cogs,
-          'Laba Bersih (Rp)': this.profitData.profit,
-          'Margin (%)': this.profitData.margin
-        }];
+        data = [
+          { 'Keterangan': 'Pendapatan', 'Nominal (Rp)': this.profitData.revenue },
+          { 'Keterangan': 'HPP (Harga Pokok)', 'Nominal (Rp)': this.profitData.cogs },
+          { 'Keterangan': 'Laba Bersih', 'Nominal (Rp)': this.profitData.netProfit ?? this.profitData.profit }
+        ];
         break;
+
       case 'top-products':
         if (!this.topProducts.length) return;
         data = this.topProducts.map((p: any, i: number) => ({
           'Rank': i + 1,
           'Produk': p.productName,
-          'Qty Terjual': p.totalQuantity,
+          'Qty Terjual': p.totalQty ?? p.totalQuantity ?? 0,
           'Pendapatan (Rp)': p.totalRevenue
         }));
         break;
+
       case 'cashflow':
         if (!this.cashflowData?.daily) return;
         data = this.cashflowData.daily.map((row: any) => ({
@@ -392,116 +153,580 @@ export class ReportsComponent implements OnInit {
         break;
     }
 
-    const wb = XLSX.utils.book_new();
-    const ws: any = {};
+    if (!data.length) return;
 
-    const headers = Object.keys(data[0] || {});
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet(sheetName);
+    const headers = Object.keys(data[0]);
     const numCols = headers.length;
 
-    // Row 1: Judul besar
-    ws['A1'] = {
-      v: `LAPORAN ${sheetName.toUpperCase()} - KASIRKU`,
-      t: 's',
-      s: {
-        font: { bold: true, sz: 16, color: { rgb: 'FFFFFF' } },
-        fill: { fgColor: { rgb: '1E3A5F' } },
-        alignment: { horizontal: 'center', vertical: 'center' }
-      }
-    };
+    // ── Style Konstanta ──────────────────────────────────────
+    const navyFill: ExcelJS.Fill    = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E3A5F' } };
+    const blueFill: ExcelJS.Fill    = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2563EB' } };
+    const lightFill: ExcelJS.Fill   = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFF6FF' } };
+    const zebraFill: ExcelJS.Fill   = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+    const whiteFill: ExcelJS.Fill   = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+    const totalFill: ExcelJS.Fill   = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDBEAFE' } };
+    const thinBorder: Partial<ExcelJS.Border> = { style: 'thin', color: { argb: 'FFE2E8F0' } };
+    const allBorder = { top: thinBorder, left: thinBorder, bottom: thinBorder, right: thinBorder };
 
-    // Row 2: Periode
-    ws['A2'] = {
-      v: `Periode: ${this.dateFrom} s/d ${this.dateTo}`,
-      t: 's',
-      s: {
-        font: { sz: 11, color: { rgb: '444444' } },
-        fill: { fgColor: { rgb: 'EFF6FF' } },
-        alignment: { horizontal: 'center' }
-      }
-    };
+    // ── ROW 1: Judul ─────────────────────────────────────────
+    worksheet.mergeCells(1, 1, 1, numCols);
+    const titleCell = worksheet.getCell('A1');
+    titleCell.value = `LAPORAN ${sheetName.toUpperCase()} - KASIRKU`;
+    titleCell.font = { bold: true, size: 16, color: { argb: 'FFFFFFFF' } };
+    titleCell.fill = navyFill;
+    titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+    worksheet.getRow(1).height = 32;
 
-    // Row 3: Dicetak
-    ws['A3'] = {
-      v: `Dicetak: ${new Date().toLocaleString('id-ID')}`,
-      t: 's',
-      s: {
-        font: { sz: 10, italic: true, color: { rgb: '888888' } },
-        fill: { fgColor: { rgb: 'EFF6FF' } },
-        alignment: { horizontal: 'center' }
-      }
-    };
+    // ── ROW 2: Periode ───────────────────────────────────────
+    worksheet.mergeCells(2, 1, 2, numCols);
+    const periodeCell = worksheet.getCell('A2');
+    periodeCell.value = `Periode: ${this.dateFrom} s/d ${this.dateTo}`;
+    periodeCell.font = { size: 11, color: { argb: 'FF1E3A5F' } };
+    periodeCell.fill = lightFill;
+    periodeCell.alignment = { horizontal: 'center', vertical: 'middle' };
+    worksheet.getRow(2).height = 20;
 
-    // Row 4: kosong
-    ws['A4'] = { v: '', t: 's' };
+    // ── ROW 3: Dicetak ───────────────────────────────────────
+    worksheet.mergeCells(3, 1, 3, numCols);
+    const cetakCell = worksheet.getCell('A3');
+    cetakCell.value = `Dicetak: ${new Date().toLocaleString('id-ID')}`;
+    cetakCell.font = { size: 10, italic: true, color: { argb: 'FF888888' } };
+    cetakCell.fill = lightFill;
+    cetakCell.alignment = { horizontal: 'center', vertical: 'middle' };
+    worksheet.getRow(3).height = 18;
 
-    // Row 5: Header kolom
-    const colLetters = ['A','B','C','D','E','F','G','H'];
+    // ── ROW 4: Kosong ────────────────────────────────────────
+    worksheet.mergeCells(4, 1, 4, numCols);
+    worksheet.getRow(4).height = 8;
+
+    // ── ROW 5: Header Kolom ──────────────────────────────────
+    const headerRow = worksheet.getRow(5);
+    headerRow.height = 22;
     headers.forEach((h, i) => {
-      ws[`${colLetters[i]}5`] = {
-        v: h,
-        t: 's',
-        s: {
-          font: { bold: true, sz: 11, color: { rgb: 'FFFFFF' } },
-          fill: { fgColor: { rgb: '2563EB' } },
-          alignment: { horizontal: 'center' },
-          border: {
-            bottom: { style: 'thin', color: { rgb: 'FFFFFF' } }
-          }
-        }
-      };
+      const cell = headerRow.getCell(i + 1);
+      cell.value = h;
+      cell.font = { bold: true, size: 11, color: { argb: 'FFFFFFFF' } };
+      cell.fill = blueFill;
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      cell.border = allBorder;
     });
 
-    // Data rows
+    // ── ROW 6+: Data ─────────────────────────────────────────
     data.forEach((row, rowIdx) => {
-      const isEven = rowIdx % 2 === 0;
+      const excelRow = worksheet.getRow(rowIdx + 6);
+      excelRow.height = 18;
       headers.forEach((h, colIdx) => {
-        const cellRef = `${colLetters[colIdx]}${rowIdx + 6}`;
-        ws[cellRef] = {
-          v: row[h],
-          t: typeof row[h] === 'number' ? 'n' : 's',
-          s: {
-            fill: { fgColor: { rgb: isEven ? 'F8FAFC' : 'FFFFFF' } },
-            alignment: { horizontal: typeof row[h] === 'number' ? 'right' : 'left' },
-            border: {
-              bottom: { style: 'thin', color: { rgb: 'E2E8F0' } }
-            }
-          }
-        };
+        const cell = excelRow.getCell(colIdx + 1);
+        cell.value = row[h];
+        cell.fill = rowIdx % 2 === 0 ? zebraFill : whiteFill;
+        cell.font = { size: 10 };
+        cell.border = allBorder;
+        if (typeof row[h] === 'number') {
+          cell.alignment = { horizontal: 'right', vertical: 'middle' };
+          if (h.includes('(Rp)')) cell.numFmt = '#,##0';
+        } else {
+          cell.alignment = { horizontal: 'left', vertical: 'middle' };
+        }
       });
     });
 
-    // Merge cells untuk title, periode, dicetak
-    ws['!merges'] = [
-      { s: { r: 0, c: 0 }, e: { r: 0, c: numCols - 1 } },
-      { s: { r: 1, c: 0 }, e: { r: 1, c: numCols - 1 } },
-      { s: { r: 2, c: 0 }, e: { r: 2, c: numCols - 1 } },
-      { s: { r: 3, c: 0 }, e: { r: 3, c: numCols - 1 } },
-    ];
+    // Styling khusus baris Laba Bersih (row ke-3, index 2)
+    if (this.activeTab === 'profit') {
+      const netValue = this.profitData.netProfit ?? this.profitData.profit ?? 0;
+      const isProfit = netValue >= 0;
+      const labaFill: ExcelJS.Fill = {
+        type: 'pattern', pattern: 'solid',
+        fgColor: { argb: isProfit ? 'FFD1FAE5' : 'FFFEE2E2' } // hijau muda atau merah muda
+      };
+      const labaRow = worksheet.getRow(8); // row 6 + index 2 = row 8
+      labaRow.eachCell(cell => {
+        cell.fill = labaFill;
+        cell.font = { bold: true, size: 11, color: { argb: isProfit ? 'FF065F46' : 'FF991B1B' } };
+      });
+    }
 
-    // Range
-    ws['!ref'] = `A1:${colLetters[numCols - 1]}${data.length + 5}`;
+    // ── BARIS TOTAL ──────────────────────────────────────────
+    if (this.activeTab !== 'profit') {
+      const totalRowIdx = data.length + 6;
+      const totalRow = worksheet.getRow(totalRowIdx);
+      totalRow.height = 22;
 
-    // Column widths
-    ws['!cols'] = headers.map(h => ({ wch: Math.max(h.length + 8, 20) }));
+      headers.forEach((h, colIdx) => {
+        const cell = totalRow.getCell(colIdx + 1);
+        cell.font = { bold: true, size: 11, color: { argb: 'FF1E3A5F' } };
+        cell.fill = totalFill;
+        cell.border = allBorder;
 
-    // Row heights
-    ws['!rows'] = [{ hpt: 30 }, { hpt: 20 }, { hpt: 18 }, { hpt: 10 }, { hpt: 22 }];
+        if (colIdx === 0) {
+          cell.value = 'TOTAL';
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        } else {
+          const isNumber = typeof data[0][h] === 'number';
+          if (isNumber) {
+            const sum = data.reduce((acc: number, r: any) => acc + (r[h] || 0), 0);
+            cell.value = sum;
+            cell.numFmt = '#,##0';
+            cell.alignment = { horizontal: 'right', vertical: 'middle' };
+          } else {
+            cell.value = '';
+            cell.alignment = { horizontal: 'left', vertical: 'middle' };
+          }
+        }
+      });
+    }
 
-    XLSX.utils.book_append_sheet(wb, ws, sheetName);
-    XLSX.writeFile(wb, `laporan-${this.activeTab}-${this.dateFrom}-${this.dateTo}.xlsx`);
+    // ── Lebar Kolom ──────────────────────────────────────────
+    worksheet.columns = headers.map(h => ({
+      width: Math.max(h.length + 6, 22)
+    }));
+
+    // ── Simpan File ──────────────────────────────────────────
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    });
+    saveAs(blob, `laporan-${this.activeTab}-${this.dateFrom}-${this.dateTo}.xlsx`);
   }
-  
+
+  // ─────────────────────────────────────────────────────────────────
+  // EXPORT PDF (jsPDF — dengan baris total di setiap tab)
+  // ─────────────────────────────────────────────────────────────────
+  exportPDF() {
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const margin = 14;
+    let y = 20;
+
+    // ── Helper: cek apakah perlu tambah halaman ──────────────
+    const checkPage = (needed = 10) => {
+      if (y + needed > 275) { pdf.addPage(); y = 20; }
+    };
+
+    // ── Helper: gambar baris total ───────────────────────────
+    const drawTotalRow = (cols: { x: number; value: string; align?: 'left' | 'right' | 'center' }[], rowW: number) => {
+      checkPage(10);
+      pdf.setFillColor(219, 234, 254); // biru muda
+      pdf.rect(margin, y, rowW, 8, 'F');
+      pdf.setFontSize(9);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(30, 58, 95);
+      cols.forEach(col => {
+        if (col.align === 'right') {
+          const textW = pdf.getTextWidth(col.value);
+          pdf.text(col.value, col.x - textW, y + 5.5);
+        } else {
+          pdf.text(col.value, col.x, y + 5.5);
+        }
+      });
+      y += 8;
+    };
+
+    // ── Header PDF ───────────────────────────────────────────
+    pdf.setFillColor(30, 58, 95);
+    pdf.rect(0, 0, pageWidth, 35, 'F');
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFontSize(18);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('KasirKu', margin, 15);
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(`Laporan ${this.getTabLabel()}`, margin, 23);
+    pdf.setFontSize(9);
+    pdf.text(`Periode: ${this.dateFrom} s/d ${this.dateTo}`, margin, 30);
+    pdf.text(`Dicetak: ${new Date().toLocaleString('id-ID')}`, pageWidth - margin - 65, 30);
+
+    y = 45;
+    pdf.setTextColor(0, 0, 0);
+
+    // ════════════════════════════════════════════════════════
+    // TAB SALES
+    // ════════════════════════════════════════════════════════
+    if (this.activeTab === 'sales') {
+      if (!this.salesData?.length) { pdf.save(`laporan-sales-${this.dateFrom}-${this.dateTo}.pdf`); return; }
+
+      const totalTx  = this.salesData.reduce((s: number, r: any) => s + r.transactions, 0);
+      const totalRev = this.salesData.reduce((s: number, r: any) => s + r.revenue, 0);
+      const totalPro = this.salesData.reduce((s: number, r: any) => s + (r.profit || 0), 0);
+      const avgTx    = totalTx > 0 ? Math.round(totalRev / totalTx) : 0;
+
+      // 4 Summary boxes
+      const boxes = [
+        { label: 'TOTAL TRANSAKSI',       value: `${totalTx}` },
+        { label: 'TOTAL OMZET',            value: `Rp ${totalRev.toLocaleString('id-ID')}` },
+        { label: 'RATA-RATA/TRANSAKSI',    value: `Rp ${avgTx.toLocaleString('id-ID')}` },
+        { label: 'TOTAL PROFIT',           value: `Rp ${totalPro.toLocaleString('id-ID')}` },
+      ];
+      const boxW = (pageWidth - margin * 2 - 9) / 4;
+      boxes.forEach((box, i) => {
+        const bx = margin + i * (boxW + 3);
+        pdf.setFillColor(240, 246, 255);
+        pdf.roundedRect(bx, y, boxW, 22, 2, 2, 'F');
+        pdf.setFontSize(7);
+        pdf.setTextColor(100, 116, 139);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(box.label, bx + 3, y + 7);
+        pdf.setFontSize(10);
+        pdf.setTextColor(30, 58, 95);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(box.value, bx + 3, y + 17);
+      });
+      y += 28;
+
+      // Grafik batang
+      if (this.salesData.length > 0) {
+        pdf.setFontSize(9);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(30, 58, 95);
+        pdf.text('Grafik Penjualan', margin, y + 5);
+        y += 8;
+
+        const chartH = 35;
+        const chartW = pageWidth - margin * 2;
+        const maxRev = Math.max(...this.salesData.map((r: any) => r.revenue));
+        const barW   = Math.min(18, (chartW / this.salesData.length) - 2);
+
+        pdf.setFillColor(248, 250, 252);
+        pdf.rect(margin, y, chartW, chartH, 'F');
+
+        this.salesData.forEach((row: any, i: number) => {
+          const barH = maxRev > 0 ? (row.revenue / maxRev) * (chartH - 10) : 2;
+          const bx   = margin + i * (chartW / this.salesData.length) + 1;
+          const by   = y + chartH - barH - 2;
+          pdf.setFillColor(37, 99, 235);
+          pdf.roundedRect(bx, by, barW, barH, 1, 1, 'F');
+          pdf.setFontSize(6);
+          pdf.setTextColor(100, 116, 139);
+          pdf.setFont('helvetica', 'normal');
+          pdf.text(row._id?.slice(5) || '', bx, y + chartH + 4);
+        });
+        y += chartH + 10;
+      }
+
+      // Tabel header
+      const colX = { tgl: margin + 3, tx: margin + 55, profit: margin + 95, omzet: margin + 148 };
+      pdf.setFillColor(30, 58, 95);
+      pdf.rect(margin, y, pageWidth - margin * 2, 8, 'F');
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(9);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('TANGGAL',   colX.tgl,    y + 5.5);
+      pdf.text('TRANSAKSI', colX.tx,     y + 5.5);
+      pdf.text('PROFIT',    colX.profit, y + 5.5);
+      pdf.text('OMZET',     colX.omzet,  y + 5.5);
+      y += 8;
+
+      // Data rows
+      pdf.setFont('helvetica', 'normal');
+      this.salesData.forEach((row: any, i: number) => {
+        checkPage(8);
+        if (i % 2 === 0) { pdf.setFillColor(248, 250, 252); pdf.rect(margin, y, pageWidth - margin * 2, 7, 'F'); }
+        pdf.setTextColor(50, 50, 50);
+        pdf.setFontSize(9);
+        pdf.text(row._id || '-', colX.tgl, y + 5);
+        pdf.text(`${row.transactions}`, colX.tx, y + 5);
+        pdf.setTextColor(22, 163, 74);
+        pdf.text(`Rp ${(row.profit || 0).toLocaleString('id-ID')}`, colX.profit, y + 5);
+        pdf.setTextColor(30, 58, 95);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(`Rp ${row.revenue.toLocaleString('id-ID')}`, colX.omzet, y + 5);
+        pdf.setFont('helvetica', 'normal');
+        y += 7;
+      });
+
+      // Baris Total
+      drawTotalRow([
+        { x: colX.tgl,    value: 'TOTAL' },
+        { x: colX.tx,     value: `${totalTx}` },
+        { x: colX.profit, value: `Rp ${totalPro.toLocaleString('id-ID')}` },
+        { x: colX.omzet,  value: `Rp ${totalRev.toLocaleString('id-ID')}` },
+      ], pageWidth - margin * 2);
+    }
+
+    // ════════════════════════════════════════════════════════
+    // TAB PROFIT LOSS
+    // ════════════════════════════════════════════════════════
+    else if (this.activeTab === 'profit') {
+      if (!this.profitData) { pdf.save(`laporan-profit-${this.dateFrom}-${this.dateTo}.pdf`); return; }
+
+      const netProfit = this.profitData.netProfit ?? this.profitData.profit ?? 0;
+      const margin2   = this.profitData.margin || (this.profitData.revenue > 0 ? ((netProfit / this.profitData.revenue) * 100).toFixed(1) : 0);
+
+      const items = [
+        { label: 'Total Pendapatan',       value: this.profitData.revenue, color: [22, 163, 74] as [number,number,number] },
+        { label: 'Total HPP (Harga Pokok)', value: this.profitData.cogs,   color: [220, 38, 38] as [number,number,number] },
+        { label: 'Laba Bersih',             value: netProfit,              color: (netProfit >= 0 ? [37, 99, 235] : [220, 38, 38]) as [number,number,number] },
+      ];
+
+      items.forEach(item => {
+        checkPage(22);
+        pdf.setFillColor(248, 250, 252);
+        pdf.roundedRect(margin, y, pageWidth - margin * 2, 18, 3, 3, 'F');
+        pdf.setFontSize(10);
+        pdf.setTextColor(100, 116, 139);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(item.label, margin + 4, y + 7);
+        pdf.setFontSize(14);
+        pdf.setTextColor(item.color[0], item.color[1], item.color[2]);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(`Rp ${item.value.toLocaleString('id-ID')}`, margin + 4, y + 15);
+        if (item.label === 'Laba Bersih') {
+          pdf.setFontSize(10);
+          pdf.setTextColor(100, 116, 139);
+          pdf.setFont('helvetica', 'normal');
+          pdf.text(`Margin: ${margin2}%`, pageWidth - margin - 35, y + 15);
+        }
+        y += 24;
+      });
+
+      // Tabel Pengeluaran per Kategori (jika ada)
+      if (this.profitData.expenses?.length) {
+        y += 4;
+        pdf.setFontSize(9);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(30, 58, 95);
+        pdf.text('Detail Pengeluaran per Kategori', margin, y + 5);
+        y += 9;
+
+        pdf.setFillColor(30, 58, 95);
+        pdf.rect(margin, y, pageWidth - margin * 2, 8, 'F');
+        pdf.setTextColor(255, 255, 255);
+        pdf.setFontSize(9);
+        pdf.text('KATEGORI', margin + 3, y + 5.5);
+        pdf.text('NOMINAL', margin + 140, y + 5.5);
+        y += 8;
+
+        let totalExp = 0;
+        pdf.setFont('helvetica', 'normal');
+        this.profitData.expenses.forEach((e: any, i: number) => {
+          checkPage(8);
+          if (i % 2 === 0) { pdf.setFillColor(248, 250, 252); pdf.rect(margin, y, pageWidth - margin * 2, 7, 'F'); }
+          pdf.setTextColor(50, 50, 50);
+          pdf.text(e._id || '-', margin + 3, y + 5);
+          pdf.setTextColor(220, 38, 38);
+          pdf.text(`Rp ${e.total.toLocaleString('id-ID')}`, margin + 140, y + 5);
+          totalExp += e.total;
+          y += 7;
+        });
+
+        // Total pengeluaran
+        drawTotalRow([
+          { x: margin + 3,   value: 'TOTAL PENGELUARAN' },
+          { x: margin + 180, value: `Rp ${totalExp.toLocaleString('id-ID')}`, align: 'right' },
+        ], pageWidth - margin * 2);
+      }
+    }
+
+    // ════════════════════════════════════════════════════════
+    // TAB TOP PRODUCTS
+    // ════════════════════════════════════════════════════════
+    else if (this.activeTab === 'top-products') {
+      if (!this.topProducts.length) { pdf.save(`laporan-top-products-${this.dateFrom}-${this.dateTo}.pdf`); return; }
+
+      const colX = { rank: margin + 3, nama: margin + 20, qty: margin + 120, rev: margin + 155 };
+
+      pdf.setFillColor(30, 58, 95);
+      pdf.rect(margin, y, pageWidth - margin * 2, 8, 'F');
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(9);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('RANK',       colX.rank, y + 5.5);
+      pdf.text('PRODUK',     colX.nama, y + 5.5);
+      pdf.text('QTY TERJUAL', colX.qty, y + 5.5);
+      pdf.text('PENDAPATAN', colX.rev,  y + 5.5);
+      y += 8;
+
+      let totalQty = 0;
+      let totalRev = 0;
+      const rankColors: Record<number, [number, number, number]> = {
+        0: [234, 179, 8],
+        1: [148, 163, 184],
+        2: [205, 127, 50]
+      };
+
+      pdf.setFont('helvetica', 'normal');
+      this.topProducts.forEach((p: any, i: number) => {
+        checkPage(8);
+        if (i % 2 === 0) { pdf.setFillColor(248, 250, 252); pdf.rect(margin, y, pageWidth - margin * 2, 7, 'F'); }
+
+        const qty = p.totalQty ?? p.totalQuantity ?? 0;
+        const rev = p.totalRevenue ?? 0;
+        totalQty += qty;
+        totalRev += rev;
+
+        if (rankColors[i]) {
+          pdf.setTextColor(rankColors[i][0], rankColors[i][1], rankColors[i][2]);
+          pdf.setFont('helvetica', 'bold');
+        } else {
+          pdf.setTextColor(50, 50, 50);
+          pdf.setFont('helvetica', 'normal');
+        }
+        pdf.text(`#${i + 1}`, colX.rank, y + 5);
+        pdf.setTextColor(50, 50, 50);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(p.productName || '-', colX.nama, y + 5);
+        pdf.text(`${qty}`, colX.qty, y + 5);
+        pdf.text(`Rp ${rev.toLocaleString('id-ID')}`, colX.rev, y + 5);
+        y += 7;
+      });
+
+      // Baris Total
+      drawTotalRow([
+        { x: colX.rank, value: 'TOTAL' },
+        { x: colX.qty,  value: `${totalQty}` },
+        { x: colX.rev,  value: `Rp ${totalRev.toLocaleString('id-ID')}` },
+      ], pageWidth - margin * 2);
+    }
+
+    // ════════════════════════════════════════════════════════
+    // TAB CASHFLOW
+    // ════════════════════════════════════════════════════════
+    else if (this.activeTab === 'cashflow') {
+      if (!this.cashflowData) { pdf.save(`laporan-cashflow-${this.dateFrom}-${this.dateTo}.pdf`); return; }
+
+      // 3 Summary boxes
+      pdf.setFillColor(240, 246, 255);
+      pdf.roundedRect(margin,       y, 55, 22, 3, 3, 'F');
+      pdf.roundedRect(margin + 60,  y, 55, 22, 3, 3, 'F');
+      pdf.roundedRect(margin + 120, y, 55, 22, 3, 3, 'F');
+      pdf.setFontSize(8);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(100, 116, 139);
+      pdf.text('PEMASUKAN',    margin + 3,   y + 7);
+      pdf.text('PENGELUARAN',  margin + 63,  y + 7);
+      pdf.text('NET CASHFLOW', margin + 123, y + 7);
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(22, 163, 74);
+      pdf.text(`Rp ${(this.cashflowData.totalIncome || 0).toLocaleString('id-ID')}`, margin + 3, y + 17);
+      pdf.setTextColor(220, 38, 38);
+      pdf.text(`Rp ${(this.cashflowData.totalExpense || 0).toLocaleString('id-ID')}`, margin + 63, y + 17);
+      const net = this.cashflowData.netCashflow ?? 0;
+      pdf.setTextColor(net >= 0 ? 37 : 220, net >= 0 ? 99 : 38, net >= 0 ? 235 : 38);
+      pdf.text(`Rp ${net.toLocaleString('id-ID')}`, margin + 123, y + 17);
+      y += 30;
+
+      const colX = { tgl: margin + 3, inc: margin + 55, exp: margin + 105, net: margin + 155 };
+
+      pdf.setFillColor(30, 58, 95);
+      pdf.rect(margin, y, pageWidth - margin * 2, 8, 'F');
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(9);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('TANGGAL',     colX.tgl, y + 5.5);
+      pdf.text('PEMASUKAN',   colX.inc, y + 5.5);
+      pdf.text('PENGELUARAN', colX.exp, y + 5.5);
+      pdf.text('NET',         colX.net, y + 5.5);
+      y += 8;
+
+      let sumInc = 0, sumExp = 0, sumNet = 0;
+
+      pdf.setFont('helvetica', 'normal');
+      if (this.cashflowData.daily?.length) {
+        this.cashflowData.daily.forEach((row: any, i: number) => {
+          checkPage(8);
+          if (i % 2 === 0) { pdf.setFillColor(248, 250, 252); pdf.rect(margin, y, pageWidth - margin * 2, 7, 'F'); }
+          sumInc += row.income || 0;
+          sumExp += row.expense || 0;
+          sumNet += row.net || 0;
+          pdf.setTextColor(50, 50, 50);
+          pdf.text(row._id || '-', colX.tgl, y + 5);
+          pdf.setTextColor(22, 163, 74);
+          pdf.text(`Rp ${(row.income || 0).toLocaleString('id-ID')}`, colX.inc, y + 5);
+          pdf.setTextColor(220, 38, 38);
+          pdf.text(`Rp ${(row.expense || 0).toLocaleString('id-ID')}`, colX.exp, y + 5);
+          pdf.setTextColor(row.net >= 0 ? 37 : 220, row.net >= 0 ? 99 : 38, row.net >= 0 ? 235 : 38);
+          pdf.text(`Rp ${(row.net || 0).toLocaleString('id-ID')}`, colX.net, y + 5);
+          y += 7;
+        });
+      }
+
+      // Baris Total
+      drawTotalRow([
+        { x: colX.tgl, value: 'TOTAL' },
+        { x: colX.inc, value: `Rp ${sumInc.toLocaleString('id-ID')}` },
+        { x: colX.exp, value: `Rp ${sumExp.toLocaleString('id-ID')}` },
+        { x: colX.net, value: `Rp ${sumNet.toLocaleString('id-ID')}` },
+      ], pageWidth - margin * 2);
+    }
+
+    // ── Footer ───────────────────────────────────────────────
+    const pageCount = (pdf.internal as any).getNumberOfPages();
+    for (let pg = 1; pg <= pageCount; pg++) {
+      pdf.setPage(pg);
+      pdf.setTextColor(150, 150, 150);
+      pdf.setFontSize(8);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('KasirKu - Sistem Kasir & Keuangan', margin, 287);
+      pdf.text(`Halaman ${pg} / ${pageCount}`, pageWidth - margin - 20, 287);
+    }
+
+    pdf.save(`laporan-${this.activeTab}-${this.dateFrom}-${this.dateTo}.pdf`);
+  }
+
   printReport() {
-    window.print();
-  }
+    const content = this.reportContent.nativeElement.innerHTML;
 
-  getSalesTotalRevenue(): number {
-    if (!this.salesData?.length) return 0;
-    return this.salesData.reduce((sum: number, row: any) => sum + row.revenue, 0);
-  }
+    // ── CSS ──────────────────────────────────────
+    const styles = `
+      body { font-family: 'Segoe UI', sans-serif; padding: 24px; background: white; }
+      .print-header { background: #1e3a5f; color: white; padding: 16px 24px; border-radius: 8px; margin-bottom: 20px; }
+      .print-header h4 { margin: 0; font-size: 20px; font-weight: 700; }
+      .report-stat-card { border-left: 4px solid #2563eb; padding: 16px; border-radius: 8px; background: #f8fafc; margin-bottom: 8px; }
+      .stat-green { border-left-color: #16a34a; }
+      .stat-red   { border-left-color: #dc2626; }
+      .stat-blue  { border-left-color: #2563eb; }
+      .rsc-label  { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+      .rsc-value  { font-size: 20px; font-weight: 700; color: #1e3a5f; margin-top: 4px; }
+      .rsc-sub    { font-size: 12px; color: #64748b; }
+      .card { border-radius: 8px; overflow: hidden; margin-bottom: 16px; box-shadow: none !important; }
+      .card-header { background: white !important; padding: 12px 16px; border-bottom: 1px solid #e2e8f0; }
+      .card-header h6 { margin: 0; font-weight: 700; color: #1e3a5f; }
+      .shadow-sm { box-shadow: none !important; }
+      .table thead tr th { background: #1e3a5f !important; color: white !important; padding: 10px 12px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+      .table tbody tr:nth-child(even) { background: #f8fafc; }
+      .table tbody tr td { padding: 8px 12px; border-color: #e2e8f0; font-size: 13px; }
+      .top-product-row { display: flex; align-items: center; gap: 16px; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
+      .top-rank { width: 28px; height: 28px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; }
+      .top-revenue { font-weight: 700; color: #1e3a5f; min-width: 100px; text-align: right; font-size: 13px; }
+      @media print { * { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+    `;
 
-  getSalesTotalTransactions(): number {
-    if (!this.salesData?.length) return 0;
-    return this.salesData.reduce((sum: number, row: any) => sum + row.transactions, 0);
+    // ── HTML Template ─────────────────────────────
+    const template = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Laporan ${this.getTabLabel()} - KasirKu</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+        <style>${styles}</style>
+      </head>
+      <body>
+        <div class="print-header">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <h4>🏪 KasirKu</h4>
+              <div style="font-size:14px; margin-top:4px; opacity:0.9;">Laporan ${this.getTabLabel()}</div>
+            </div>
+            <div style="text-align:right; font-size:12px; opacity:0.8;">
+              <div>Periode: ${this.dateFrom} s/d ${this.dateTo}</div>
+              <div>Dicetak: ${new Date().toLocaleString('id-ID')}</div>
+            </div>
+          </div>
+        </div>
+        ${content}
+      </body>
+      </html>
+    `;
+
+    // ── Buka Window & Print ───────────────────────
+    const printWindow = window.open('', '_blank', 'width=900,height=700');
+    if (!printWindow) return;
+    printWindow.document.write(template);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => { printWindow.print(); printWindow.close(); }, 800);
   }
 }

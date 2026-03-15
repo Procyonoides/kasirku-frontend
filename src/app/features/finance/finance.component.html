@@ -23,7 +23,7 @@
         <div class="finance-icon"><i class="bi bi-arrow-down-circle"></i></div>
         <div>
           <div class="finance-label">Total Pemasukan</div>
-          <div class="finance-value">{{ summary.totalIncome | rupiah }}</div>
+          <div class="finance-value">{{ summary.income | rupiah }}</div>
         </div>
       </div>
     </div>
@@ -32,7 +32,7 @@
         <div class="finance-icon"><i class="bi bi-arrow-up-circle"></i></div>
         <div>
           <div class="finance-label">Total Pengeluaran</div>
-          <div class="finance-value">{{ summary.totalExpense | rupiah }}</div>
+          <div class="finance-value">{{ summary.expense | rupiah }}</div>
         </div>
       </div>
     </div>
@@ -63,8 +63,8 @@
           <label class="form-label small fw-semibold text-muted">Jenis</label>
           <select class="form-select" [(ngModel)]="selectedType">
             <option value="">Semua</option>
-            <option value="income">Pemasukan</option>
-            <option value="expense">Pengeluaran</option>
+            <option value="pemasukan">Pemasukan</option>
+            <option value="pengeluaran">Pengeluaran</option>
           </select>
         </div>
         <div class="col-12 col-md-3 d-flex align-items-end gap-2">
@@ -113,17 +113,24 @@
                   {{ getTypeLabel(r.type) }}
                 </span>
               </td>
-              <td class="fw-semibold">{{ r.category }}</td>
+              <td class="fw-semibold">{{ getCategoryLabel(r.category) }}</td>
               <td class="text-muted small">{{ r.description || '-' }}</td>
               <td>
-                <span class="fw-bold" [class.text-success]="r.type === 'income'" [class.text-danger]="r.type === 'expense'">
-                  {{ r.type === 'income' ? '+' : '-' }}{{ r.amount | rupiah }}
+                <span class="fw-bold" 
+                  [class.text-success]="r.type === 'pemasukan'" 
+                  [class.text-danger]="r.type === 'pengeluaran'">
+                  {{ r.type === 'pemasukan' ? '+' : '-' }}{{ r.amount | rupiah }}
                 </span>
               </td>
               <td class="text-center">
-                <button class="btn btn-sm btn-outline-danger" (click)="deleteRecord(r._id)">
-                  <i class="bi bi-trash"></i>
-                </button>
+                <div class="d-flex justify-content-center gap-2">
+                  <button class="btn btn-sm btn-outline-primary" (click)="openEdit(r)">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger" (click)="deleteRecord(r._id)">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>                
               </td>
             </tr>
           </tbody>
@@ -164,7 +171,7 @@
     <div class="modal-custom-header">
       <h6 class="fw-bold mb-0">
         <i class="bi me-2" [class.bi-plus-circle]="formType === 'income'" [class.bi-dash-circle]="formType === 'expense'"></i>
-        {{ formType === 'income' ? 'Tambah Pemasukan' : 'Tambah Pengeluaran' }}
+        {{ modalMode === 'edit' ? 'Edit Catatan' : (formType === 'income' ? 'Tambah Pemasukan' : 'Tambah Pengeluaran') }}
       </h6>
       <button class="btn-close-custom" (click)="closeModal()">
         <i class="bi bi-x-lg"></i>
@@ -182,7 +189,7 @@
         <label class="form-label fw-semibold">Kategori <span class="text-danger">*</span></label>
         <select class="form-select" [(ngModel)]="formCategory">
           <option value="">-- Pilih Kategori --</option>
-          <option *ngFor="let cat of currentCategories" [value]="cat">{{ cat }}</option>
+          <option *ngFor="let cat of currentCategories" [value]="cat.value">{{ cat.label }}</option>
         </select>
       </div>
       <div class="mb-3">

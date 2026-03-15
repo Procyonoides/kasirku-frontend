@@ -21,6 +21,8 @@ export class FinanceComponent implements OnInit {
   currentPage = 1;
   totalPages = 1;
   totalItems = 0;
+  selectedRecord: any = null;
+  modalMode: 'add' | 'edit' = 'add';
 
   showModal = false;
   formType: 'income' | 'expense' = 'income';
@@ -31,8 +33,25 @@ export class FinanceComponent implements OnInit {
   formError = '';
   formSubmitting = false;
 
-  incomeCategories = ['Penjualan', 'Modal', 'Piutang Masuk', 'Lainnya'];
-  expenseCategories = ['Pembelian Stok', 'Operasional', 'Gaji', 'Listrik', 'Sewa', 'Lainnya'];
+  incomeCategories = [
+    { value: 'penjualan',     label: 'Penjualan' },
+    { value: 'modal',         label: 'Modal' },
+    { value: 'piutang_masuk', label: 'Piutang Masuk' },
+    { value: 'pinjaman',      label: 'Pinjaman' },
+    { value: 'lain_lain_masuk', label: 'Lain-lain' },
+  ];
+  expenseCategories = [
+    { value: 'pembelian_stok',  label: 'Pembelian Stok' },
+    { value: 'gaji',            label: 'Gaji' },
+    { value: 'sewa',            label: 'Sewa' },
+    { value: 'listrik',         label: 'Listrik' },
+    { value: 'air',             label: 'Air' },
+    { value: 'internet',        label: 'Internet' },
+    { value: 'perawatan',       label: 'Perawatan' },
+    { value: 'transportasi',    label: 'Transportasi' },
+    { value: 'marketing',       label: 'Marketing' },
+    { value: 'lain_lain_keluar', label: 'Lain-lain' },
+  ];
 
   constructor(private financeService: FinanceService) {}
 
@@ -75,7 +94,10 @@ export class FinanceComponent implements OnInit {
     if (this.dateTo) params.endDate = this.dateTo;
 
     this.financeService.getSummary(params).subscribe({
-      next: (res) => { this.summary = res.data; }
+      next: (res) => { 
+        console.log('summary:', res.data); // tambah ini
+        this.summary = res.data; 
+      }
     });
   }
 
@@ -108,9 +130,13 @@ export class FinanceComponent implements OnInit {
     this.showModal = true;
   }
 
-  closeModal() { this.showModal = false; }
+  closeModal() { 
+    this.showModal = false; 
+    this.modalMode = 'add';
+    this.selectedRecord = null;
+  }
 
-  get currentCategories(): string[] {
+  get currentCategories(): { value: string, label: string }[] {
     return this.formType === 'income' ? this.incomeCategories : this.expenseCategories;
   }
 
@@ -122,24 +148,30 @@ export class FinanceComponent implements OnInit {
     this.formError = '';
 
     const data = {
-      type: this.formType,
+      type: this.formType === 'income' ? 'pemasukan' : 'pengeluaran',
       category: this.formCategory,
       amount: this.formAmount,
-      description: this.formDescription,
+      description: this.formDescription || '-',
       date: this.formDate
-    };
+    } as any;
 
-    this.financeService.create(data).subscribe({
+    const req = this.modalMode === 'edit'
+      ? this.financeService.update(this.selectedRecord._id, data)
+      : this.financeService.create(data);
+
+    req.subscribe({
       next: () => {
         this.showModal = false;
         this.formSubmitting = false;
+        this.modalMode = 'add';
+        this.selectedRecord = null;
         this.loadAll();
       },
       error: (err) => {
         this.formError = err?.error?.message || 'Terjadi kesalahan';
         this.formSubmitting = false;
       }
-    });
+    })
   }
 
   deleteRecord(id: string) {
@@ -148,10 +180,28 @@ export class FinanceComponent implements OnInit {
   }
 
   getTypeClass(type: string): string {
-    return type === 'income' ? 'badge-income' : 'badge-expense';
+    return type === 'pemasukan' ? 'badge-income' : 'badge-expense';
   }
 
   getTypeLabel(type: string): string {
-    return type === 'income' ? 'Pemasukan' : 'Pengeluaran';
+    return type === 'pemasukan' ? 'Pemasukan' : 'Pengeluaran';
+  }
+
+  getCategoryLabel(value: string): string {
+    const all = [...this.incomeCategories, ...this.expenseCategories];
+    const found = all.find(c => c.value === value);
+    return found ? found.label : value;
+  }
+
+  openEdit(record: any) {
+    this.formType = record.type === 'pemasukan' ? 'income' : 'expense';
+    this.formCategory = record.category;
+    this.formAmount = record.amount;
+    this.formDescription = record.description === '-' ? '' : record.description;
+    this.formDate = new Date(record.date).toISOString().split('T')[0];
+    this.formError = '';
+    this.selectedRecord = record;
+    this.modalMode = 'edit';
+    this.showModal = true;
   }
 }
