@@ -174,7 +174,7 @@ export class PosComponent implements OnInit {
         price: i.product.sellPrice,
         subtotal: i.subtotal
       })),
-      customer: this.selectedCustomer?._id || null,
+      customerId: this.selectedCustomer?._id || null,
       paymentMethod: this.paymentMethod,
       discountPercent: this.subtotal > 0 ? (this.discount / this.subtotal) * 100 : 0,
       amountPaid: this.paymentMethod === 'tunai' ? this.amountPaid : this.grandTotal,

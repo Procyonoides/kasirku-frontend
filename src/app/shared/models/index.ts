@@ -124,3 +124,14 @@ export interface ApiResponse<T> {
     limit: number;
   };
 }
+
+// ─── Settings ─────────────────────────────────────────────
+export interface Setting {
+  _id?: string;
+  storeName: string;
+  storeAddress: string;
+  storePhone: string;
+  storeEmail: string;
+  storeDescription: string;
+  currency: string;
+}

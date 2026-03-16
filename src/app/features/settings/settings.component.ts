@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../core/auth/auth.service';
+import { SettingService } from '../../core/services/api.service';
 
 @Component({
   selector: 'app-settings',
@@ -11,26 +12,33 @@ import { AuthService } from '../../core/auth/auth.service';
   styleUrl: './settings.component.css'
 })
 export class SettingsComponent implements OnInit {
-  activeTab: 'profile' | 'password' = 'profile';
+  activeTab: 'profile' | 'password' | 'store' = 'profile';
 
+  // Profile form
   profileForm!: FormGroup;
-  passwordForm!: FormGroup;
-
   profileSubmitting = false;
   profileSuccess = false;
   profileError = '';
 
+  // Password form
+  passwordForm!: FormGroup;
   passwordSubmitting = false;
   passwordSuccess = false;
   passwordError = '';
-
   showCurrentPassword = false;
   showNewPassword = false;
   showConfirmPassword = false;
 
+  // Store form
+  storeForm!: FormGroup;
+  storeSubmitting = false;
+  storeSuccess = false;
+  storeError = '';
+
   constructor(
     private fb: FormBuilder,
-    public authService: AuthService
+    public authService: AuthService,
+    private settingService: SettingService
   ) {}
 
   ngOnInit() {
@@ -46,6 +54,44 @@ export class SettingsComponent implements OnInit {
       newPassword: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', Validators.required],
     }, { validators: this.passwordMatchValidator });
+
+    this.storeForm = this.fb.group({
+      storeName: ['', Validators.required],
+      storeAddress: [''],
+      storePhone: [''],
+      storeEmail: ['', Validators.email],
+      storeDescription: [''],
+      currency: ['Rp'],
+    });
+
+    this.loadStoreSetting();
+  }
+
+  loadStoreSetting() {
+    this.settingService.get().subscribe({
+      next: (res) => {
+        this.storeForm.patchValue(res.data);
+      }
+    });
+  }
+
+  submitStore() {
+    if (this.storeForm.invalid) { this.storeForm.markAllAsTouched(); return; }
+    this.storeSubmitting = true;
+    this.storeSuccess = false;
+    this.storeError = '';
+
+    this.settingService.update(this.storeForm.value).subscribe({
+      next: () => {
+        this.storeSubmitting = false;
+        this.storeSuccess = true;
+        setTimeout(() => this.storeSuccess = false, 3000);
+      },
+      error: (err) => {
+        this.storeError = err?.error?.message || 'Terjadi kesalahan';
+        this.storeSubmitting = false;
+      }
+    });
   }
 
   passwordMatchValidator(group: FormGroup) {

@@ -23,6 +23,11 @@
               <i class="bi bi-shield-lock"></i>
               <span>Password</span>
             </button>
+            <button class="settings-menu-item" [class.active]="activeTab === 'store'"
+              (click)="activeTab = 'store'">
+              <i class="bi bi-shop"></i>
+              <span>Info Toko</span>
+            </button>
           </div>
         </div>
 
@@ -158,6 +163,81 @@
                         Ganti Password
                       </button>
                     </div>
+                  </div>
+                </form>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- Store Tab -->
+          <div *ngIf="activeTab === 'store'">
+            <div class="card border-0 shadow-sm">
+              <div class="card-header bg-white py-3">
+                <h6 class="fw-bold mb-0">
+                  <i class="bi bi-shop me-2 text-primary"></i>Informasi Toko
+                </h6>
+              </div>
+              <div class="card-body">
+
+                <div *ngIf="storeSuccess" class="alert alert-success py-2 small mb-3">
+                  <i class="bi bi-check-circle me-1"></i>Informasi toko berhasil disimpan!
+                </div>
+                <div *ngIf="storeError" class="alert alert-danger py-2 small mb-3">
+                  <i class="bi bi-exclamation-circle me-1"></i>{{ storeError }}
+                </div>
+
+                <form [formGroup]="storeForm" (ngSubmit)="submitStore()">
+                  <div class="row g-3">
+
+                    <div class="col-12">
+                      <label class="form-label fw-semibold">Nama Toko <span class="text-danger">*</span></label>
+                      <input type="text" class="form-control" formControlName="storeName"
+                        placeholder="cth: Toko Maju Jaya"
+                        [class.is-invalid]="isInvalid(storeForm, 'storeName')" />
+                      <div class="invalid-feedback">Nama toko wajib diisi</div>
+                    </div>
+
+                    <div class="col-12">
+                      <label class="form-label fw-semibold">Alamat</label>
+                      <textarea class="form-control" formControlName="storeAddress"
+                        rows="2" placeholder="Alamat lengkap toko"></textarea>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                      <label class="form-label fw-semibold">Nomor Telepon</label>
+                      <input type="text" class="form-control" formControlName="storePhone"
+                        placeholder="cth: 0812-3456-7890" />
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                      <label class="form-label fw-semibold">Email Toko</label>
+                      <input type="email" class="form-control" formControlName="storeEmail"
+                        placeholder="cth: toko@email.com"
+                        [class.is-invalid]="isInvalid(storeForm, 'storeEmail')" />
+                      <div class="invalid-feedback">Format email tidak valid</div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                      <label class="form-label fw-semibold">Simbol Mata Uang</label>
+                      <input type="text" class="form-control" formControlName="currency"
+                        placeholder="cth: Rp" />
+                    </div>
+
+                    <div class="col-12">
+                      <label class="form-label fw-semibold">Deskripsi Toko</label>
+                      <textarea class="form-control" formControlName="storeDescription"
+                        rows="2" placeholder="Deskripsi singkat toko (opsional)"></textarea>
+                    </div>
+
+                    <div class="col-12">
+                      <button type="submit" class="btn btn-primary px-4" [disabled]="storeSubmitting">
+                        <span *ngIf="storeSubmitting" class="spinner-border spinner-border-sm me-2"></span>
+                        <i *ngIf="!storeSubmitting" class="bi bi-check-lg me-2"></i>
+                        Simpan Perubahan
+                      </button>
+                    </div>
+
                   </div>
                 </form>
 

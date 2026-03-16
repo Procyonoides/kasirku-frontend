@@ -34,29 +34,71 @@
     <div class="card-body p-0">
       <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
-          <thead class="table-light">
-            <tr>
-              <th class="ps-4">Tanggal</th>
-              <th>Pemasukan</th>
-              <th>Pengeluaran</th>
-              <th>Net</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let row of data.daily">
-              <td class="ps-4">{{ row._id | date:'dd MMM yyyy' }}</td>
-              <td class="text-success">{{ row.income | rupiah }}</td>
-              <td class="text-danger">{{ row.expense | rupiah }}</td>
-              <td class="fw-semibold"
-                [class.text-success]="row.net >= 0"
-                [class.text-danger]="row.net < 0">
-                {{ row.net | rupiah }}
-              </td>
-            </tr>
-            <tr *ngIf="!data.daily?.length">
-              <td colspan="4" class="text-center text-muted py-4">Tidak ada data</td>
-            </tr>
-          </tbody>
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-4">Tanggal</th>
+                    <th>Pemasukan</th>
+                    <th>Pengeluaran</th>
+                    <th>Net</th>
+                </tr>
+            </thead>
+            <tbody>
+                <ng-container *ngFor="let row of data.daily">
+                    <!-- Baris utama -->
+                    <tr (click)="toggleExpand(row._id)" style="cursor:pointer;">
+                        <td class="ps-4">
+                            <i class="bi me-2"
+                            [class.bi-chevron-down]="expandedDay === row._id"
+                            [class.bi-chevron-right]="expandedDay !== row._id"
+                            style="font-size:11px; color:#94a3b8;">
+                            </i>
+                            {{ row._id | date:'dd MMM yyyy' }}
+                        </td>
+                        <td class="text-success">{{ row.income | rupiah }}</td>
+                        <td class="text-danger">{{ row.expense | rupiah }}</td>
+                        <td class="fw-semibold"
+                            [class.text-success]="row.net >= 0"
+                            [class.text-danger]="row.net < 0">
+                            {{ row.net | rupiah }}
+                        </td>
+                    </tr>
+
+                    <!-- Baris detail (accordion) -->
+                    <tr *ngIf="expandedDay === row._id">
+                        <td colspan="4" class="p-0">
+                            <table class="table table-sm mb-0" style="background:#f8fafc;">
+                            <thead>
+                                <tr style="background:#e2e8f0;">
+                                <th class="ps-5" style="font-size:11px;">Jenis</th>
+                                <th style="font-size:11px;">Kategori</th>
+                                <th style="font-size:11px;">Keterangan</th>
+                                <th style="font-size:11px;">Nominal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let item of row.items">
+                                <td class="ps-5">
+                                    <span class="badge"
+                                    [class.badge-income]="item.type === 'pemasukan'"
+                                    [class.badge-expense]="item.type === 'pengeluaran'"
+                                    style="font-size:10px;">
+                                    {{ item.type === 'pemasukan' ? 'Pemasukan' : 'Pengeluaran' }}
+                                    </span>
+                                </td>
+                                <td style="font-size:12px;">{{ getCategoryLabel(item.category) }}</td>
+                                <td style="font-size:12px;" class="text-muted">{{ item.description && item.description !== '-' ? item.description : '-' }}</td>
+                                <td style="font-size:12px;" class="fw-semibold"
+                                    [class.text-success]="item.type === 'pemasukan'"
+                                    [class.text-danger]="item.type === 'pengeluaran'">
+                                    {{ item.type === 'pemasukan' ? '+' : '-' }}{{ item.amount | rupiah }}
+                                </td>
+                                </tr>
+                            </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                </ng-container>
+            </tbody>
         </table>
       </div>
     </div>

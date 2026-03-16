@@ -6,9 +6,14 @@
       <h4 class="fw-bold mb-1" style="color: #1e3a5f">Manajemen Produk</h4>
       <p class="text-muted small mb-0">Total {{ totalItems }} produk terdaftar</p>
     </div>
-    <a routerLink="/products/add" class="btn btn-primary">
-      <i class="bi bi-plus-lg me-2"></i>Tambah Produk
-    </a>
+    <div class="d-flex gap-2">
+      <a routerLink="/products/categories" class="btn btn-outline-secondary">
+        <i class="bi bi-tags me-2"></i>Kelola Kategori
+      </a>
+      <a routerLink="/products/add" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-2"></i>Tambah Produk
+      </a>
+    </div>
   </div>
 
   <!-- Filter -->

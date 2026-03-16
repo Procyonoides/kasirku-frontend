@@ -64,13 +64,7 @@ export class ReportsComponent implements OnInit {
         break;
       case 'profit':
         this.reportService.getProfitLoss(params).subscribe({
-          //next: (res) => { this.profitData = res.data; this.isLoading = false; }
-          next: (res) => { 
-            console.log('profitData:', res.data); // tambah ini sementara
-            this.profitData = res.data; 
-            this.isLoading = false; 
-          },
-          error: () => { this.isLoading = false; }
+          next: (res) => { this.profitData = res.data; this.isLoading = false; }
         });
         break;
       case 'top-products':
@@ -153,6 +147,7 @@ export class ReportsComponent implements OnInit {
         break;
     }
 
+    const isCashflow = this.activeTab === 'cashflow';
     if (!data.length) return;
 
     const workbook = new ExcelJS.Workbook();
@@ -214,69 +209,145 @@ export class ReportsComponent implements OnInit {
     });
 
     // ── ROW 6+: Data ─────────────────────────────────────────
-    data.forEach((row, rowIdx) => {
-      const excelRow = worksheet.getRow(rowIdx + 6);
-      excelRow.height = 18;
-      headers.forEach((h, colIdx) => {
-        const cell = excelRow.getCell(colIdx + 1);
-        cell.value = row[h];
-        cell.fill = rowIdx % 2 === 0 ? zebraFill : whiteFill;
-        cell.font = { size: 10 };
-        cell.border = allBorder;
-        if (typeof row[h] === 'number') {
-          cell.alignment = { horizontal: 'right', vertical: 'middle' };
-          if (h.includes('(Rp)')) cell.numFmt = '#,##0';
-        } else {
-          cell.alignment = { horizontal: 'left', vertical: 'middle' };
+    if (!isCashflow) {
+      data.forEach((row, rowIdx) => {
+        const excelRow = worksheet.getRow(rowIdx + 6);
+        excelRow.height = 18;
+        headers.forEach((h, colIdx) => {
+          const cell = excelRow.getCell(colIdx + 1);
+          cell.value = row[h];
+          cell.fill = rowIdx % 2 === 0 ? zebraFill : whiteFill;
+          cell.font = { size: 10 };
+          cell.border = allBorder;
+          if (typeof row[h] === 'number') {
+            cell.alignment = { horizontal: 'right', vertical: 'middle' };
+            if (h.includes('(Rp)')) cell.numFmt = '#,##0';
+          } else {
+            cell.alignment = { horizontal: 'left', vertical: 'middle' };
+          }
+        });
+      });
+
+      // Styling khusus baris Laba Bersih (row ke-3, index 2)
+      if (this.activeTab === 'profit') {
+        const netValue = this.profitData.netProfit ?? this.profitData.profit ?? 0;
+        const isProfit = netValue >= 0;
+        const labaFill: ExcelJS.Fill = {
+          type: 'pattern', pattern: 'solid',
+          fgColor: { argb: isProfit ? 'FFD1FAE5' : 'FFFEE2E2' } // hijau muda atau merah muda
+        };
+        const labaRow = worksheet.getRow(8); // row 6 + index 2 = row 8
+        labaRow.eachCell(cell => {
+          cell.fill = labaFill;
+          cell.font = { bold: true, size: 11, color: { argb: isProfit ? 'FF065F46' : 'FF991B1B' } };
+        });
+      }
+
+      // ── BARIS TOTAL ──────────────────────────────────────────
+      if (this.activeTab !== 'profit') {
+        const totalRowIdx = data.length + 6;
+        const totalRow = worksheet.getRow(totalRowIdx);
+        totalRow.height = 22;
+
+        headers.forEach((h, colIdx) => {
+          const cell = totalRow.getCell(colIdx + 1);
+          cell.font = { bold: true, size: 11, color: { argb: 'FF1E3A5F' } };
+          cell.fill = totalFill;
+          cell.border = allBorder;
+
+          if (colIdx === 0) {
+            cell.value = 'TOTAL';
+            cell.alignment = { horizontal: 'center', vertical: 'middle' };
+          } else {
+            const isNumber = typeof data[0][h] === 'number';
+            if (isNumber) {
+              const sum = data.reduce((acc: number, r: any) => acc + (r[h] || 0), 0);
+              cell.value = sum;
+              cell.numFmt = '#,##0';
+              cell.alignment = { horizontal: 'right', vertical: 'middle' };
+            } else {
+              cell.value = '';
+              cell.alignment = { horizontal: 'left', vertical: 'middle' };
+            }
+          }
+        });
+      }
+
+    } else {
+      // ── CASHFLOW: rows dengan sub-detail ─────────────────
+      const greyFill: ExcelJS.Fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
+      const incFill: ExcelJS.Fill  = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD1FAE5' } };
+      const expFill: ExcelJS.Fill  = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEE2E2' } };
+      let currentRow = 6;
+
+      this.cashflowData.daily.forEach((day: any) => {
+        // Baris tanggal utama
+        const mainRow = worksheet.getRow(currentRow);
+        mainRow.height = 20;
+        [day._id, day.income, day.expense, day.net].forEach((val, i) => {
+          const cell = mainRow.getCell(i + 1);
+          cell.value = val;
+          cell.fill = zebraFill;
+          cell.font = { bold: true, size: 10, color: { argb: 'FF1E3A5F' } };
+          cell.border = allBorder;
+          if (i > 0) { cell.numFmt = '#,##0'; cell.alignment = { horizontal: 'right', vertical: 'middle' }; }
+          else { cell.alignment = { horizontal: 'left', vertical: 'middle' }; }
+        });
+        currentRow++;
+
+        // Sub-rows detail items
+        if (day.items?.length) {
+          day.items.forEach((item: any) => {
+            const subRow = worksheet.getRow(currentRow);
+            subRow.height = 16;
+            const isIncome = item.type === 'pemasukan';
+            const fillColor = isIncome ? incFill : expFill;
+
+            const c1 = subRow.getCell(1);
+            c1.value = `   ${isIncome ? '↑' : '↓'} ${isIncome ? 'Pemasukan' : 'Pengeluaran'}`;
+            c1.fill = fillColor;
+            c1.font = { size: 9, color: { argb: isIncome ? 'FF065F46' : 'FF991B1B' } };
+            c1.border = allBorder;
+
+            const c2 = subRow.getCell(2);
+            c2.value = this.getCashflowCategoryLabel(item.category);
+            c2.fill = fillColor;
+            c2.font = { size: 9, color: { argb: 'FF374151' } };
+            c2.border = allBorder;
+
+            const c3 = subRow.getCell(3);
+            c3.value = item.description && item.description !== '-' ? item.description : '';
+            c3.fill = fillColor;
+            c3.font = { size: 9, italic: true, color: { argb: 'FF6B7280' } };
+            c3.border = allBorder;
+
+            const c4 = subRow.getCell(4);
+            c4.value = item.amount;
+            c4.numFmt = '#,##0';
+            c4.fill = fillColor;
+            c4.font = { size: 9, bold: true, color: { argb: isIncome ? 'FF065F46' : 'FF991B1B' } };
+            c4.border = allBorder;
+            c4.alignment = { horizontal: 'right', vertical: 'middle' };
+
+            currentRow++;
+          });
         }
       });
-    });
 
-    // Styling khusus baris Laba Bersih (row ke-3, index 2)
-    if (this.activeTab === 'profit') {
-      const netValue = this.profitData.netProfit ?? this.profitData.profit ?? 0;
-      const isProfit = netValue >= 0;
-      const labaFill: ExcelJS.Fill = {
-        type: 'pattern', pattern: 'solid',
-        fgColor: { argb: isProfit ? 'FFD1FAE5' : 'FFFEE2E2' } // hijau muda atau merah muda
-      };
-      const labaRow = worksheet.getRow(8); // row 6 + index 2 = row 8
-      labaRow.eachCell(cell => {
-        cell.fill = labaFill;
-        cell.font = { bold: true, size: 11, color: { argb: isProfit ? 'FF065F46' : 'FF991B1B' } };
-      });
-    }
-
-    // ── BARIS TOTAL ──────────────────────────────────────────
-    if (this.activeTab !== 'profit') {
-      const totalRowIdx = data.length + 6;
-      const totalRow = worksheet.getRow(totalRowIdx);
+      // Baris Total
+      const totalRow = worksheet.getRow(currentRow);
       totalRow.height = 22;
-
-      headers.forEach((h, colIdx) => {
-        const cell = totalRow.getCell(colIdx + 1);
+      ['TOTAL', this.cashflowData.totalIncome, this.cashflowData.totalExpense, this.cashflowData.netCashflow]
+      .forEach((val, i) => {
+        const cell = totalRow.getCell(i + 1);
+        cell.value = val;
         cell.font = { bold: true, size: 11, color: { argb: 'FF1E3A5F' } };
         cell.fill = totalFill;
         cell.border = allBorder;
-
-        if (colIdx === 0) {
-          cell.value = 'TOTAL';
-          cell.alignment = { horizontal: 'center', vertical: 'middle' };
-        } else {
-          const isNumber = typeof data[0][h] === 'number';
-          if (isNumber) {
-            const sum = data.reduce((acc: number, r: any) => acc + (r[h] || 0), 0);
-            cell.value = sum;
-            cell.numFmt = '#,##0';
-            cell.alignment = { horizontal: 'right', vertical: 'middle' };
-          } else {
-            cell.value = '';
-            cell.alignment = { horizontal: 'left', vertical: 'middle' };
-          }
-        }
+        if (i === 0) { cell.alignment = { horizontal: 'center', vertical: 'middle' }; }
+        else { cell.numFmt = '#,##0'; cell.alignment = { horizontal: 'right', vertical: 'middle' }; }
       });
     }
-
     // ── Lebar Kolom ──────────────────────────────────────────
     worksheet.columns = headers.map(h => ({
       width: Math.max(h.length + 6, 22)
@@ -625,22 +696,63 @@ export class ReportsComponent implements OnInit {
       pdf.setFont('helvetica', 'normal');
       if (this.cashflowData.daily?.length) {
         this.cashflowData.daily.forEach((row: any, i: number) => {
-          checkPage(8);
-          if (i % 2 === 0) { pdf.setFillColor(248, 250, 252); pdf.rect(margin, y, pageWidth - margin * 2, 7, 'F'); }
-          sumInc += row.income || 0;
-          sumExp += row.expense || 0;
-          sumNet += row.net || 0;
-          pdf.setTextColor(50, 50, 50);
-          pdf.text(row._id || '-', colX.tgl, y + 5);
-          pdf.setTextColor(22, 163, 74);
-          pdf.text(`Rp ${(row.income || 0).toLocaleString('id-ID')}`, colX.inc, y + 5);
-          pdf.setTextColor(220, 38, 38);
-          pdf.text(`Rp ${(row.expense || 0).toLocaleString('id-ID')}`, colX.exp, y + 5);
-          pdf.setTextColor(row.net >= 0 ? 37 : 220, row.net >= 0 ? 99 : 38, row.net >= 0 ? 235 : 38);
-          pdf.text(`Rp ${(row.net || 0).toLocaleString('id-ID')}`, colX.net, y + 5);
-          y += 7;
-        });
-      }
+        checkPage(8);
+        // Baris tanggal utama
+        if (i % 2 === 0) { pdf.setFillColor(248, 250, 252); pdf.rect(margin, y, pageWidth - margin * 2, 7, 'F'); }
+        sumInc += row.income || 0;
+        sumExp += row.expense || 0;
+        sumNet += row.net || 0;
+        pdf.setTextColor(50, 50, 50);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(row._id || '-', colX.tgl, y + 5);
+        pdf.setTextColor(22, 163, 74);
+        pdf.text(`Rp ${(row.income || 0).toLocaleString('id-ID')}`, colX.inc, y + 5);
+        pdf.setTextColor(220, 38, 38);
+        pdf.text(`Rp ${(row.expense || 0).toLocaleString('id-ID')}`, colX.exp, y + 5);
+        pdf.setTextColor(row.net >= 0 ? 37 : 220, row.net >= 0 ? 99 : 38, row.net >= 0 ? 235 : 38);
+        pdf.text(`Rp ${(row.net || 0).toLocaleString('id-ID')}`, colX.net, y + 5);
+        pdf.setFont('helvetica', 'normal');
+        y += 7;
+
+        // Detail items
+        if (row.items?.length) {
+          row.items.forEach((item: any) => {
+            checkPage(7);
+            const isIncome = item.type === 'pemasukan';
+
+            // Background hijau atau merah muda
+            if (isIncome) { pdf.setFillColor(209, 250, 229); }
+            else { pdf.setFillColor(254, 226, 226); }
+            pdf.rect(margin, y, pageWidth - margin * 2, 6, 'F');
+
+            pdf.setFontSize(8);
+            pdf.setFont('helvetica', 'normal');
+
+            // Jenis (indent)
+            pdf.setTextColor(isIncome ? 6 : 153, isIncome ? 95 : 27, isIncome ? 70 : 27);
+            pdf.text(`  ${isIncome ? '[+]' : '[-]'} ${isIncome ? 'Pemasukan' : 'Pengeluaran'}`, colX.tgl, y + 4.5);
+
+            // Kategori
+            pdf.setTextColor(55, 65, 81);
+            pdf.text(this.getCashflowCategoryLabel(item.category), colX.inc, y + 4.5);
+
+            // Keterangan
+            pdf.setTextColor(107, 114, 128);
+            const desc = item.description && item.description !== '-' ? item.description : '';
+            pdf.text(desc, colX.exp, y + 4.5);
+
+            // Nominal
+            pdf.setFont('helvetica', 'bold');
+            pdf.setTextColor(isIncome ? 6 : 153, isIncome ? 95 : 27, isIncome ? 70 : 27);
+            pdf.text(`Rp ${item.amount.toLocaleString('id-ID')}`, colX.net, y + 4.5);
+
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(9);
+            y += 6;
+          });
+        }
+      });
+    }
 
       // Baris Total
       drawTotalRow([
@@ -728,5 +840,17 @@ export class ReportsComponent implements OnInit {
     printWindow.document.close();
     printWindow.focus();
     setTimeout(() => { printWindow.print(); printWindow.close(); }, 800);
+  }
+
+  getCashflowCategoryLabel(value: string): string {
+    const map: Record<string, string> = {
+      'penjualan': 'Penjualan', 'modal': 'Modal', 'piutang_masuk': 'Piutang Masuk',
+      'pinjaman': 'Pinjaman', 'lain_lain_masuk': 'Lain-lain',
+      'pembelian_stok': 'Pembelian Stok', 'gaji': 'Gaji', 'sewa': 'Sewa',
+      'listrik': 'Listrik', 'air': 'Air', 'internet': 'Internet',
+      'perawatan': 'Perawatan', 'transportasi': 'Transportasi',
+      'marketing': 'Marketing', 'lain_lain_keluar': 'Lain-lain'
+    };
+    return map[value] || value;
   }
 }

@@ -42,11 +42,15 @@ export const routes: Routes = [
             loadComponent: () => import('./features/products/product-form/product-form.component').then(m => m.ProductFormComponent)
           },
           {
+            path: 'categories',
+            loadComponent: () => import('./features/products/category-list/category-list.component').then(m => m.CategoryListComponent)
+          },
+          {
             path: ':id/edit',
             loadComponent: () => import('./features/products/product-form/product-form.component').then(m => m.ProductFormComponent)
           },
         ]
-      },
+      },      
       {
         path: 'customers',
         canActivate: [roleGuard],

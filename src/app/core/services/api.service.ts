@@ -191,3 +191,13 @@ export class UserService {
   toggleActive(id: string): Observable<any> { return this.http.patch(`${this.url}/${id}/toggle-active`, {}); }
   delete(id: string): Observable<any> { return this.http.delete(`${this.url}/${id}`); }
 }
+
+// ─── Setting Service ─────────────────────────────────────────
+@Injectable({ providedIn: 'root' })
+export class SettingService {
+  private url = `${environment.apiUrl}/settings`;
+  constructor(private http: HttpClient) {}
+
+  get(): Observable<any> { return this.http.get(this.url); }
+  update(data: any): Observable<any> { return this.http.put(this.url, data); }
+}
