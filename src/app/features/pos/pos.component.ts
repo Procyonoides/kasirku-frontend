@@ -5,6 +5,9 @@ import { Router } from '@angular/router';
 import { ProductService, CustomerService, TransactionService } from '../../core/services/api.service';
 import { Product, Customer } from '../../shared/models';
 import { RupiahPipe } from '../../shared/pipes';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { ReceiptService } from '../../core/services/receipt.service';
+import { AuthService } from '../../core/auth/auth.service';
 
 interface CartItem {
   product: Product;
@@ -15,7 +18,7 @@ interface CartItem {
 @Component({
   selector: 'app-pos',
   standalone: true,
-  imports: [CommonModule, FormsModule, RupiahPipe, NgClass],
+  imports: [CommonModule, FormsModule, RupiahPipe, NgClass, ConfirmDialogComponent],
   templateUrl: './pos.component.html',
   styleUrl: './pos.component.css'
 })
@@ -47,6 +50,14 @@ export class PosComponent implements OnInit {
   lastInvoice = '';
   errorMsg = '';
 
+  // Confirm dialog
+  showConfirm = false;
+  confirmTitle = '';
+  confirmMessage = '';
+  confirmAction: (() => void) | null = null;
+
+  lastTransaction: any = null;
+
   paymentMethods = [
     { value: 'tunai', label: 'Tunai', icon: 'bi-cash-coin' },
     { value: 'transfer', label: 'Transfer', icon: 'bi-bank' },
@@ -59,6 +70,8 @@ export class PosComponent implements OnInit {
     private productService: ProductService,
     private customerService: CustomerService,
     private transactionService: TransactionService,
+    private receiptService: ReceiptService,
+    public authService: AuthService,
     public router: Router
   ) {}
 
@@ -115,11 +128,26 @@ export class PosComponent implements OnInit {
 
   clearCart() {
     if (this.cart.length === 0) return;
-    if (!confirm('Kosongkan keranjang?')) return;
-    this.cart = [];
-    this.selectedCustomer = null;
-    this.discount = 0;
-    this.amountPaid = 0;
+    this.confirmTitle = 'Kosongkan Keranjang';
+    this.confirmMessage = 'Apakah Anda yakin ingin mengosongkan keranjang belanja?';
+    this.confirmAction = () => {
+      this.cart = [];
+      this.selectedCustomer = null;
+      this.discount = 0;
+      this.amountPaid = 0;
+    };
+    this.showConfirm = true;
+  }
+
+  onConfirmed() {
+    if (this.confirmAction) this.confirmAction();
+    this.showConfirm = false;
+    this.confirmAction = null;
+  }
+
+  onCancelled() {
+    this.showConfirm = false;
+    this.confirmAction = null;
   }
 
   get subtotal(): number {
@@ -185,6 +213,7 @@ export class PosComponent implements OnInit {
       next: (res) => {
         this.lastInvoice = res.data?.invoiceNumber || '';
         this.showSuccess = true;
+        this.lastTransaction = res.data;
         this.isSubmitting = false;
         this.cart = [];
         this.selectedCustomer = null;
@@ -198,6 +227,15 @@ export class PosComponent implements OnInit {
         this.isSubmitting = false;
       }
     });
+  }
+
+  printReceipt() {
+    if (!this.lastTransaction) return;
+    const tx = {
+      ...this.lastTransaction,
+      cashier: { name: this.authService.currentUser()?.name || '-' }
+    };
+    this.receiptService.printReceipt(tx);
   }
 
   closeSuccess() { this.showSuccess = false; }

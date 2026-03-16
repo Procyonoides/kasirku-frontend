@@ -4,11 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { CategoryService } from '../../../core/services/api.service';
 import { Category } from '../../../shared/models';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 
 @Component({
   selector: 'app-category-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, ConfirmDialogComponent, LoadingSpinnerComponent],
   templateUrl: './category-list.component.html',
   styleUrl: './category-list.component.css'
 })
@@ -27,6 +29,12 @@ export class CategoryListComponent implements OnInit {
   formColor = '#3B82F6';
   formError = '';
   formSubmitting = false;
+
+  // Confirm dialog
+  showConfirm = false;
+  confirmTitle = '';
+  confirmMessage = '';
+  confirmAction: (() => void) | null = null;
 
   constructor(private categoryService: CategoryService) {}
 
@@ -81,10 +89,25 @@ export class CategoryListComponent implements OnInit {
   }
 
   deleteCategory(id: string, name: string) {
-    if (!confirm(`Hapus kategori "${name}"?`)) return;
-    this.categoryService.delete(id).subscribe({
-      next: () => { this.loadCategories(); }
-    });
+    this.confirmTitle = 'Hapus Kategori';
+    this.confirmMessage = `Apakah Anda yakin ingin menghapus kategori "${name}"?`;
+    this.confirmAction = () => {
+      this.categoryService.delete(id).subscribe({
+        next: () => { this.loadCategories(); }
+      });
+    };
+    this.showConfirm = true;
+  }
+
+  onConfirmed() {
+    if (this.confirmAction) this.confirmAction();
+    this.showConfirm = false;
+    this.confirmAction = null;
+  }
+
+  onCancelled() {
+    this.showConfirm = false;
+    this.confirmAction = null;
   }
 
 }

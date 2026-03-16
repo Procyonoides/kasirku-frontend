@@ -10,6 +10,7 @@ import { ProfitLossComponent } from './profit-loss/profit-loss.component';
 import { TopProductsComponent } from './top-products/top-products.component';
 import { SalesComponent } from './sales/sales.component';
 import { CashflowComponent } from './cashflow/cashflow.component';
+import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 
 @Component({
   selector: 'app-reports',
@@ -22,7 +23,8 @@ import { CashflowComponent } from './cashflow/cashflow.component';
     ProfitLossComponent, 
     TopProductsComponent, 
     SalesComponent, 
-    CashflowComponent
+    CashflowComponent, 
+    LoadingSpinnerComponent
   ],
   templateUrl: './reports.component.html',
   styleUrl: './reports.component.css'

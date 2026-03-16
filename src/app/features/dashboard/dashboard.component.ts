@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { DashboardService } from '../../core/services/api.service';
 import { DashboardStats, Transaction } from '../../shared/models';
 import { RupiahPipe } from '../../shared/pipes';
+import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -12,7 +13,8 @@ import { RupiahPipe } from '../../shared/pipes';
     CommonModule,
     NgClass,
     RouterLink,
-    RupiahPipe
+    RupiahPipe,
+    LoadingSpinnerComponent
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'

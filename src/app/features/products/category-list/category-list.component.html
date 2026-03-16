@@ -17,10 +17,7 @@
   </div>
 
   <!-- Loading -->
-  <div *ngIf="isLoading" class="text-center py-5">
-    <div class="spinner-border text-primary"></div>
-    <p class="mt-2 text-muted">Memuat data...</p>
-  </div>
+  <app-loading-spinner *ngIf="isLoading" message="Memuat kategori..."></app-loading-spinner>
 
   <!-- Grid Kategori -->
   <div *ngIf="!isLoading" class="row g-3">
@@ -98,3 +95,14 @@
     </div>
   </div>
 </div>
+
+<!-- Tambah di paling bawah -->
+<app-confirm-dialog
+  [show]="showConfirm"
+  [title]="confirmTitle"
+  [message]="confirmMessage"
+  confirmText="Ya, Hapus"
+  type="danger"
+  (confirmed)="onConfirmed()"
+  (cancelled)="onCancelled()">
+</app-confirm-dialog>

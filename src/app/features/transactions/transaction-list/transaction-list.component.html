@@ -66,10 +66,8 @@
   <div class="card border-0 shadow-sm">
     <div class="card-body p-0">
 
-      <div *ngIf="isLoading" class="text-center py-5">
-        <div class="spinner-border text-primary"></div>
-        <p class="mt-2 text-muted">Memuat data...</p>
-      </div>
+      <!-- Loading -->
+      <app-loading-spinner *ngIf="isLoading" message="Memuat transaksi..."></app-loading-spinner>
 
       <div *ngIf="!isLoading && transactions.length === 0" class="text-center py-5 text-muted">
         <i class="bi bi-receipt fs-1 d-block mb-2"></i>
@@ -158,3 +156,14 @@
     </div>
   </div>
 </div>
+
+<!-- Confirm Dialog -->
+<app-confirm-dialog
+  [show]="showConfirm"
+  [title]="confirmTitle"
+  [message]="confirmMessage"
+  confirmText="Ya, Batalkan"
+  type="warning"
+  (confirmed)="onConfirmed()"
+  (cancelled)="onCancelled()">
+</app-confirm-dialog>

@@ -12,11 +12,7 @@
   </div>
 
   <!-- Loading -->
-  <div *ngIf="isLoading" class="text-center py-5">
-    <div class="spinner-border text-primary"></div>
-    <p class="mt-2 text-muted">Memuat data...</p>
-  </div>
-
+  <app-loading-spinner *ngIf="isLoading" message="Memuat dashboard..."></app-loading-spinner>
   <div *ngIf="!isLoading && stats">
 
     <!-- Stat Cards -->

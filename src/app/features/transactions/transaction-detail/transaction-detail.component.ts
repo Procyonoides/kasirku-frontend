@@ -3,6 +3,7 @@ import { CommonModule, NgClass } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TransactionService } from '../../../core/services/api.service';
 import { RupiahPipe } from '../../../shared/pipes';
+import { ReceiptService } from '../../../core/services/receipt.service';
 
 
 @Component({
@@ -18,7 +19,8 @@ export class TransactionDetailComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private transactionService: TransactionService
+    private transactionService: TransactionService,
+    private receiptService: ReceiptService
   ) {}
 
   ngOnInit() {
@@ -48,6 +50,11 @@ export class TransactionDetailComponent implements OnInit {
       kartu_kredit: 'bi-credit-card-2-front'
     };
     return map[method] || 'bi-cash';
+  }
+
+  printReceipt() {
+    if (!this.transaction) return;
+    this.receiptService.printReceipt(this.transaction);
   }
 
 }

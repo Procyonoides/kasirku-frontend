@@ -5,11 +5,13 @@ import { FormsModule } from '@angular/forms';
 import { TransactionService } from '../../../core/services/api.service';
 import { Transaction } from '../../../shared/models';
 import { RupiahPipe } from '../../../shared/pipes';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 
 @Component({
   selector: 'app-transaction-list',
   standalone: true,
-  imports: [CommonModule, NgClass, RouterLink, FormsModule, RupiahPipe],
+  imports: [CommonModule, NgClass, RouterLink, FormsModule, RupiahPipe, ConfirmDialogComponent, LoadingSpinnerComponent],
   templateUrl: './transaction-list.component.html',
   styleUrl: './transaction-list.component.css'
 })
@@ -22,6 +24,12 @@ export class TransactionListComponent implements OnInit {
   currentPage = 1;
   totalPages = 1;
   totalItems = 0;
+
+  // Confirm dialog
+  showConfirm = false;
+  confirmTitle = '';
+  confirmMessage = '';
+  confirmAction: (() => void) | null = null;
 
   constructor(private transactionService: TransactionService) {}
 
@@ -68,10 +76,25 @@ export class TransactionListComponent implements OnInit {
   }
 
   cancelTransaction(id: string, invoice: string) {
-    if (!confirm(`Batalkan transaksi ${invoice}?`)) return;
-    this.transactionService.cancel(id).subscribe({
-      next: () => this.loadTransactions()
-    });
+    this.confirmTitle = 'Batalkan Transaksi';
+    this.confirmMessage = `Apakah Anda yakin ingin membatalkan transaksi ${invoice}? Stok produk akan dikembalikan.`;
+    this.confirmAction = () => {
+      this.transactionService.cancel(id).subscribe({
+        next: () => { this.loadTransactions(); }
+      });
+    };
+    this.showConfirm = true;
+  }
+
+  onConfirmed() {
+    if (this.confirmAction) this.confirmAction();
+    this.showConfirm = false;
+    this.confirmAction = null;
+  }
+
+  onCancelled() {
+    this.showConfirm = false;
+    this.confirmAction = null;
   }
 
   getStatusClass(status: string): string {

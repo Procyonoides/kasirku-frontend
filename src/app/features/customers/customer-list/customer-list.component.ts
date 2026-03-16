@@ -5,11 +5,13 @@ import { FormsModule } from '@angular/forms';
 import { CustomerService } from '../../../core/services/api.service';
 import { Customer } from '../../../shared/models';
 import { RupiahPipe } from '../../../shared/pipes';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 
 @Component({
   selector: 'app-customer-list',
   standalone: true,
-  imports: [CommonModule, NgClass, RouterLink, FormsModule, RupiahPipe],
+  imports: [CommonModule, NgClass, RouterLink, FormsModule, RupiahPipe, ConfirmDialogComponent, LoadingSpinnerComponent],
   templateUrl: './customer-list.component.html',
   styleUrl: './customer-list.component.css'
 })
@@ -31,6 +33,12 @@ export class CustomerListComponent implements OnInit {
   formAddress = '';
   formError = '';
   formSubmitting = false;
+
+  // Confirm dialog
+  showConfirm = false;
+  confirmTitle = '';
+  confirmMessage = '';
+  confirmAction: (() => void) | null = null;
 
   constructor(private customerService: CustomerService) {}
 
@@ -110,8 +118,25 @@ export class CustomerListComponent implements OnInit {
   }
 
   deleteCustomer(id: string, name: string) {
-    if (!confirm(`Hapus pelanggan "${name}"?`)) return;
-    this.customerService.delete(id).subscribe({ next: () => this.loadCustomers() });
+    this.confirmTitle = 'Hapus Pelanggan';
+    this.confirmMessage = `Apakah Anda yakin ingin menghapus pelanggan "${name}"?`;
+    this.confirmAction = () => {
+      this.customerService.delete(id).subscribe({
+        next: () => { this.loadCustomers(); }
+      });
+    };
+    this.showConfirm = true;
+  }
+
+  onConfirmed() {
+    if (this.confirmAction) this.confirmAction();
+    this.showConfirm = false;
+    this.confirmAction = null;
+  }
+
+  onCancelled() {
+    this.showConfirm = false;
+    this.confirmAction = null;
   }
 
   getTierBadge(tier: string): string {

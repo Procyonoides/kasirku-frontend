@@ -64,10 +64,7 @@
   </div>
 
   <!-- Loading -->
-  <div *ngIf="isLoading" class="text-center py-5">
-    <div class="spinner-border text-primary"></div>
-    <p class="mt-2 text-muted">Memuat laporan...</p>
-  </div>
+  <app-loading-spinner *ngIf="isLoading" message="Memuat laporan..."></app-loading-spinner>
 
   <div #reportContent>
     <!-- ── SALES REPORT ── -->

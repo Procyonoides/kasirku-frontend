@@ -216,7 +216,10 @@
     </div>
     <h5 class="fw-bold mb-1">Transaksi Berhasil!</h5>
     <p class="text-muted mb-1">Invoice: <strong>{{ lastInvoice }}</strong></p>
-    <div class="d-flex gap-3 mt-4">
+    <div class="d-flex gap-2 mt-4 flex-wrap">
+      <button class="btn btn-outline-secondary flex-grow-1" (click)="printReceipt()">
+        <i class="bi bi-printer me-1"></i>Cetak Struk
+      </button>
       <button class="btn btn-outline-primary flex-grow-1" (click)="closeSuccess()">
         <i class="bi bi-plus-circle me-1"></i>Transaksi Baru
       </button>
@@ -226,3 +229,14 @@
     </div>
   </div>
 </div>
+
+<!-- Confirm Dialog -->
+<app-confirm-dialog
+  [show]="showConfirm"
+  [title]="confirmTitle"
+  [message]="confirmMessage"
+  confirmText="Ya, Kosongkan"
+  type="warning"
+  (confirmed)="onConfirmed()"
+  (cancelled)="onCancelled()">
+</app-confirm-dialog>

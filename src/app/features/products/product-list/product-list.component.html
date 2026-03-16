@@ -64,10 +64,7 @@
     <div class="card-body p-0">
 
       <!-- Loading -->
-      <div *ngIf="isLoading" class="text-center py-5">
-        <div class="spinner-border text-primary"></div>
-        <p class="mt-2 text-muted">Memuat data...</p>
-      </div>
+      <app-loading-spinner *ngIf="isLoading" message="Memuat produk..."></app-loading-spinner>
 
       <!-- Empty -->
       <div *ngIf="!isLoading && products.length === 0" class="text-center py-5 text-muted">
@@ -169,3 +166,19 @@
     </div>
   </div>
 </div>
+
+<!-- Loading Spinner -->
+<ng-template #loadingTpl>
+  <app-loading-spinner message="Memuat produk..."></app-loading-spinner>
+</ng-template>
+
+<!-- Confirm Dialog -->
+<app-confirm-dialog
+  [show]="showConfirm"
+  [title]="confirmTitle"
+  [message]="confirmMessage"
+  confirmText="Ya, Hapus"
+  type="danger"
+  (confirmed)="onConfirmed()"
+  (cancelled)="onCancelled()">
+</app-confirm-dialog>

@@ -2,11 +2,13 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule, NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UserService } from '../../../core/services/api.service';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 
 @Component({
   selector: 'app-user-management',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgClass],
+  imports: [CommonModule, FormsModule, NgClass, ConfirmDialogComponent, LoadingSpinnerComponent],
   templateUrl: './user-management.component.html',
   styleUrl: './user-management.component.css'
 })
@@ -31,6 +33,12 @@ export class UserManagementComponent implements OnInit {
   resetPassword = '';
   resetError = '';
   resetSubmitting = false;
+
+  // Confirm dialog
+  showConfirm = false;
+  confirmTitle = '';
+  confirmMessage = '';
+  confirmAction: (() => void) | null = null;
 
   constructor(private userService: UserService) {}
 
@@ -93,13 +101,7 @@ export class UserManagementComponent implements OnInit {
       error: (err) => { this.formError = err?.error?.message || 'Terjadi kesalahan'; this.formSubmitting = false; }
     });
   }
-
-  toggleActive(user: any) {
-    const msg = user.isActive ? `Nonaktifkan user "${user.name}"?` : `Aktifkan user "${user.name}"?`;
-    if (!confirm(msg)) return;
-    this.userService.toggleActive(user._id).subscribe({ next: () => this.loadUsers() });
-  }
-
+ 
   openResetPassword(user: any) {
     this.resetUserId = user._id;
     this.resetUsername = user.username;
@@ -123,8 +125,37 @@ export class UserManagementComponent implements OnInit {
   }
 
   deleteUser(id: string, name: string) {
-    if (!confirm(`Hapus user "${name}"?`)) return;
-    this.userService.delete(id).subscribe({ next: () => this.loadUsers() });
+    this.confirmTitle = 'Hapus User';
+    this.confirmMessage = `Apakah Anda yakin ingin menghapus user "${name}"?`;
+    this.confirmAction = () => {
+      this.userService.delete(id).subscribe({
+        next: () => { this.loadUsers(); }
+      });
+    };
+    this.showConfirm = true;
+  }
+
+  toggleActive(user: any) {
+    const action = user.isActive ? 'nonaktifkan' : 'aktifkan';
+    this.confirmTitle = user.isActive ? 'Nonaktifkan User' : 'Aktifkan User';
+    this.confirmMessage = `Apakah Anda yakin ingin ${action} user "${user.name}"?`;
+    this.confirmAction = () => {
+      this.userService.toggleActive(user._id).subscribe({
+        next: () => { this.loadUsers(); }
+      });
+    };
+    this.showConfirm = true;
+  }
+
+  onConfirmed() {
+    if (this.confirmAction) this.confirmAction();
+    this.showConfirm = false;
+    this.confirmAction = null;
+  }
+
+  onCancelled() {
+    this.showConfirm = false;
+    this.confirmAction = null;
   }
 
   getRoleBadge(role: string): string {

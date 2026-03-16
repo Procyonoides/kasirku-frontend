@@ -5,11 +5,13 @@ import { FormsModule } from '@angular/forms';
 import { ProductService, CategoryService } from '../../../core/services/api.service';
 import { Product, Category } from '../../../shared/models';
 import { RupiahPipe } from '../../../shared/pipes';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 
 @Component({
   selector: 'app-product-list',
   standalone: true,
-  imports: [CommonModule, NgClass, RouterLink, FormsModule, RupiahPipe],
+  imports: [CommonModule, NgClass, RouterLink, FormsModule, RupiahPipe, ConfirmDialogComponent, LoadingSpinnerComponent],
   templateUrl: './product-list.component.html',
   styleUrl: './product-list.component.css'
 })
@@ -23,6 +25,12 @@ export class ProductListComponent implements OnInit {
   currentPage = 1;
   totalPages = 1;
   totalItems = 0;
+
+  // Confirm dialog
+  showConfirm = false;
+  confirmTitle = '';
+  confirmMessage = '';
+  confirmAction: (() => void) | null = null;
 
   constructor(
     private productService: ProductService,
@@ -83,10 +91,25 @@ export class ProductListComponent implements OnInit {
   }
 
   deleteProduct(id: string, name: string) {
-    if (!confirm(`Hapus produk "${name}"?`)) return;
-    this.productService.delete(id).subscribe({
-      next: () => { this.loadProducts(); }
-    });
+    this.confirmTitle = 'Hapus Produk';
+    this.confirmMessage = `Apakah Anda yakin ingin menghapus produk "${name}"?`;
+    this.confirmAction = () => {
+      this.productService.delete(id).subscribe({
+        next: () => { this.loadProducts(); }
+      });
+    };
+    this.showConfirm = true;
+  }
+
+  onConfirmed() {
+    if (this.confirmAction) this.confirmAction();
+    this.showConfirm = false;
+    this.confirmAction = null;
+  }
+
+  onCancelled() {
+    this.showConfirm = false;
+    this.confirmAction = null;
   }
 
   getStockBadge(product: Product): string {

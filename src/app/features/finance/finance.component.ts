@@ -3,11 +3,13 @@ import { CommonModule, NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FinanceService } from '../../core/services/api.service';
 import { RupiahPipe } from '../../shared/pipes';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 
 @Component({
   selector: 'app-finance',
   standalone: true,
-  imports: [CommonModule, FormsModule, RupiahPipe, NgClass],
+  imports: [CommonModule, FormsModule, RupiahPipe, NgClass, ConfirmDialogComponent, LoadingSpinnerComponent],
   templateUrl: './finance.component.html',
   styleUrl: './finance.component.css'
 })
@@ -32,6 +34,12 @@ export class FinanceComponent implements OnInit {
   formDate = '';
   formError = '';
   formSubmitting = false;
+
+  // Confirm dialog
+  showConfirm = false;
+  confirmTitle = '';
+  confirmMessage = '';
+  confirmAction: (() => void) | null = null;
 
   incomeCategories = [
     { value: 'penjualan',     label: 'Penjualan' },
@@ -175,8 +183,25 @@ export class FinanceComponent implements OnInit {
   }
 
   deleteRecord(id: string) {
-    if (!confirm('Hapus catatan ini?')) return;
-    this.financeService.delete(id).subscribe({ next: () => this.loadAll() });
+    this.confirmTitle = 'Hapus Catatan';
+    this.confirmMessage = 'Apakah Anda yakin ingin menghapus catatan keuangan ini?';
+    this.confirmAction = () => {
+      this.financeService.delete(id).subscribe({
+        next: () => { this.loadAll(); }
+      });
+    };
+    this.showConfirm = true;
+  }
+
+  onConfirmed() {
+    if (this.confirmAction) this.confirmAction();
+    this.showConfirm = false;
+    this.confirmAction = null;
+  }
+
+  onCancelled() {
+    this.showConfirm = false;
+    this.confirmAction = null;
   }
 
   getTypeClass(type: string): string {

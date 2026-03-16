@@ -23,7 +23,8 @@
               <i class="bi bi-shield-lock"></i>
               <span>Password</span>
             </button>
-            <button class="settings-menu-item" [class.active]="activeTab === 'store'"
+            <button *ngIf="authService.hasRole('owner')"
+              class="settings-menu-item" [class.active]="activeTab === 'store'"
               (click)="activeTab = 'store'">
               <i class="bi bi-shop"></i>
               <span>Info Toko</span>
