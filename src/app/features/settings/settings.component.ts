@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../core/auth/auth.service';
 import { SettingService } from '../../core/services/api.service';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-settings',
@@ -17,13 +18,10 @@ export class SettingsComponent implements OnInit {
   // Profile form
   profileForm!: FormGroup;
   profileSubmitting = false;
-  profileSuccess = false;
-  profileError = '';
 
   // Password form
   passwordForm!: FormGroup;
   passwordSubmitting = false;
-  passwordSuccess = false;
   passwordError = '';
   showCurrentPassword = false;
   showNewPassword = false;
@@ -38,7 +36,8 @@ export class SettingsComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     public authService: AuthService,
-    private settingService: SettingService
+    private settingService: SettingService,
+    private toastService: ToastService
   ) {}
 
   ngOnInit() {
@@ -76,20 +75,17 @@ export class SettingsComponent implements OnInit {
   }
 
   submitStore() {
-    if (this.storeForm.invalid) { this.storeForm.markAllAsTouched(); return; }
+     if (this.storeForm.invalid) { this.storeForm.markAllAsTouched(); return; }
     this.storeSubmitting = true;
-    this.storeSuccess = false;
-    this.storeError = '';
 
     this.settingService.update(this.storeForm.value).subscribe({
       next: () => {
         this.storeSubmitting = false;
-        this.storeSuccess = true;
-        setTimeout(() => this.storeSuccess = false, 3000);
+        this.toastService.success('Info toko disimpan', 'Data toko berhasil diperbarui');
       },
       error: (err) => {
-        this.storeError = err?.error?.message || 'Terjadi kesalahan';
         this.storeSubmitting = false;
+        this.toastService.error('Gagal menyimpan', err?.error?.message || 'Terjadi kesalahan');
       }
     });
   }
@@ -108,23 +104,18 @@ export class SettingsComponent implements OnInit {
   submitProfile() {
     if (this.profileForm.invalid) { this.profileForm.markAllAsTouched(); return; }
     this.profileSubmitting = true;
-    this.profileSuccess = false;
-    this.profileError = '';
 
-    // TODO: panggil API update profile jika sudah ada endpoint-nya
     this.authService.updateProfile(this.profileForm.value).subscribe({
       next: (res) => {
         this.profileSubmitting = false;
-        this.profileSuccess = true;
-        // Update local storage
         const user = { ...this.authService.currentUser(), ...this.profileForm.value };
         localStorage.setItem('user', JSON.stringify(user));
         this.authService.currentUser.set(user);
-        setTimeout(() => this.profileSuccess = false, 3000);
+        this.toastService.success('Profil diperbarui', 'Data profil berhasil disimpan');
       },
       error: (err) => {
-        this.profileError = err?.error?.message || 'Terjadi kesalahan';
         this.profileSubmitting = false;
+        this.toastService.error('Gagal menyimpan', err?.error?.message || 'Terjadi kesalahan');
       }
     });
   }
@@ -132,20 +123,16 @@ export class SettingsComponent implements OnInit {
   submitPassword() {
     if (this.passwordForm.invalid) { this.passwordForm.markAllAsTouched(); return; }
     this.passwordSubmitting = true;
-    this.passwordSuccess = false;
-    this.passwordError = '';
 
-    // TODO: panggil API change password jika sudah ada endpoint-nya
     this.authService.changePassword(this.passwordForm.value).subscribe({
       next: () => {
         this.passwordSubmitting = false;
-        this.passwordSuccess = true;
         this.passwordForm.reset();
-        setTimeout(() => this.passwordSuccess = false, 3000);
+        this.toastService.success('Password diubah', 'Password berhasil diperbarui');
       },
       error: (err) => {
-        this.passwordError = err?.error?.message || 'Terjadi kesalahan';
         this.passwordSubmitting = false;
+        this.toastService.error('Gagal mengubah password', err?.error?.message || 'Terjadi kesalahan');
       }
     });
   }

@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { ProductService, CategoryService } from '../../../core/services/api.service';
 import { Category } from '../../../shared/models';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-product-form',
@@ -26,7 +27,8 @@ export class ProductFormComponent implements OnInit {
     private productService: ProductService,
     private categoryService: CategoryService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private toastService: ToastService
   ) {}
 
   ngOnInit() {
@@ -114,11 +116,16 @@ export class ProductFormComponent implements OnInit {
 
     action.subscribe({
       next: () => {
+        this.toastService.success(
+          this.isEditMode ? 'Produk diperbarui' : 'Produk ditambahkan',
+          'Data produk berhasil disimpan'
+        );
         this.router.navigate(['/products']);
       },
       error: (err) => {
-        this.errorMsg = err?.error?.message || 'Terjadi kesalahan, coba lagi.';
+        this.errorMsg = err?.error?.message || 'Terjadi kesalahan';
         this.isSubmitting = false;
+        this.toastService.error('Gagal menyimpan', this.errorMsg);
       }
     });
   }

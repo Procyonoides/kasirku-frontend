@@ -17,57 +17,80 @@
 
     <!-- Stat Cards -->
     <div class="row g-3 mb-4">
+      <!-- Card Omzet → /transactions -->
       <div class="col-12 col-sm-6 col-xl-3">
-        <div class="stat-card stat-blue">
-          <div class="stat-icon"><i class="bi bi-graph-up-arrow"></i></div>
-          <div>
-            <div class="stat-label">Omzet Hari Ini</div>
-            <div class="stat-value">{{ stats.today.revenue | rupiah }}</div>
-            <div class="stat-sub">{{ stats.today.transactions }} transaksi</div>
-          </div>
-        </div>
-      </div>
-      <div class="col-12 col-sm-6 col-xl-3">
-        <div class="stat-card stat-green">
-          <div class="stat-icon"><i class="bi bi-currency-dollar"></i></div>
-          <div>
-            <div class="stat-label">Profit Hari Ini</div>
-            <div class="stat-value">{{ stats.today.profit | rupiah }}</div>
-            <div class="stat-sub">Bulan: {{ stats.month.revenue | rupiah }}</div>
-          </div>
-        </div>
-      </div>
-      <div class="col-12 col-sm-6 col-xl-3">
-        <div class="stat-card stat-orange">
-          <div class="stat-icon"><i class="bi bi-box-seam"></i></div>
-          <div>
-            <div class="stat-label">Total Produk</div>
-            <div class="stat-value">{{ stats.inventory.total }}</div>
-            <div class="stat-sub">
-              <span *ngIf="stats.inventory.lowStock > 0" class="text-warning">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-                {{ stats.inventory.lowStock }} menipis
-              </span>
-              <span *ngIf="stats.inventory.lowStock === 0">Semua stok aman</span>
+        <a routerLink="/transactions" class="text-decoration-none">
+          <div class="stat-card stat-blue" style="cursor:pointer; transition: transform 0.15s; " 
+            onmouseover="this.style.transform='translateY(-3px)'"
+            onmouseout="this.style.transform='translateY(0)'">
+            <div class="stat-icon"><i class="bi bi-graph-up-arrow"></i></div>
+            <div>
+              <div class="stat-label">Omzet Hari Ini</div>
+              <div class="stat-value">{{ stats.today.revenue | rupiah }}</div>
+              <div class="stat-sub">{{ stats.today.transactions }} transaksi</div>
             </div>
           </div>
-        </div>
+        </a>        
       </div>
+
+      <!-- Card Profit → /reports -->
       <div class="col-12 col-sm-6 col-xl-3">
-        <div class="stat-card stat-purple">
-          <div class="stat-icon"><i class="bi bi-people"></i></div>
-          <div>
-            <div class="stat-label">Total Pelanggan</div>
-            <div class="stat-value">{{ stats.customers.total }}</div>
-            <div class="stat-sub">
-              <span *ngIf="stats.customers.debtors > 0" class="text-warning">
-                <i class="bi bi-exclamation-circle-fill"></i>
-                {{ stats.customers.debtors }} berhutang
-              </span>
-              <span *ngIf="stats.customers.debtors === 0">Tidak ada hutang</span>
+        <a routerLink="/reports" class="text-decoration-none">
+          <div class="stat-card stat-green" style="cursor:pointer; transition: transform 0.15s;"
+            onmouseover="this.style.transform='translateY(-3px)'"
+            onmouseout="this.style.transform='translateY(0)'">
+            <div class="stat-icon"><i class="bi bi-currency-dollar"></i></div>
+            <div>
+              <div class="stat-label">Profit Hari Ini</div>
+              <div class="stat-value">{{ stats.today.profit | rupiah }}</div>
+              <div class="stat-sub">Bulan ini: {{ stats.month.revenue | rupiah }}</div>
             </div>
           </div>
-        </div>
+        </a>        
+      </div>
+
+      <!-- Card Produk → /products -->
+      <div class="col-12 col-sm-6 col-xl-3">
+        <a routerLink="/products" class="text-decoration-none">
+          <div class="stat-card stat-orange" style="cursor:pointer; transition: transform 0.15s;"
+            onmouseover="this.style.transform='translateY(-3px)'"
+            onmouseout="this.style.transform='translateY(0)'">
+            <div class="stat-icon"><i class="bi bi-box-seam"></i></div>
+            <div>
+              <div class="stat-label">Total Produk</div>
+              <div class="stat-value">{{ stats.inventory.total }}</div>
+              <div class="stat-sub">
+                <span *ngIf="stats.inventory.lowStock > 0" class="text-warning">
+                  <i class="bi bi-exclamation-triangle-fill"></i>
+                  {{ stats.inventory.lowStock }} menipis
+                </span>
+                <span *ngIf="stats.inventory.lowStock === 0">Semua stok aman</span>
+              </div>
+            </div>
+          </div>
+        </a>        
+      </div>
+
+      <!-- Card Pelanggan → /customers -->
+      <div class="col-12 col-sm-6 col-xl-3">
+        <a routerLink="/customers" class="text-decoration-none">
+          <div class="stat-card stat-purple" style="cursor:pointer; transition: transform 0.15s;"
+            onmouseover="this.style.transform='translateY(-3px)'"
+            onmouseout="this.style.transform='translateY(0)'">
+            <div class="stat-icon"><i class="bi bi-people"></i></div>
+            <div>
+              <div class="stat-label">Total Pelanggan</div>
+              <div class="stat-value">{{ stats.customers.total }}</div>
+              <div class="stat-sub">
+                <span *ngIf="stats.customers.debtors > 0" class="text-warning">
+                  <i class="bi bi-exclamation-circle-fill"></i>
+                  {{ stats.customers.debtors }} berhutang
+                </span>
+                <span *ngIf="stats.customers.debtors === 0">Tidak ada hutang</span>
+              </div>
+            </div>
+          </div>
+        </a>
       </div>
     </div>
 

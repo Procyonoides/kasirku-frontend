@@ -5,6 +5,7 @@ import { FinanceService } from '../../core/services/api.service';
 import { RupiahPipe } from '../../shared/pipes';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-finance',
@@ -61,7 +62,10 @@ export class FinanceComponent implements OnInit {
     { value: 'lain_lain_keluar', label: 'Lain-lain' },
   ];
 
-  constructor(private financeService: FinanceService) {}
+  constructor(
+    private financeService: FinanceService,
+    private toastService: ToastService
+  ) {}
 
   ngOnInit() {
     const today = new Date().toISOString().split('T')[0];
@@ -169,15 +173,21 @@ export class FinanceComponent implements OnInit {
 
     req.subscribe({
       next: () => {
+        const wasEdit = this.modalMode === 'edit'; // simpan dulu sebelum reset
         this.showModal = false;
         this.formSubmitting = false;
         this.modalMode = 'add';
         this.selectedRecord = null;
         this.loadAll();
+        this.toastService.success(
+          wasEdit ? 'Catatan diperbarui' : 'Catatan ditambahkan',
+          'Data keuangan berhasil disimpan'
+        );
       },
       error: (err) => {
         this.formError = err?.error?.message || 'Terjadi kesalahan';
         this.formSubmitting = false;
+        this.toastService.error('Gagal menyimpan', err?.error?.message || 'Terjadi kesalahan');
       }
     })
   }
@@ -197,6 +207,7 @@ export class FinanceComponent implements OnInit {
     if (this.confirmAction) this.confirmAction();
     this.showConfirm = false;
     this.confirmAction = null;
+    this.toastService.success('Catatan dihapus', 'Data keuangan berhasil dihapus');
   }
 
   onCancelled() {

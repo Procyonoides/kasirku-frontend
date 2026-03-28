@@ -2,11 +2,12 @@ import { Component, signal } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
 import { AuthService } from '../../core/auth/auth.service';
+import { ToastComponent } from '../../shared/components/toast/toast.component';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [CommonModule, DatePipe, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [CommonModule, DatePipe, RouterOutlet, RouterLink, RouterLinkActive, ToastComponent],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.css'
 })

@@ -1,1 +1,17 @@
-<p>toast works!</p>
+<div class="toast-container">
+  <div *ngFor="let toast of toastService.toasts()"
+    class="toast-item"
+    [class]="'toast-' + toast.type"
+    (click)="toastService.remove(toast.id)">
+    <div class="toast-icon">
+      <i class="bi" [class]="getIcon(toast.type)"></i>
+    </div>
+    <div class="toast-body">
+      <div class="toast-title">{{ toast.title }}</div>
+      <div class="toast-message" *ngIf="toast.message">{{ toast.message }}</div>
+    </div>
+    <button class="toast-close" (click)="toastService.remove(toast.id)">
+      <i class="bi bi-x"></i>
+    </button>
+  </div>
+</div>

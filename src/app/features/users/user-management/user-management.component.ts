@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { UserService } from '../../../core/services/api.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-user-management',
@@ -40,7 +41,10 @@ export class UserManagementComponent implements OnInit {
   confirmMessage = '';
   confirmAction: (() => void) | null = null;
 
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    private toastService: ToastService
+  ) {}
 
   ngOnInit() { this.loadUsers(); }
 
@@ -89,16 +93,29 @@ export class UserManagementComponent implements OnInit {
     this.formSubmitting = true;
     this.formError = '';
 
+    const wasEdit = this.modalMode === 'edit';
     const data: any = { name: this.formName, username: this.formUsername, role: this.formRole };
     if (this.formPassword) data.password = this.formPassword;
 
-    const req = this.modalMode === 'add'
-      ? this.userService.create(data)
-      : this.userService.update(this.selectedUser._id, data);
+    const req = wasEdit
+      ? this.userService.update(this.selectedUser._id, data)
+      : this.userService.create(data);
 
     req.subscribe({
-      next: () => { this.showModal = false; this.formSubmitting = false; this.loadUsers(); },
-      error: (err) => { this.formError = err?.error?.message || 'Terjadi kesalahan'; this.formSubmitting = false; }
+      next: () => {
+        this.showModal = false;
+        this.formSubmitting = false;
+        this.loadUsers();
+        this.toastService.success(
+          wasEdit ? 'User diperbarui' : 'User ditambahkan',
+          'Data user berhasil disimpan'
+        );
+      },
+      error: (err) => {
+        this.formError = err?.error?.message || 'Terjadi kesalahan';
+        this.formSubmitting = false;
+        this.toastService.error('Gagal menyimpan', err?.error?.message || 'Terjadi kesalahan');
+      }
     });
   }
  
@@ -119,8 +136,16 @@ export class UserManagementComponent implements OnInit {
     }
     this.resetSubmitting = true;
     this.userService.resetPassword(this.resetUserId, this.resetPassword).subscribe({
-      next: () => { this.showResetModal = false; this.resetSubmitting = false; },
-      error: (err) => { this.resetError = err?.error?.message || 'Terjadi kesalahan'; this.resetSubmitting = false; }
+      next: () => {
+        this.showResetModal = false;
+        this.resetSubmitting = false;
+        this.toastService.success('Password direset', 'Password user berhasil direset');
+      },
+      error: (err) => {
+        this.resetError = err?.error?.message || 'Terjadi kesalahan';
+        this.resetSubmitting = false;
+        this.toastService.error('Gagal reset password', err?.error?.message || 'Terjadi kesalahan');
+      }
     });
   }
 
@@ -129,19 +154,27 @@ export class UserManagementComponent implements OnInit {
     this.confirmMessage = `Apakah Anda yakin ingin menghapus user "${name}"?`;
     this.confirmAction = () => {
       this.userService.delete(id).subscribe({
-        next: () => { this.loadUsers(); }
+        next: () => {
+          this.loadUsers();
+          this.toastService.success('User dihapus', `User "${name}" berhasil dihapus`);
+        }
       });
     };
     this.showConfirm = true;
   }
 
   toggleActive(user: any) {
-    const action = user.isActive ? 'nonaktifkan' : 'aktifkan';
     this.confirmTitle = user.isActive ? 'Nonaktifkan User' : 'Aktifkan User';
-    this.confirmMessage = `Apakah Anda yakin ingin ${action} user "${user.name}"?`;
+    this.confirmMessage = `Apakah Anda yakin ingin ${user.isActive ? 'nonaktifkan' : 'aktifkan'} user "${user.name}"?`;
     this.confirmAction = () => {
       this.userService.toggleActive(user._id).subscribe({
-        next: () => { this.loadUsers(); }
+        next: () => {
+          this.loadUsers();
+          this.toastService.success(
+            user.isActive ? 'User dinonaktifkan' : 'User diaktifkan',
+            `User "${user.name}" berhasil ${user.isActive ? 'dinonaktifkan' : 'diaktifkan'}`
+          );
+        }
       });
     };
     this.showConfirm = true;

@@ -6,6 +6,7 @@ import { CategoryService } from '../../../core/services/api.service';
 import { Category } from '../../../shared/models';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-category-list',
@@ -36,7 +37,10 @@ export class CategoryListComponent implements OnInit {
   confirmMessage = '';
   confirmAction: (() => void) | null = null;
 
-  constructor(private categoryService: CategoryService) {}
+  constructor(
+    private categoryService: CategoryService,
+    private toastService: ToastService
+  ) {}
 
   ngOnInit() { this.loadCategories(); }
 
@@ -76,6 +80,7 @@ export class CategoryListComponent implements OnInit {
     this.formSubmitting = true;
     this.formError = '';
 
+    const wasEdit = this.modalMode === 'edit';
     const data = { name: this.formName, color: this.formColor };
 
     const req = this.modalMode === 'add'
@@ -83,8 +88,21 @@ export class CategoryListComponent implements OnInit {
       : this.categoryService.update(this.selectedCategory!._id, data);
 
     req.subscribe({
-      next: () => { this.showModal = false; this.formSubmitting = false; this.loadCategories(); },
-      error: (err) => { this.formError = err?.error?.message || 'Terjadi kesalahan'; this.formSubmitting = false; }
+      next: () => {
+        this.showModal = false;
+        this.formSubmitting = false;
+        this.selectedCategory = null;
+        this.loadCategories();
+        this.toastService.success(
+          wasEdit ? 'Kategori diperbarui' : 'Kategori ditambahkan',
+          'Data kategori berhasil disimpan'
+        );
+      },
+      error: (err) => {
+        this.formError = err?.error?.message || 'Terjadi kesalahan';
+        this.formSubmitting = false;
+        this.toastService.error('Gagal menyimpan', err?.error?.message || 'Terjadi kesalahan');
+      }
     });
   }
 
@@ -103,6 +121,7 @@ export class CategoryListComponent implements OnInit {
     if (this.confirmAction) this.confirmAction();
     this.showConfirm = false;
     this.confirmAction = null;
+    this.toastService.success('Kategori dihapus', 'Kategori berhasil dihapus');
   }
 
   onCancelled() {

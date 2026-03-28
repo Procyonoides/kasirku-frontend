@@ -7,6 +7,7 @@ import { Customer } from '../../../shared/models';
 import { RupiahPipe } from '../../../shared/pipes';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-customer-list',
@@ -40,7 +41,10 @@ export class CustomerListComponent implements OnInit {
   confirmMessage = '';
   confirmAction: (() => void) | null = null;
 
-  constructor(private customerService: CustomerService) {}
+  constructor(
+    private customerService: CustomerService,
+    private toastService: ToastService
+  ) {}
 
   ngOnInit() { this.loadCustomers(); }
 
@@ -105,6 +109,7 @@ export class CustomerListComponent implements OnInit {
     this.formSubmitting = true;
     this.formError = '';
 
+    const wasEdit = this.modalMode === 'edit';
     const data = { name: this.formName, phone: this.formPhone, address: this.formAddress };
 
     const req = this.modalMode === 'add'
@@ -112,8 +117,20 @@ export class CustomerListComponent implements OnInit {
       : this.customerService.update(this.selectedCustomer!._id, data);
 
     req.subscribe({
-      next: () => { this.showModal = false; this.formSubmitting = false; this.loadCustomers(); },
-      error: (err) => { this.formError = err?.error?.message || 'Terjadi kesalahan'; this.formSubmitting = false; }
+      next: () => {
+        this.showModal = false;
+        this.formSubmitting = false;
+        this.loadCustomers();
+        this.toastService.success(
+          wasEdit ? 'Pelanggan diperbarui' : 'Pelanggan ditambahkan',
+          'Data pelanggan berhasil disimpan'
+        );
+      },
+      error: (err) => {
+        this.formError = err?.error?.message || 'Terjadi kesalahan';
+        this.formSubmitting = false;
+        this.toastService.error('Gagal menyimpan', err?.error?.message || 'Terjadi kesalahan');
+      }
     });
   }
 
@@ -132,6 +149,7 @@ export class CustomerListComponent implements OnInit {
     if (this.confirmAction) this.confirmAction();
     this.showConfirm = false;
     this.confirmAction = null;
+    this.toastService.success('Pelanggan dihapus', 'Pelanggan berhasil dihapus');
   }
 
   onCancelled() {

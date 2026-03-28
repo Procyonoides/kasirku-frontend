@@ -7,6 +7,7 @@ import { Product, Category } from '../../../shared/models';
 import { RupiahPipe } from '../../../shared/pipes';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-product-list',
@@ -34,7 +35,8 @@ export class ProductListComponent implements OnInit {
 
   constructor(
     private productService: ProductService,
-    private categoryService: CategoryService
+    private categoryService: CategoryService,
+    private toastService: ToastService
   ) {}
 
   ngOnInit() {
@@ -105,6 +107,7 @@ export class ProductListComponent implements OnInit {
     if (this.confirmAction) this.confirmAction();
     this.showConfirm = false;
     this.confirmAction = null;
+    this.toastService.success('Produk dihapus', 'Produk berhasil dihapus');
   }
 
   onCancelled() {
