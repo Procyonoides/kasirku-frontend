@@ -5,6 +5,7 @@ import { DashboardService } from '../../core/services/api.service';
 import { DashboardStats, Transaction } from '../../shared/models';
 import { RupiahPipe } from '../../shared/pipes';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
+import { SettingService } from '../../core/services/api.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -25,11 +26,13 @@ export class DashboardComponent implements OnInit {
   salesChart: any[] = [];
   isLoading = true;
   selectedPeriod = '7d';
+  storeName = 'KasirKu';
 
-  constructor(private dashboardService: DashboardService) {}
+  constructor(private dashboardService: DashboardService, private settingService: SettingService) {}
 
   ngOnInit() {
     this.loadAll();
+    this.loadStoreName();
   }
 
   loadAll() {
@@ -58,6 +61,12 @@ export class DashboardComponent implements OnInit {
   loadChart() {
     this.dashboardService.getSalesChart(this.selectedPeriod).subscribe({
       next: (res) => { this.salesChart = res.data; }
+    });
+  }
+
+  loadStoreName() {
+    this.settingService.get().subscribe({
+      next: (res) => { this.storeName = res.data.storeName || 'KasirKu'; }
     });
   }
 
@@ -90,5 +99,10 @@ export class DashboardComponent implements OnInit {
   getMaxRevenue(): number {
     if (this.salesChart.length === 0) return 1;
     return Math.max(...this.salesChart.map(i => i.revenue));
+  }
+
+  getBarHeight(revenue: number): string {
+    const px = (revenue / this.getMaxRevenue()) * 160;
+    return Math.max(px, 8) + 'px'; // minimum 8px agar selalu terlihat
   }
 }

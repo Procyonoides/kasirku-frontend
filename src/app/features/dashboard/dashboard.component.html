@@ -3,7 +3,7 @@
   <!-- Page Header -->
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-      <h4 class="fw-bold mb-1" style="color: #1e3a5f">Dashboard</h4>
+      <h1 class="fw-bold mb-1">{{ storeName }}</h1>
       <p class="text-muted small mb-0">Selamat datang! Ini ringkasan toko hari ini.</p>
     </div>
     <a routerLink="/pos" class="btn btn-primary">
@@ -118,7 +118,7 @@
               <div class="chart-bars">
                 <div *ngFor="let item of salesChart" class="chart-bar-wrap" [title]="item._id + ': ' + (item.revenue | rupiah)">
                   <div class="chart-bar-value">{{ item.revenue | rupiah:false }}</div>
-                  <div class="chart-bar" [style.height]="(item.revenue / getMaxRevenue() * 160) + 'px'"></div>
+                  <div class="chart-bar" [style.height]="getBarHeight(item.revenue)"></div>
                   <div class="chart-bar-label">{{ item._id | slice:5 }}</div>
                 </div>
               </div>
