@@ -6,6 +6,7 @@ import { DashboardStats, Transaction } from '../../shared/models';
 import { RupiahPipe } from '../../shared/pipes';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { SettingService } from '../../core/services/api.service';
+import { ProductService } from '../../core/services/api.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -23,12 +24,18 @@ import { SettingService } from '../../core/services/api.service';
 export class DashboardComponent implements OnInit {
   stats: DashboardStats | null = null;
   recentTransactions: Transaction[] = [];
+  lowStockProducts: any[] = [];
   salesChart: any[] = [];
   isLoading = true;
   selectedPeriod = '7d';
   storeName = 'KasirKu';
+  isToday = false;
 
-  constructor(private dashboardService: DashboardService, private settingService: SettingService) {}
+  constructor(
+    private dashboardService: DashboardService, 
+    private settingService: SettingService,
+    private productService: ProductService
+  ) {}
 
   ngOnInit() {
     this.loadAll();
@@ -40,6 +47,7 @@ export class DashboardComponent implements OnInit {
     this.loadStats();
     this.loadRecent();
     this.loadChart();
+    this.loadLowStock();
   }
 
   loadStats() {
@@ -70,8 +78,15 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  loadLowStock() {
+    this.productService.getLowStock().subscribe({
+      next: (res) => { this.lowStockProducts = res.data; }
+    });
+  }
+
   changePeriod(period: string) {
     this.selectedPeriod = period;
+    this.isToday = period === 'today';
     this.loadChart();
   }
 
@@ -102,7 +117,14 @@ export class DashboardComponent implements OnInit {
   }
 
   getBarHeight(revenue: number): string {
-    const px = (revenue / this.getMaxRevenue()) * 160;
+    const px = (revenue / this.getMaxRevenue()) * 370;
     return Math.max(px, 8) + 'px'; // minimum 8px agar selalu terlihat
+  }
+
+  getBarLabel(item: any): string {
+    if (this.isToday) {
+      return item._id; // tampilkan jam, misal "08:00"
+    }
+    return item._id?.slice(5) || ''; // tampilkan bulan-tanggal, misal "03-16"
   }
 }

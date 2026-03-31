@@ -105,8 +105,18 @@
               <i class="bi bi-bar-chart-line me-2 text-primary"></i>Grafik Penjualan
             </h6>
             <div class="btn-group btn-group-sm">
-              <button class="btn" [class.btn-primary]="selectedPeriod==='7d'" [class.btn-outline-primary]="selectedPeriod!=='7d'" (click)="changePeriod('7d')">7 Hari</button>
-              <button class="btn" [class.btn-primary]="selectedPeriod==='30d'" [class.btn-outline-primary]="selectedPeriod!=='30d'" (click)="changePeriod('30d')">30 Hari</button>
+              <button class="btn"
+                [class.btn-primary]="selectedPeriod==='today'"
+                [class.btn-outline-primary]="selectedPeriod!=='today'"
+                (click)="changePeriod('today')">Hari Ini</button>
+              <button class="btn"
+                [class.btn-primary]="selectedPeriod==='7d'"
+                [class.btn-outline-primary]="selectedPeriod!=='7d'"
+                (click)="changePeriod('7d')">7 Hari</button>
+              <button class="btn"
+                [class.btn-primary]="selectedPeriod==='30d'"
+                [class.btn-outline-primary]="selectedPeriod!=='30d'"
+                (click)="changePeriod('30d')">30 Hari</button>
             </div>
           </div>
           <div class="card-body">
@@ -119,7 +129,7 @@
                 <div *ngFor="let item of salesChart" class="chart-bar-wrap" [title]="item._id + ': ' + (item.revenue | rupiah)">
                   <div class="chart-bar-value">{{ item.revenue | rupiah:false }}</div>
                   <div class="chart-bar" [style.height]="getBarHeight(item.revenue)"></div>
-                  <div class="chart-bar-label">{{ item._id | slice:5 }}</div>
+                  <div class="chart-bar-label">{{ getBarLabel(item) }}</div>
                 </div>
               </div>
             </div>
@@ -162,15 +172,44 @@
 
     </div>
 
-    <!-- Low Stock Alert -->
-    <div class="row" *ngIf="stats.inventory.lowStock > 0">
+    <!-- Low Stock Widget -->
+    <div class="row g-3 mb-3" *ngIf="lowStockProducts.length > 0">
       <div class="col-12">
-        <div class="alert alert-warning d-flex justify-content-between align-items-center">
-          <div>
-            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-            <strong>Peringatan Stok!</strong> Ada {{ stats.inventory.lowStock }} produk dengan stok menipis.
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
+            <h6 class="fw-bold mb-0">
+              <i class="bi bi-exclamation-triangle-fill me-2 text-warning"></i>
+              Stok Menipis
+              <span class="badge bg-warning text-dark ms-2">{{ lowStockProducts.length }} produk</span>
+            </h6>
+            <a routerLink="/products" class="btn btn-sm btn-outline-warning">Lihat Semua</a>
           </div>
-          <a routerLink="/products" class="btn btn-sm btn-warning">Lihat Produk</a>
+          <div class="card-body p-0">
+            <div *ngFor="let p of lowStockProducts" class="stock-item px-3 py-2 border-bottom d-flex align-items-center gap-3">
+              <!-- Icon status -->
+              <div class="stock-icon" [class.stock-habis]="p.stock === 0" [class.stock-menipis]="p.stock > 0">
+                <i class="bi" [class.bi-x-circle-fill]="p.stock === 0" [class.bi-exclamation-circle-fill]="p.stock > 0"></i>
+              </div>
+              <!-- Info produk -->
+              <div class="flex-grow-1">
+                <div class="fw-semibold small">{{ p.name }}</div>
+                <div class="text-muted" style="font-size:12px">{{ p.category?.name || '-' }}</div>
+              </div>
+              <!-- Stok -->
+              <div class="text-end">
+                <div class="fw-bold small" 
+                  [class.text-danger]="p.stock === 0"
+                  [class.text-warning]="p.stock > 0">
+                  {{ p.stock }} / {{ p.minStock }} {{ p.unit }}
+                </div>
+                <div style="font-size:11px" class="text-muted">tersisa / minimum</div>
+              </div>
+              <!-- Tombol edit -->
+              <a [routerLink]="['/products', p._id, 'edit']" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-pencil"></i>
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </div>
