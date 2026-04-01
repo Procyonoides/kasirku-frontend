@@ -57,6 +57,14 @@ export class ProductService {
   delete(id: string): Observable<ApiResponse<any>> {
     return this.http.delete<ApiResponse<any>>(`${this.url}/${id}`);
   }
+  uploadImage(id: string, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('image', file);
+    return this.http.post(`${this.url}/${id}/upload-image`, formData);
+  }
+  deleteImage(id: string): Observable<any> {
+    return this.http.delete(`${this.url}/${id}/delete-image`);
+  }
 }
 
 // ─── Customer Service ─────────────────────────────────────────

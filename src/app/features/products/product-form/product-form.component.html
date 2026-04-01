@@ -91,6 +91,31 @@
                   </div>
 
                   <div class="col-12">
+                    <label class="form-label fw-semibold">Foto Produk</label>
+                    <div class="image-upload-wrap">
+
+                      <!-- Preview -->
+                      <div *ngIf="imagePreview" class="image-preview-wrap mb-2">
+                        <img [src]="imagePreview" alt="Preview" class="image-preview" />
+                        <button type="button" class="btn btn-sm btn-outline-danger mt-2" (click)="removeImage()">
+                          <i class="bi bi-trash me-1"></i>Hapus Foto
+                        </button>
+                      </div>
+
+                      <!-- Upload Area -->
+                      <div *ngIf="!imagePreview" class="image-dropzone" (click)="fileInput.click()">
+                        <i class="bi bi-cloud-upload fs-1 text-muted"></i>
+                        <div class="mt-2 text-muted small">Klik untuk upload foto</div>
+                        <div class="text-muted" style="font-size:11px">JPG, PNG, WEBP — Maks. 2MB</div>
+                      </div>
+
+                      <input #fileInput type="file" accept=".jpg,.jpeg,.png,.webp"
+                        style="display:none" (change)="onFileSelected($event)" />
+
+                    </div>
+                  </div>
+
+                  <div class="col-12">
                     <label class="form-label fw-semibold">Deskripsi</label>
                     <textarea class="form-control" formControlName="description"
                       rows="3" placeholder="Deskripsi produk (opsional)"></textarea>

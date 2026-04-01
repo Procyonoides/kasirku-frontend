@@ -92,7 +92,10 @@
               <td class="ps-4">
                 <div class="d-flex align-items-center gap-3">
                   <div class="product-img">
-                    <i class="bi bi-box-seam"></i>
+                    <img *ngIf="product.image" [src]="product.image" 
+                      alt="{{ product.name }}"
+                      style="width:40px; height:40px; object-fit:cover; border-radius:8px;" />
+                    <i *ngIf="!product.image" class="bi bi-box-seam"></i>
                   </div>
                   <div>
                     <div class="fw-semibold">{{ product.name }}</div>

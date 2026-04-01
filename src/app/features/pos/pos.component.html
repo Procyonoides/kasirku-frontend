@@ -43,7 +43,9 @@
         class="product-card"
         (click)="addToCart(p)">
         <div class="product-card-icon">
-          <i class="bi bi-box-seam"></i>
+          <img *ngIf="p.image" [src]="p.image" [alt]="p.name"
+            style="width:48px; height:48px; object-fit:cover; border-radius:8px;" />
+          <i *ngIf="!p.image" class="bi bi-box-seam"></i>
         </div>
         <div class="product-card-name">{{ p.name }}</div>
         <div class="product-card-price">{{ p.sellPrice | rupiah }}</div>

@@ -17,3 +17,34 @@
   border-color: #2563eb;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
+
+/* Image Upload */
+.image-upload-wrap { width: 100%; }
+
+.image-dropzone {
+  border: 2px dashed #d1d5db;
+  border-radius: 10px;
+  padding: 32px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.image-dropzone:hover {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.image-preview-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.image-preview {
+  width: 160px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}

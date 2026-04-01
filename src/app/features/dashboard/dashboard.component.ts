@@ -1,12 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import { Chart, registerables } from 'chart.js';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule, NgClass } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { DashboardService } from '../../core/services/api.service';
+import { DashboardService, ReportService, SettingService, ProductService } from '../../core/services/api.service';
 import { DashboardStats, Transaction } from '../../shared/models';
 import { RupiahPipe } from '../../shared/pipes';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
-import { SettingService } from '../../core/services/api.service';
-import { ProductService } from '../../core/services/api.service';
+
+Chart.register(...registerables);
 
 @Component({
   selector: 'app-dashboard',
@@ -21,7 +22,7 @@ import { ProductService } from '../../core/services/api.service';
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, AfterViewInit {
   stats: DashboardStats | null = null;
   recentTransactions: Transaction[] = [];
   lowStockProducts: any[] = [];
@@ -30,16 +31,30 @@ export class DashboardComponent implements OnInit {
   selectedPeriod = '7d';
   storeName = 'KasirKu';
   isToday = false;
+  topProducts: any[] = [];
+  barChartData: any = null;
+  pieChartData: any = null;
+
+  @ViewChild('barCanvas') barCanvas!: ElementRef;
+  @ViewChild('pieCanvas') pieCanvas!: ElementRef;
+
+  private barChart: any = null;
+  private pieChart: any = null;
 
   constructor(
     private dashboardService: DashboardService, 
     private settingService: SettingService,
-    private productService: ProductService
+    private productService: ProductService,
+    private reportService: ReportService
   ) {}
 
   ngOnInit() {
     this.loadAll();
     this.loadStoreName();
+  }
+
+  ngAfterViewInit() {
+    // chart akan diinisialisasi setelah data loaded
   }
 
   loadAll() {
@@ -48,6 +63,7 @@ export class DashboardComponent implements OnInit {
     this.loadRecent();
     this.loadChart();
     this.loadLowStock();
+    this.loadTopProducts();
   }
 
   loadStats() {
@@ -62,14 +78,59 @@ export class DashboardComponent implements OnInit {
 
   loadRecent() {
     this.dashboardService.getRecent().subscribe({
-      next: (res) => { this.recentTransactions = res.data; }
+      next: (res) => { this.recentTransactions = res.data.slice(0, 5); }
     });
   }
 
   loadChart() {
     this.dashboardService.getSalesChart(this.selectedPeriod).subscribe({
-      next: (res) => { this.salesChart = res.data; }
+      next: (res) => {
+        this.salesChart = res.data;
+        this.renderBarChart();
+      }
     });
+  }
+
+  renderBarChart() {
+    if (this.barChart) {
+      this.barChart.destroy();
+    }
+    setTimeout(() => {
+      const canvas = document.getElementById('barCanvas') as HTMLCanvasElement;
+      if (!canvas || !this.salesChart.length) return;
+
+      this.barChart = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels: this.salesChart.map((i: any) => this.isToday ? i._id : i._id?.slice(5)),
+          datasets: [{
+            data: this.salesChart.map((i: any) => i.revenue),
+            backgroundColor: '#2563eb',
+            borderRadius: 6,
+            hoverBackgroundColor: '#1e3a5f'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx: any) => `Rp ${Number(ctx.raw).toLocaleString('id-ID')}`
+              }
+            }
+          },
+          scales: {
+            y: {
+              ticks: {
+                callback: (value: any) => `Rp ${Number(value).toLocaleString('id-ID')}`
+              }
+            }
+          }
+        }
+      });
+    }, 100);
   }
 
   loadStoreName() {
@@ -80,8 +141,61 @@ export class DashboardComponent implements OnInit {
 
   loadLowStock() {
     this.productService.getLowStock().subscribe({
-      next: (res) => { this.lowStockProducts = res.data; }
+      next: (res) => { this.lowStockProducts = res.data.slice(0, 5); }
     });
+  }
+
+  loadTopProducts() {
+    const firstDay = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+      .toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T')[0];
+
+    this.reportService.getTopProducts({ startDate: firstDay, endDate: today, limit: 5 }).subscribe({
+      next: (res) => {
+        this.topProducts = res.data;
+        this.renderPieChart();
+      }
+    });
+  }
+
+  renderPieChart() {
+    if (this.pieChart) {
+      this.pieChart.destroy();
+    }
+    setTimeout(() => {
+      const canvas = document.getElementById('pieCanvas') as HTMLCanvasElement;
+      if (!canvas || !this.topProducts.length) return;
+
+      this.pieChart = new Chart(canvas, {
+        type: 'doughnut',
+        data: {
+          labels: this.topProducts.map((p: any) => p.productName),
+          datasets: [{
+            data: this.topProducts.map((p: any) => p.totalQty || 0),
+            backgroundColor: ['#2563eb', '#16a34a', '#d97706', '#dc2626', '#7c3aed'],
+            hoverOffset: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: {
+            padding: 20
+          },
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: { font: { size: 12 }, padding: 16 }
+            },
+            tooltip: {
+              callbacks: {
+                label: (ctx: any) => ` ${ctx.label}: ${ctx.raw} terjual`
+              }
+            }
+          }
+        }
+      });
+    }, 100);
   }
 
   changePeriod(period: string) {
@@ -109,22 +223,5 @@ export class DashboardComponent implements OnInit {
       kartu_kredit: 'bi-credit-card-2-front'
     };
     return map[method] || 'bi-cash';
-  }
-
-  getMaxRevenue(): number {
-    if (this.salesChart.length === 0) return 1;
-    return Math.max(...this.salesChart.map(i => i.revenue));
-  }
-
-  getBarHeight(revenue: number): string {
-    const px = (revenue / this.getMaxRevenue()) * 370;
-    return Math.max(px, 8) + 'px'; // minimum 8px agar selalu terlihat
-  }
-
-  getBarLabel(item: any): string {
-    if (this.isToday) {
-      return item._id; // tampilkan jam, misal "08:00"
-    }
-    return item._id?.slice(5) || ''; // tampilkan bulan-tanggal, misal "03-16"
   }
 }

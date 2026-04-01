@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { ProductService, CategoryService } from '../../../core/services/api.service';
 import { Category } from '../../../shared/models';
 import { ToastService } from '../../../core/services/toast.service';
+
 
 @Component({
   selector: 'app-product-form',
@@ -21,6 +22,10 @@ export class ProductFormComponent implements OnInit {
   isEditMode = false;
   productId = '';
   errorMsg = '';
+  imagePreview: string | null = null;
+  selectedFile: File | null = null;
+  isUploadingImage = false;
+  imageDeleted = false;
 
   constructor(
     private fb: FormBuilder,
@@ -65,6 +70,7 @@ export class ProductFormComponent implements OnInit {
 
   loadProduct() {
     this.isLoading = true;
+    this.imageDeleted = false;
     this.productService.getById(this.productId).subscribe({
       next: (res) => {
         const p = res.data;
@@ -80,6 +86,9 @@ export class ProductFormComponent implements OnInit {
           minStock: p.minStock,
           description: p.description
         });
+        if (p.image) {
+          this.imagePreview = p.image;
+        }
         this.isLoading = false;
       },
       error: () => {
@@ -101,6 +110,24 @@ export class ProductFormComponent implements OnInit {
     return Math.round((this.profit / buy) * 100);
   }
 
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    this.selectedFile = file;
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.imagePreview = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  removeImage() {
+    this.imagePreview = null;
+    this.selectedFile = null;
+    this.imageDeleted = true;
+  }
+
   onSubmit() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -115,12 +142,40 @@ export class ProductFormComponent implements OnInit {
       : this.productService.create(this.form.value);
 
     action.subscribe({
-      next: () => {
-        this.toastService.success(
-          this.isEditMode ? 'Produk diperbarui' : 'Produk ditambahkan',
-          'Data produk berhasil disimpan'
-        );
-        this.router.navigate(['/products']);
+      next: (res) => {
+        const productId = this.isEditMode ? this.productId : res.data._id;
+
+        if (this.imageDeleted && !this.selectedFile) {
+          this.productService.deleteImage(productId).subscribe({
+            next: () => {
+              this.toastService.success(
+                this.isEditMode ? 'Produk diperbarui' : 'Produk ditambahkan',
+                'Data produk berhasil disimpan'
+              );
+              this.router.navigate(['/products']);
+            }
+          });
+        } else if (this.selectedFile) {
+          this.productService.uploadImage(productId, this.selectedFile).subscribe({
+            next: () => {
+              this.toastService.success(
+                this.isEditMode ? 'Produk diperbarui' : 'Produk ditambahkan',
+                'Data produk berhasil disimpan'
+              );
+              this.router.navigate(['/products']);
+            },
+            error: () => {
+              this.toastService.warning('Produk disimpan', 'Tapi foto gagal diupload');
+              this.router.navigate(['/products']);
+            }
+          });
+        } else {
+          this.toastService.success(
+            this.isEditMode ? 'Produk diperbarui' : 'Produk ditambahkan',
+            'Data produk berhasil disimpan'
+          );
+          this.router.navigate(['/products']);
+        }
       },
       error: (err) => {
         this.errorMsg = err?.error?.message || 'Terjadi kesalahan';
