@@ -38,6 +38,9 @@ export class PosComponent implements OnInit {
   discount = 0;
   amountPaid = 0;
   notes = '';
+  pointsUsed = 0;
+  maxPoints = 0;
+  usePoints = false;
 
   // Customer search
   customerQuery = '';
@@ -135,6 +138,10 @@ export class PosComponent implements OnInit {
       this.selectedCustomer = null;
       this.discount = 0;
       this.amountPaid = 0;
+      this.notes = '';
+      this.pointsUsed = 0;
+      this.maxPoints = 0;
+      this.usePoints = false;
     };
     this.showConfirm = true;
   }
@@ -154,8 +161,12 @@ export class PosComponent implements OnInit {
     return this.cart.reduce((sum, i) => sum + i.subtotal, 0);
   }
 
+  get pointsDiscount(): number {
+    return this.pointsUsed * 100;
+  }
+
   get grandTotal(): number {
-    return Math.max(0, this.subtotal - this.discount);
+    return Math.max(0, this.subtotal - this.discount - this.pointsDiscount);
   }
 
   get change(): number {
@@ -182,12 +193,27 @@ export class PosComponent implements OnInit {
     this.selectedCustomer = c;
     this.customerQuery = c.name;
     this.customerResults = [];
+    this.maxPoints = c.points || 0;
+    this.pointsUsed = 0;
+    this.usePoints = false;
   }
 
   clearCustomer() {
     this.selectedCustomer = null;
     this.customerQuery = '';
     this.customerResults = [];
+    this.pointsUsed = 0;
+    this.maxPoints = 0;
+    this.usePoints = false;
+  }
+
+  validatePoints() {
+    if (this.pointsUsed > this.maxPoints) {
+      this.pointsUsed = this.maxPoints;
+    }
+    if (this.pointsUsed < 0) {
+      this.pointsUsed = 0;
+    }
   }
 
   checkout() {
@@ -206,7 +232,8 @@ export class PosComponent implements OnInit {
       paymentMethod: this.paymentMethod,
       discountPercent: this.subtotal > 0 ? (this.discount / this.subtotal) * 100 : 0,
       amountPaid: this.paymentMethod === 'tunai' ? this.amountPaid : this.grandTotal,
-      notes: this.notes
+      notes: this.notes,
+      pointsUsed: this.pointsUsed
     };
 
     this.transactionService.create(payload).subscribe({
@@ -220,6 +247,9 @@ export class PosComponent implements OnInit {
         this.discount = 0;
         this.amountPaid = 0;
         this.notes = '';
+        this.pointsUsed = 0;
+        this.maxPoints = 0;
+        this.usePoints = false;
         this.loadProducts();
       },
       error: (err) => {

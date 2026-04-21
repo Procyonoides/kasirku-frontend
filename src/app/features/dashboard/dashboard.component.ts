@@ -26,10 +26,13 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   stats: DashboardStats | null = null;
   recentTransactions: Transaction[] = [];
   lowStockProducts: any[] = [];
+  dailyRecap: any = null;
+  paymentEntries: any[] = [];
   salesChart: any[] = [];
   isLoading = true;
   selectedPeriod = '7d';
   storeName = 'KasirKu';
+  today = new Date();
   isToday = false;
   topProducts: any[] = [];
   barChartData: any = null;
@@ -64,6 +67,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.loadChart();
     this.loadLowStock();
     this.loadTopProducts();
+    this.loadDailyRecap();
   }
 
   loadStats() {
@@ -142,6 +146,20 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   loadLowStock() {
     this.productService.getLowStock().subscribe({
       next: (res) => { this.lowStockProducts = res.data.slice(0, 5); }
+    });
+  }
+
+  loadDailyRecap() {
+    this.dashboardService.getDailyRecap().subscribe({
+      next: (res) => { 
+        this.dailyRecap = res.data;
+        this.paymentEntries = Object.entries(res.data.paymentBreakdown).map(([key, value]: any) => ({
+          method: key,
+          label: this.getPaymentLabel(key),
+          count: value.count,
+          total: value.total
+        }));
+      }
     });
   }
 
@@ -224,4 +242,18 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     };
     return map[method] || 'bi-cash';
   }
+
+  getPaymentLabel(method: string): string {
+    const map: Record<string, string> = {
+      tunai: 'Tunai',
+      transfer: 'Transfer',
+      qris: 'QRIS',
+      hutang: 'Hutang',
+      kartu_debit: 'Kartu Debit',
+      kartu_kredit: 'Kartu Kredit'
+    };
+    return map[method] || method;
+  }
+
+  
 }

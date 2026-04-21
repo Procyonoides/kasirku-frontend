@@ -855,4 +855,200 @@ export class ReportsComponent implements OnInit {
     };
     return map[value] || value;
   }
+
+  async exportAllData() {
+    this.isExporting = true;
+    const workbook = new ExcelJS.Workbook();
+    
+    // Style konstanta
+    const headerFill: ExcelJS.Fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E3A5F' } };
+    const thinBorder: Partial<ExcelJS.Border> = { style: 'thin', color: { argb: 'FFE2E8F0' } };
+    const allBorder = { top: thinBorder, left: thinBorder, bottom: thinBorder, right: thinBorder };
+
+    const addTitleRow = (ws: ExcelJS.Worksheet, title: string, numCols: number) => {
+      ws.mergeCells(1, 1, 1, numCols);
+      const cell = ws.getCell('A1');
+      cell.value = title;
+      cell.font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
+      cell.fill = headerFill;
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      ws.getRow(1).height = 28;
+
+      ws.mergeCells(2, 1, 2, numCols);
+      const cell2 = ws.getCell('A2');
+      cell2.value = `Diekspor: ${new Date().toLocaleString('id-ID')}`;
+      cell2.font = { size: 10, italic: true, color: { argb: 'FF888888' } };
+      cell2.alignment = { horizontal: 'center' };
+      ws.getRow(2).height = 18;
+    };
+
+    const addHeaderRow = (ws: ExcelJS.Worksheet, headers: string[], rowNum: number) => {
+      const row = ws.getRow(rowNum);
+      row.height = 20;
+      headers.forEach((h, i) => {
+        const cell = row.getCell(i + 1);
+        cell.value = h;
+        cell.font = { bold: true, size: 11, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2563EB' } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        cell.border = allBorder;
+      });
+    };
+
+    // ── SHEET 1: PRODUK ──────────────────────────────────
+    await new Promise<void>(resolve => {
+      this.reportService.getAllProducts().subscribe({
+        next: (res) => {
+          const ws = workbook.addWorksheet('Produk');
+          const headers = ['SKU', 'Nama', 'Kategori', 'Harga Beli', 'Harga Jual', 'Stok', 'Min Stok', 'Satuan', 'Status'];
+          addTitleRow(ws, 'DATA PRODUK - KASIRKU', headers.length);
+          addHeaderRow(ws, headers, 3);
+
+          res.data.forEach((p: any, i: number) => {
+            const row = ws.getRow(i + 4);
+            row.height = 16;
+            const fill: ExcelJS.Fill = i % 2 === 0
+              ? { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } }
+              : { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+            
+            [p.sku, p.name, p.category?.name || '-', p.buyPrice, p.sellPrice, p.stock, p.minStock, p.unit, p.stockStatus || '-']
+              .forEach((val, j) => {
+                const cell = row.getCell(j + 1);
+                cell.value = val;
+                cell.fill = fill;
+                cell.border = allBorder;
+                cell.font = { size: 10 };
+                if (j >= 3 && j <= 6) {
+                  cell.alignment = { horizontal: 'right' };
+                  if (j === 3 || j === 4) cell.numFmt = '#,##0';
+                }
+              });
+          });
+          ws.columns = headers.map(h => ({ width: Math.max(h.length + 6, 18) }));
+          resolve();
+        }
+      });
+    });
+
+    // ── SHEET 2: PELANGGAN ────────────────────────────────
+    await new Promise<void>(resolve => {
+      this.reportService.getAllCustomers().subscribe({
+        next: (res) => {
+          const ws = workbook.addWorksheet('Pelanggan');
+          const headers = ['Nama', 'No. HP', 'Alamat', 'Total Belanja', 'Total Transaksi', 'Poin', 'Hutang', 'Tier'];
+          addTitleRow(ws, 'DATA PELANGGAN - KASIRKU', headers.length);
+          addHeaderRow(ws, headers, 3);
+
+          res.data.forEach((c: any, i: number) => {
+            const row = ws.getRow(i + 4);
+            row.height = 16;
+            const fill: ExcelJS.Fill = i % 2 === 0
+              ? { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } }
+              : { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+
+            [c.name, c.phone || '-', c.address || '-', c.totalSpent, c.totalTransactions, c.points, c.currentDebt, c.customerTier || '-']
+              .forEach((val, j) => {
+                const cell = row.getCell(j + 1);
+                cell.value = val;
+                cell.fill = fill;
+                cell.border = allBorder;
+                cell.font = { size: 10 };
+                if ([3, 6].includes(j)) { cell.numFmt = '#,##0'; cell.alignment = { horizontal: 'right' }; }
+              });
+          });
+          ws.columns = headers.map(h => ({ width: Math.max(h.length + 6, 18) }));
+          resolve();
+        }
+      });
+    });
+
+    // ── SHEET 3: TRANSAKSI ────────────────────────────────
+    await new Promise<void>(resolve => {
+      this.reportService.getAllTransactions().subscribe({
+        next: (res) => {
+          const ws = workbook.addWorksheet('Transaksi');
+          const headers = ['Invoice', 'Tanggal', 'Pelanggan', 'Metode', 'Subtotal', 'Diskon', 'Total', 'Status'];
+          addTitleRow(ws, 'DATA TRANSAKSI - KASIRKU', headers.length);
+          addHeaderRow(ws, headers, 3);
+
+          res.data.forEach((t: any, i: number) => {
+            const row = ws.getRow(i + 4);
+            row.height = 16;
+            const fill: ExcelJS.Fill = i % 2 === 0
+              ? { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } }
+              : { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+
+            [
+              t.invoiceNumber,
+              new Date(t.createdAt).toLocaleDateString('id-ID'),
+              t.customerName || 'Umum',
+              t.paymentMethod,
+              t.subtotal,
+              t.discountTotal,
+              t.grandTotal,
+              t.status
+            ].forEach((val, j) => {
+              const cell = row.getCell(j + 1);
+              cell.value = val;
+              cell.fill = fill;
+              cell.border = allBorder;
+              cell.font = { size: 10 };
+              if ([4, 5, 6].includes(j)) { cell.numFmt = '#,##0'; cell.alignment = { horizontal: 'right' }; }
+            });
+          });
+          ws.columns = headers.map(h => ({ width: Math.max(h.length + 6, 18) }));
+          resolve();
+        }
+      });
+    });
+
+    // ── SHEET 4: KEUANGAN ─────────────────────────────────
+    await new Promise<void>(resolve => {
+      this.reportService.getAllFinance().subscribe({
+        next: (res) => {
+          const ws = workbook.addWorksheet('Keuangan');
+          const headers = ['Tanggal', 'Jenis', 'Kategori', 'Keterangan', 'Nominal', 'Metode'];
+          addTitleRow(ws, 'DATA KEUANGAN - KASIRKU', headers.length);
+          addHeaderRow(ws, headers, 3);
+
+          res.data.forEach((f: any, i: number) => {
+            const row = ws.getRow(i + 4);
+            row.height = 16;
+            const isIncome = f.type === 'pemasukan';
+            const fill: ExcelJS.Fill = { 
+              type: 'pattern', pattern: 'solid', 
+              fgColor: { argb: isIncome ? 'FFD1FAE5' : 'FFFEE2E2' }
+            };
+
+            [
+              new Date(f.date).toLocaleDateString('id-ID'),
+              f.type === 'pemasukan' ? 'Pemasukan' : 'Pengeluaran',
+              f.category,
+              f.description,
+              f.amount,
+              f.paymentMethod || '-'
+            ].forEach((val, j) => {
+              const cell = row.getCell(j + 1);
+              cell.value = val;
+              cell.fill = fill;
+              cell.border = allBorder;
+              cell.font = { size: 10, color: { argb: isIncome ? 'FF065F46' : 'FF991B1B' } };
+              if (j === 4) { cell.numFmt = '#,##0'; cell.alignment = { horizontal: 'right' }; }
+            });
+          });
+          ws.columns = headers.map(h => ({ width: Math.max(h.length + 6, 18) }));
+          resolve();
+        }
+      });
+    });
+
+    // ── Simpan File ───────────────────────────────────────
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    });
+    const date = new Date().toISOString().split('T')[0];
+    saveAs(blob, `kasirku-export-${date}.xlsx`);
+    this.isExporting = false;
+  }
 }

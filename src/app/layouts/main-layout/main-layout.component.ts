@@ -1,8 +1,9 @@
-import { Component, signal } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
 import { AuthService } from '../../core/auth/auth.service';
 import { ToastComponent } from '../../shared/components/toast/toast.component';
+import { ProductService } from '../../core/services/api.service';
 
 @Component({
   selector: 'app-main-layout',
@@ -11,9 +12,11 @@ import { ToastComponent } from '../../shared/components/toast/toast.component';
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.css'
 })
-export class MainLayoutComponent {
+export class MainLayoutComponent implements OnInit {
   isSidebarOpen = signal(true);
   today = new Date();
+  lowStockProducts: any[] = [];
+  showStockNotif = false;
 
   menuItems: { path: string; icon: string; label: string; roles: string[] }[] = [
     { path: '/dashboard', icon: 'bi-speedometer2', label: 'Dashboard', roles: ['owner', 'admin', 'kasir'] },
@@ -27,7 +30,7 @@ export class MainLayoutComponent {
     { path: '/settings', icon: 'bi-gear', label: 'Pengaturan', roles: ['owner', 'admin', 'kasir'] },
   ];
 
-  constructor(public authService: AuthService, private router: Router) {}
+  constructor(public authService: AuthService, private router: Router, private productService: ProductService) {}
 
   canAccess(roles: string[]): boolean {
     return this.authService.hasRole(...roles);
@@ -39,5 +42,20 @@ export class MainLayoutComponent {
 
   logout() {
     this.authService.logout();
+  }
+
+  ngOnInit() {
+    this.loadLowStock();
+    setInterval(() => this.loadLowStock(), 30 * 1000); // refresh tiap 30 detik
+  }
+
+  loadLowStock() {
+    this.productService.getLowStock().subscribe({
+      next: (res) => { this.lowStockProducts = res.data; }
+    });
+  }
+
+  toggleStockNotif() {
+    this.showStockNotif = !this.showStockNotif;
   }
 }

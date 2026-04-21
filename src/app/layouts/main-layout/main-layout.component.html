@@ -43,10 +43,57 @@
       <button class="btn-toggle" (click)="toggleSidebar()">
         <i class="bi bi-list"></i>
       </button>
-      <span class="topbar-date">
-        <i class="bi bi-calendar3 me-1"></i>
-        {{ today | date:'EEEE, d MMMM y' : '' : 'id' }}
-      </span>
+
+      <div class="d-flex align-items-center gap-3">
+        <span class="topbar-date">
+          <i class="bi bi-calendar3 me-1"></i>
+          {{ today | date:'EEEE, d MMMM y' : '' : 'id' }}
+        </span>
+
+        <!-- Stock Notification Bell -->
+        <div class="notif-wrap" (clickOutside)="showStockNotif = false">
+          <button class="btn-notif" (click)="toggleStockNotif()">
+            <i class="bi bi-bell-fill"></i>
+            <span *ngIf="lowStockProducts.length > 0" class="notif-badge">
+              {{ lowStockProducts.length }}
+            </span>
+          </button>
+
+          <!-- Dropdown -->
+          <div *ngIf="showStockNotif" class="notif-dropdown">
+            <div class="notif-header">
+              <span class="fw-bold">Peringatan Stok</span>
+              <span class="badge bg-warning text-dark ms-2">{{ lowStockProducts.length }}</span>
+            </div>
+            <div *ngIf="lowStockProducts.length === 0" class="notif-empty">
+              <i class="bi bi-check-circle-fill text-success"></i>
+              Semua stok aman
+            </div>
+            <a *ngFor="let p of lowStockProducts"
+              [routerLink]="['/products', p._id, 'edit']"
+              class="notif-item"
+              (click)="showStockNotif = false">
+              <div class="notif-item-icon"
+                [class.notif-habis]="p.stock === 0"
+                [class.notif-menipis]="p.stock > 0">
+                <i class="bi"
+                  [class.bi-x-circle-fill]="p.stock === 0"
+                  [class.bi-exclamation-circle-fill]="p.stock > 0"></i>
+              </div>
+              <div class="flex-grow-1">
+                <div class="notif-item-name">{{ p.name }}</div>
+                <div class="notif-item-stock">
+                  Stok: {{ p.stock }} / {{ p.minStock }} {{ p.unit }}
+                </div>
+              </div>
+            </a>
+            <a routerLink="/products" class="notif-footer" (click)="showStockNotif = false">
+              Lihat Semua Produk
+            </a>
+          </div>
+        </div>
+
+      </div>
     </div>
 
     <!-- Page Content -->

@@ -88,6 +88,9 @@ export class CustomerService {
   getTransactions(id: string): Observable<ApiResponse<Transaction[]>> {
     return this.http.get<ApiResponse<Transaction[]>>(`${this.url}/${id}/transactions`);
   }
+  getPointHistory(id: string): Observable<any> {
+    return this.http.get(`${this.url}/${id}/points`);
+  }
   create(data: Partial<Customer>): Observable<ApiResponse<Customer>> {
     return this.http.post<ApiResponse<Customer>>(this.url, data);
   }
@@ -162,6 +165,9 @@ export class DashboardService {
   }
   getRecent(): Observable<ApiResponse<Transaction[]>> {
     return this.http.get<ApiResponse<Transaction[]>>(`${this.url}/recent`);
+  }
+  getDailyRecap(): Observable<any> {
+    return this.http.get<any>(`${this.url}/daily-recap`);
   }
 }
 

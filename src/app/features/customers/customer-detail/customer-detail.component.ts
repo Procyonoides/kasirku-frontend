@@ -15,6 +15,9 @@ import { RupiahPipe } from '../../../shared/pipes';
 export class CustomerDetailComponent implements OnInit {
   customer: any = null;
   transactions: any[] = [];
+  pointHistory: any[] = [];
+  currentPoints = 0;
+  activeTab = 'transactions';
   isLoading = true;
   customerId = '';
 
@@ -35,6 +38,7 @@ export class CustomerDetailComponent implements OnInit {
     this.customerId = this.route.snapshot.params['id'];
     this.loadCustomer();
     this.loadTransactions();
+    this.loadPointHistory();
   }
 
   loadCustomer() {
@@ -47,6 +51,15 @@ export class CustomerDetailComponent implements OnInit {
   loadTransactions() {
     this.transactionService.getAll({ customer: this.customerId, limit: 50 }).subscribe({
       next: (res) => { this.transactions = res.data; }
+    });
+  }
+
+  loadPointHistory() {
+    this.customerService.getPointHistory(this.customerId).subscribe({
+      next: (res) => {
+        this.pointHistory = res.data;
+        this.currentPoints = res.currentPoints;
+      }
     });
   }
 
