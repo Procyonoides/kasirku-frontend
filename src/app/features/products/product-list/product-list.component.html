@@ -1,28 +1,34 @@
 <div class="container-fluid py-4">
 
   <!-- Header -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
+  <header class="d-flex justify-content-between align-items-center mb-4">
     <div>
       <h4 class="fw-bold mb-1" style="color: #1e3a5f">Manajemen Produk</h4>
-      <p class="text-muted small mb-0">Total {{ totalItems }} produk terdaftar</p>
+      <p class="text-muted small mb-0" aria-label="Total produk terdaftar">
+        Total {{ totalItems }} produk terdaftar
+      </p>
     </div>
     <div class="d-flex gap-2">
-      <a routerLink="/products/categories" class="btn btn-outline-secondary">
-        <i class="bi bi-tags me-2"></i>Kelola Kategori
+      <a routerLink="/products/categories" 
+        class="btn btn-outline-secondary"
+        aria-label="Kelola kategori produk">
+        <i class="bi bi-tags me-2" aria-hidden="true"></i>Kelola Kategori
       </a>
-      <a routerLink="/products/add" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-2"></i>Tambah Produk
+      <a routerLink="/products/add" 
+        class="btn btn-primary"
+        aria-label="Tambah produk baru">
+        <i class="bi bi-plus-lg me-2" aria-hidden="true"></i>Tambah Produk
       </a>
     </div>
-  </div>
+  </header>
 
   <!-- Filter -->
-  <div class="card border-0 shadow-sm mb-4">
+  <section class="card border-0 shadow-sm mb-4" aria-label="Filter dan pencarian produk">
     <div class="card-body">
       <div class="row g-3">
         <div class="col-12 col-md-4">
           <div class="input-group">
-            <span class="input-group-text bg-white">
+            <span class="input-group-text bg-white" aria-hidden="true">
               <i class="bi bi-search text-muted"></i>
             </span>
             <input
@@ -31,71 +37,97 @@
               placeholder="Cari nama, SKU, barcode..."
               [(ngModel)]="searchQuery"
               (keyup.enter)="onSearch()"
+              aria-label="Cari produk berdasarkan nama, SKU, atau barcode"
+              autocomplete="off"
             />
           </div>
         </div>
         <div class="col-12 col-md-3">
-          <select class="form-select" [(ngModel)]="selectedCategory" (change)="onFilter()">
+          <select class="form-select" 
+            [(ngModel)]="selectedCategory" 
+            (change)="onFilter()"
+            aria-label="Filter berdasarkan kategori">
             <option value="">Semua Kategori</option>
             <option *ngFor="let cat of categories" [value]="cat._id">{{ cat.name }}</option>
           </select>
         </div>
         <div class="col-12 col-md-2">
-          <select class="form-select" [(ngModel)]="selectedStatus" (change)="onFilter()">
+          <select class="form-select" 
+            [(ngModel)]="selectedStatus" 
+            (change)="onFilter()"
+            aria-label="Filter berdasarkan status stok">
             <option value="">Semua Status</option>
             <option value="menipis">Stok Menipis</option>
             <option value="habis">Stok Habis</option>
           </select>
         </div>
         <div class="col-12 col-md-3 d-flex gap-2">
-          <button class="btn btn-primary flex-grow-1" (click)="onSearch()">
-            <i class="bi bi-search me-1"></i>Cari
+          <button class="btn btn-primary flex-grow-1" 
+            (click)="onSearch()"
+            aria-label="Cari produk dengan filter yang dipilih"
+            type="button">
+            <i class="bi bi-search me-1" aria-hidden="true"></i>Cari
           </button>
-          <button class="btn btn-outline-secondary" (click)="resetFilter()">
-            <i class="bi bi-arrow-counterclockwise"></i>
+          <button class="btn btn-outline-secondary" 
+            (click)="resetFilter()"
+            aria-label="Reset semua filter pencarian"
+            type="button">
+            <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
           </button>
         </div>
       </div>
     </div>
-  </div>
+  </section>
 
   <!-- Table -->
-  <div class="card border-0 shadow-sm">
+  <section class="card border-0 shadow-sm" aria-label="Daftar produk">
     <div class="card-body p-0">
 
       <!-- Loading -->
       <app-loading-spinner *ngIf="isLoading" message="Memuat produk..."></app-loading-spinner>
 
       <!-- Empty -->
-      <div *ngIf="!isLoading && products.length === 0" class="text-center py-5 text-muted">
-        <i class="bi bi-box-seam fs-1 d-block mb-2"></i>
+      <div *ngIf="!isLoading && products.length === 0" 
+        class="text-center py-5 text-muted"
+        role="status"
+        aria-live="polite">
+        <i class="bi bi-box-seam fs-1 d-block mb-2" aria-hidden="true"></i>
         <p>Tidak ada produk ditemukan</p>
-        <a routerLink="/products/add" class="btn btn-primary btn-sm">Tambah Produk</a>
+        <a routerLink="/products/add" 
+          class="btn btn-primary btn-sm"
+          aria-label="Tambah produk baru">Tambah Produk</a>
       </div>
 
       <!-- Table -->
-      <div *ngIf="!isLoading && products.length > 0" class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+      <div *ngIf="!isLoading && products.length > 0" 
+        class="table-responsive"
+        role="region"
+        aria-label="Tabel daftar produk"
+        tabindex="0">
+        <table class="table table-hover align-middle mb-0" role="table">
+          <caption class="sr-only">Daftar produk dengan informasi harga, stok, dan aksi</caption>
           <thead class="table-light">
-            <tr>
-              <th class="ps-4">Produk</th>
-              <th>Kategori</th>
-              <th>Harga Beli</th>
-              <th>Harga Jual</th>
-              <th>Stok</th>
-              <th>Status</th>
-              <th class="text-center">Aksi</th>
+            <tr role="row">
+              <th class="ps-4" role="columnheader" scope="col">Produk</th>
+              <th role="columnheader" scope="col">Kategori</th>
+              <th role="columnheader" scope="col">Harga Beli</th>
+              <th role="columnheader" scope="col">Harga Jual</th>
+              <th role="columnheader" scope="col">Stok</th>
+              <th role="columnheader" scope="col">Status</th>
+              <th class="text-center" role="columnheader" scope="col">Aksi</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let product of products">
-              <td class="ps-4">
+            <tr *ngFor="let product of products" 
+              role="row"
+              [attr.aria-label]="'Produk: ' + product.name">
+              <td class="ps-4" role="cell">
                 <div class="d-flex align-items-center gap-3">
                   <div class="product-img">
                     <img *ngIf="product.image" [src]="product.image" 
-                      alt="{{ product.name }}"
+                      [alt]="product.name"
                       style="width:40px; height:40px; object-fit:cover; border-radius:8px;" />
-                    <i *ngIf="!product.image" class="bi bi-box-seam"></i>
+                    <i *ngIf="!product.image" class="bi bi-box-seam" aria-hidden="true"></i>
                   </div>
                   <div>
                     <div class="fw-semibold">{{ product.name }}</div>
@@ -103,20 +135,21 @@
                   </div>
                 </div>
               </td>
-              <td>
+              <td role="cell">
                 <span class="badge rounded-pill"
                   [style.background]="product.category?.color || '#6b7280'"
-                  style="font-size: 12px; padding: 5px 10px;">
+                  style="font-size: 12px; padding: 5px 10px;"
+                  [attr.aria-label]="'Kategori: ' + (product.category?.name || 'tidak ditentukan')">
                   {{ product.category?.name || '-' }}
                 </span>
               </td>
-              <td>{{ product.buyPrice | rupiah }}</td>
-              <td>{{ product.sellPrice | rupiah }}</td>
-              <td>
+              <td role="cell">{{ product.buyPrice | rupiah }}</td>
+              <td role="cell">{{ product.sellPrice | rupiah }}</td>
+              <td role="cell">
                 <span class="fw-semibold">{{ product.stock }}</span>
                 <span class="text-muted small ms-1">{{ product.unit }}</span>
               </td>
-              <td>
+              <td role="cell">
                 <span class="badge" [ngClass]="getStockBadge(product)">
                   {{ getStockLabel(product) }}
                 </span>
@@ -167,7 +200,7 @@
       </div>
 
     </div>
-  </div>
+  </section>
 </div>
 
 <!-- Loading Spinner -->

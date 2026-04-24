@@ -189,6 +189,19 @@ export class ReportService {
   getCashflow(params?: any): Observable<any> {
     return this.http.get<any>(`${this.url}/cashflow`, { params });
   }
+
+  getAllProducts(): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/products`, { params: { limit: '9999' } });
+  }
+  getAllCustomers(): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/customers`, { params: { limit: '9999' } });
+  }
+  getAllTransactions(): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/transactions`, { params: { limit: '9999' } });
+  }
+  getAllFinance(): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/finance`, { params: { limit: '9999' } });
+  }
 }
 
 // ─── Users Service ───────────────────────────────────────────

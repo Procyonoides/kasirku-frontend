@@ -2,45 +2,68 @@
   <div class="login-card">
 
     <div class="login-header">
-      <div class="logo">🏪</div><br/>
+      <div class="logo" role="img" aria-label="Logo KasirKu">🏪</div><br/>
       <h1>KasirKu</h1>
       <p>Masuk ke akun Anda</p>
     </div>
 
-    <div class="error-box" *ngIf="errorMessage">
+    <div class="error-box" 
+      *ngIf="errorMessage"
+      role="alert"
+      aria-live="polite"
+      aria-atomic="true">
       ⚠️ {{ errorMessage }}
     </div>
 
-    <form (ngSubmit)="onLogin()">
+    <form (ngSubmit)="onLogin()" novalidate>
 
       <div class="form-group">
-        <label>Username</label>
+        <label for="username" class="form-label">Username</label>
         <input
+            id="username"
             type="text"
             [(ngModel)]="username"
             name="username"
             placeholder="Masukkan username"
             [disabled]="isLoading"
+            autocomplete="username"
+            required
+            aria-required="true"
+            [attr.aria-describedby]="'username-help'"
         />
+        <small id="username-help" class="form-text text-muted">Gunakan username yang Anda daftarkan</small>
     </div>
 
       <div class="form-group">
-        <label>Password</label>
+        <label for="password" class="form-label">Password</label>
         <div class="input-password">
           <input
+            id="password"
             [type]="showPassword ? 'text' : 'password'"
             [(ngModel)]="password"
             name="password"
             placeholder="••••••••"
             [disabled]="isLoading"
+            autocomplete="current-password"
+            required
+            aria-required="true"
+            [attr.aria-describedby]="'password-help'"
           />
-          <button type="button" class="toggle-pw" (click)="togglePassword()">
+          <button type="button" 
+            class="toggle-pw" 
+            (click)="togglePassword()"
+            [attr.aria-label]="showPassword ? 'Sembunyikan password' : 'Tampilkan password'"
+            [attr.aria-pressed]="showPassword">
             {{ showPassword ? '🙈' : '👁️' }}
           </button>
         </div>
+        <small id="password-help" class="form-text text-muted">Minimal 8 karakter</small>
       </div>
 
-      <button type="submit" class="btn-login" [disabled]="isLoading">
+      <button type="submit" 
+        class="btn-login" 
+        [disabled]="isLoading"
+        [attr.aria-busy]="isLoading">
         {{ isLoading ? 'Memproses...' : 'Masuk' }}
       </button>
 

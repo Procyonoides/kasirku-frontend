@@ -1,108 +1,168 @@
-<div class="d-flex" style="min-height: 100vh;">
+<div class="d-flex" style="min-height: 100vh;" role="application">
 
   <!-- Sidebar -->
-  <div class="sidebar" [style.width]="isSidebarOpen() ? '240px' : '64px'">
+  <aside class="sidebar" 
+    [style.width]="isSidebarOpen() ? '240px' : '64px'"
+    role="navigation"
+    [attr.aria-label]="'Navigasi utama'">
     <div class="sidebar-header">
-      <span class="sidebar-logo">🏪</span>
-      <span class="sidebar-title" *ngIf="isSidebarOpen()">KasirKu</span>
+      <span class="sidebar-logo" aria-label="Logo KasirKu">🏪</span>
+      <span class="sidebar-title" *ngIf="isSidebarOpen()" aria-hidden="false">KasirKu</span>
     </div>
 
-    <nav class="sidebar-nav">
+    <nav class="sidebar-nav" aria-label="Menu navigasi aplikasi">
       <ng-container *ngFor="let item of menuItems">
         <a *ngIf="canAccess(item.roles)"
           [routerLink]="item.path"
           routerLinkActive="active"
-          class="nav-item">
-          <i class="bi {{ item.icon }}"></i>
+          class="nav-item"
+          [attr.aria-label]="item.label"
+          [attr.aria-current]="router.isActive(item.path, { paths: 'exact', queryParams: 'ignored', fragment: 'ignored', matrixParams: 'ignored' }) ? 'page' : null">
+          <i class="bi {{ item.icon }}" aria-hidden="true"></i>
           <span *ngIf="isSidebarOpen()" class="nav-label">{{ item.label }}</span>
         </a>
       </ng-container>
     </nav>
 
-    <div class="sidebar-footer">
-      <div class="user-avatar">
+    <footer class="sidebar-footer">
+      <div class="user-avatar" 
+        [attr.aria-label]="'Avatar ' + authService.currentUser()?.name"
+        role="img">
         {{ authService.currentUser()?.name?.charAt(0)?.toUpperCase() }}
       </div>
       <ng-container *ngIf="isSidebarOpen()">
         <div class="user-details ms-2 flex-grow-1 overflow-hidden">
-          <div class="user-name">{{ authService.currentUser()?.name }}</div>
-          <div class="user-role">{{ authService.currentUser()?.role }}</div>
+          <div class="user-name" id="user-name">{{ authService.currentUser()?.name }}</div>
+          <div class="user-role" id="user-role">{{ authService.currentUser()?.role }}</div>
         </div>
-        <button class="btn-logout" (click)="logout()">
-          <i class="bi bi-box-arrow-right"></i>
+        <button class="btn-logout" 
+          (click)="logout()"
+          aria-label="Keluar dari aplikasi"
+          type="button">
+          <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
         </button>
       </ng-container>
-    </div>
-  </div>
+    </footer>
+  </aside>
 
   <!-- Main Content -->
   <div class="flex-grow-1 d-flex flex-column" style="min-width: 0; overflow: hidden; height: 100vh;">
 
     <!-- Topbar -->
-    <div class="topbar d-flex align-items-center justify-content-between px-4">
-      <button class="btn-toggle" (click)="toggleSidebar()">
-        <i class="bi bi-list"></i>
+    <header class="topbar d-flex align-items-center justify-content-between px-4" role="banner">
+      <button class="btn-toggle"
+        (click)="toggleSidebar()"
+        [attr.aria-expanded]="isSidebarOpen()"
+        aria-controls="sidebar"
+        aria-label="Buka/tutup navigasi"
+        type="button">
+        <i class="bi bi-list" aria-hidden="true"></i>
       </button>
 
-      <div class="d-flex align-items-center gap-3">
-        <span class="topbar-date">
-          <i class="bi bi-calendar3 me-1"></i>
-          {{ today | date:'EEEE, d MMMM y' : '' : 'id' }}
-        </span>
+      <div class="d-flex align-items-center gap-2">
+
+        <!-- Date + Time chip -->
+        <div class="topbar-date-chip">
+          <i class="bi bi-calendar3"></i>
+          <span class="topbar-date-text">{{ today | date:'EEEE, d MMMM y' : '' : 'id' }}</span>
+          <span class="topbar-divider"></span>
+          <i class="bi bi-clock"></i>
+          <span class="topbar-time-text">{{ now | date:'HH:mm:ss' }}</span>
+        </div>
 
         <!-- Stock Notification Bell -->
         <div class="notif-wrap" (clickOutside)="showStockNotif = false">
-          <button class="btn-notif" (click)="toggleStockNotif()">
-            <i class="bi bi-bell-fill"></i>
-            <span *ngIf="lowStockProducts.length > 0" class="notif-badge">
+          <button class="btn-notif"
+            (click)="toggleStockNotif()"
+            [attr.aria-expanded]="showStockNotif"
+            aria-controls="stock-notification-menu"
+            [attr.aria-label]="'Notifikasi stok, ' + lowStockProducts.length + ' produk memerlukan perhatian'"
+            type="button">
+            <i class="bi bi-bell-fill" aria-hidden="true"></i>
+            <span *ngIf="lowStockProducts.length > 0" class="notif-badge" aria-label="Jumlah notifikasi">
               {{ lowStockProducts.length }}
             </span>
           </button>
 
           <!-- Dropdown -->
-          <div *ngIf="showStockNotif" class="notif-dropdown">
+          <div *ngIf="showStockNotif"
+            class="notif-dropdown"
+            id="stock-notification-menu"
+            role="complementary"
+            aria-label="Notifikasi peringatan stok produk">
+
+            <!-- Dropdown Header -->
             <div class="notif-header">
-              <span class="fw-bold">Peringatan Stok</span>
-              <span class="badge bg-warning text-dark ms-2">{{ lowStockProducts.length }}</span>
-            </div>
-            <div *ngIf="lowStockProducts.length === 0" class="notif-empty">
-              <i class="bi bi-check-circle-fill text-success"></i>
-              Semua stok aman
-            </div>
-            <a *ngFor="let p of lowStockProducts"
-              [routerLink]="['/products', p._id, 'edit']"
-              class="notif-item"
-              (click)="showStockNotif = false">
-              <div class="notif-item-icon"
-                [class.notif-habis]="p.stock === 0"
-                [class.notif-menipis]="p.stock > 0">
-                <i class="bi"
-                  [class.bi-x-circle-fill]="p.stock === 0"
-                  [class.bi-exclamation-circle-fill]="p.stock > 0"></i>
-              </div>
-              <div class="flex-grow-1">
-                <div class="notif-item-name">{{ p.name }}</div>
-                <div class="notif-item-stock">
-                  Stok: {{ p.stock }} / {{ p.minStock }} {{ p.unit }}
+              <div class="d-flex align-items-center gap-2">
+                <div class="notif-header-icon">
+                  <i class="bi bi-bell-fill"></i>
+                </div>
+                <div>
+                  <div class="fw-bold" style="font-size:14px">Peringatan Stok</div>
+                  <div style="font-size:12px; opacity:0.8">
+                    {{ lowStockProducts.length === 0 ? 'Semua stok aman' : lowStockProducts.length + ' produk perlu perhatian' }}
+                  </div>
                 </div>
               </div>
-            </a>
-            <a routerLink="/products" class="notif-footer" (click)="showStockNotif = false">
+              <button class="notif-close" (click)="showStockNotif = false">
+                <i class="bi bi-x-lg"></i>
+              </button>
+            </div>
+
+            <!-- Empty State -->
+            <div *ngIf="lowStockProducts.length === 0" class="notif-empty" aria-live="polite">
+              <div class="notif-empty-icon">
+                <i class="bi bi-check-circle-fill text-success" aria-hidden="true"></i>
+              </div>
+              <div class="fw-semibold" style="font-size:14px">Stok Aman!</div>
+              <div class="text-muted" style="font-size:13px">Semua produk masih tersedia</div>
+            </div>
+
+            <!-- Items -->
+            <div class="notif-list">
+              <a *ngFor="let p of lowStockProducts"
+                [routerLink]="['/products', p._id, 'edit']"
+                class="notif-item"
+                (click)="showStockNotif = false"
+                [attr.aria-label]="'Edit produk ' + p.name + ', stok: ' + p.stock">
+                <div class="notif-item-icon"
+                  [class.notif-habis]="p.stock === 0"
+                  [class.notif-menipis]="p.stock > 0">
+                  <i class="bi"
+                    aria-hidden="true"
+                    [class.bi-x-circle-fill]="p.stock === 0"
+                    [class.bi-exclamation-circle-fill]="p.stock > 0"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <div class="notif-item-name">{{ p.name }}</div>
+                  <div class="notif-item-stock">
+                    Stok: <strong>{{ p.stock }}</strong> / min {{ p.minStock }} {{ p.unit }}
+                  </div>
+                </div>
+                <i class="bi bi-chevron-right" style="font-size:11px; color:#94a3b8"></i>
+              </a>
+            </div>
+
+            <a routerLink="/products"
+              class="notif-footer"
+              (click)="showStockNotif = false"
+              aria-label="Lihat semua produk">
+              <i class="bi bi-arrow-right-circle me-1"></i>
               Lihat Semua Produk
             </a>
           </div>
         </div>
 
       </div>
-    </div>
+    </header>
 
     <!-- Page Content -->
-    <div class="page-content flex-grow-1">
+    <main class="page-content flex-grow-1" role="main">
       <router-outlet></router-outlet>
-    </div>
+    </main>
 
   </div>
 
   <!-- Toast Notification -->
-  <app-toast></app-toast>
+  <app-toast role="complementary" aria-label="Notifikasi pesan sistem"></app-toast>
 </div>

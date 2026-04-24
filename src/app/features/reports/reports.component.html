@@ -39,6 +39,11 @@
       <button class="btn btn-outline-secondary btn-sm" (click)="printReport()" [disabled]="isLoading">
         <i class="bi bi-printer me-1"></i>Print
       </button>
+      <button class="btn btn-success btn-sm" (click)="exportAllData()" [disabled]="isExporting">
+        <span *ngIf="isExporting" class="spinner-border spinner-border-sm me-1"></span>
+        <i *ngIf="!isExporting" class="bi bi-cloud-download me-1"></i>
+        Export Semua Data
+      </button>
     </div>
   </div>
 

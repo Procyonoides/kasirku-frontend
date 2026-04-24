@@ -1,103 +1,162 @@
-<div class="pos-layout">
+<div class="pos-layout" role="main" aria-label="Halaman Sistem Kasir">
 
   <!-- LEFT: Product Panel -->
-  <div class="pos-products">
+  <section class="pos-products" aria-label="Daftar produk">
 
-    <!-- Search & Filter -->
+    <!-- Search -->
     <div class="pos-search-bar">
       <div class="input-group">
-        <span class="input-group-text bg-white border-end-0">
+        <span class="input-group-text bg-white border-end-0" aria-hidden="true">
           <i class="bi bi-search text-muted"></i>
         </span>
-        <input type="text" class="form-control border-start-0"
+        <input type="text" 
+          class="form-control border-start-0"
           placeholder="Cari produk atau SKU..."
           [(ngModel)]="searchQuery"
-          (input)="filterProducts()" />
+          (input)="filterProducts()"
+          aria-label="Cari produk atau SKU"
+          autocomplete="off" />
       </div>
     </div>
 
-    <!-- Category Filter -->
-    <div class="category-tabs">
-      <button class="cat-tab" [class.active]="selectedCategory === ''"
-        (click)="selectedCategory = ''; filterProducts()">Semua</button>
-      <button *ngFor="let cat of categories" class="cat-tab"
+    <!-- Category Tabs -->
+    <div class="category-tabs" role="tablist" aria-label="Filter kategori produk">
+      <button class="cat-tab" 
+        [class.active]="selectedCategory === ''"
+        (click)="selectedCategory = ''; filterProducts()"
+        role="tab"
+        [attr.aria-selected]="selectedCategory === ''"
+        type="button">
+        <i class="bi bi-grid-3x3-gap me-1" aria-hidden="true"></i>Semua
+      </button>
+      <button *ngFor="let cat of categories" 
+        class="cat-tab"
         [class.active]="selectedCategory === cat._id"
-        (click)="selectedCategory = cat._id; filterProducts()">
+        (click)="selectedCategory = cat._id; filterProducts()"
+        role="tab"
+        [attr.aria-selected]="selectedCategory === cat._id"
+        [attr.aria-label]="'Kategori ' + cat.name"
+        type="button">
         {{ cat.name }}
       </button>
     </div>
 
     <!-- Product Grid -->
-    <div class="product-grid">
-      <div *ngIf="isLoadingProducts" class="text-center py-5 col-span-all">
+    <div class="product-grid" role="list" aria-label="Daftar produk yang tersedia">
+
+      <div *ngIf="isLoadingProducts" 
+        class="text-center py-5"
+        style="grid-column: 1/-1;"
+        role="status"
+        aria-live="polite"
+        aria-label="Memuat daftar produk">
         <div class="spinner-border text-primary"></div>
       </div>
 
       <div *ngIf="!isLoadingProducts && filteredProducts.length === 0"
-        class="text-center py-5 text-muted col-span-all">
-        <i class="bi bi-box-seam fs-1 d-block mb-2"></i>
+        class="text-center py-5 text-muted"
+        style="grid-column: 1/-1;"
+        role="status"
+        aria-live="polite">
+        <i class="bi bi-box-seam fs-1 d-block mb-2" aria-hidden="true"></i>
         Produk tidak ditemukan
       </div>
 
-      <div *ngFor="let p of filteredProducts"
+      <button *ngFor="let p of filteredProducts"
         class="product-card"
-        (click)="addToCart(p)">
-        <div class="product-card-icon">
-          <img *ngIf="p.image" [src]="p.image" [alt]="p.name"
-            style="width:48px; height:48px; object-fit:cover; border-radius:8px;" />
-          <i *ngIf="!p.image" class="bi bi-box-seam"></i>
+        (click)="addToCart(p)"
+        role="listitem"
+        [attr.aria-label]="'Tambahkan ' + p.name + ' ke keranjang, harga ' + (p.sellPrice | rupiah) + ', stok ' + p.stock"
+        type="button">
+
+        <!-- Foto atau icon -->
+        <img *ngIf="p.image" [src]="p.image" [alt]="p.name"
+          class="product-card-img" />
+        <div *ngIf="!p.image" class="product-card-icon" aria-hidden="true">
+          <i class="bi bi-box-seam"></i>
         </div>
-        <div class="product-card-name">{{ p.name }}</div>
-        <div class="product-card-price">{{ p.sellPrice | rupiah }}</div>
-        <div class="product-card-stock">Stok: {{ p.stock }} {{ p.unit }}</div>
+
+        <!-- Category badge -->
         <div class="product-card-badge"
-          [style.background]="p.category?.color || '#6b7280'">
+          [style.background]="p.category?.color || '#6b7280'"
+          aria-hidden="true">
           {{ p.category?.name || '-' }}
         </div>
-      </div>
+
+        <div class="product-card-name">{{ p.name }}</div>
+        <div class="product-card-price">{{ p.sellPrice | rupiah }}</div>
+        <div class="product-card-stock">
+          <i class="bi bi-box me-1" aria-hidden="true"></i>{{ p.stock }} {{ p.unit }}
+        </div>
+
+      </button>
     </div>
 
-  </div>
+  </section>
 
   <!-- RIGHT: Cart Panel -->
-  <div class="pos-cart">
+  <aside class="pos-cart" aria-label="Keranjang belanja">
 
+    <!-- Cart Header -->
     <div class="cart-header">
       <h6 class="fw-bold mb-0">
-        <i class="bi bi-cart3 me-2"></i>Keranjang
-        <span class="badge bg-primary ms-1">{{ cart.length }}</span>
+        <i class="bi bi-cart3 me-2" aria-hidden="true"></i>Keranjang
+        <span class="badge ms-1" aria-label="Jumlah item dalam keranjang">{{ cart.length }} item</span>
       </h6>
-      <button class="btn btn-sm btn-outline-danger" (click)="clearCart()" [disabled]="cart.length === 0">
-        <i class="bi bi-trash"></i>
+      <button class="btn-clear-cart" 
+        (click)="clearCart()" 
+        [disabled]="cart.length === 0"
+        aria-label="Kosongkan keranjang belanja"
+        type="button">
+        <i class="bi bi-trash me-1" aria-hidden="true"></i>Kosongkan
       </button>
     </div>
 
     <!-- Cart Items -->
-    <div class="cart-items">
-      <div *ngIf="cart.length === 0" class="text-center py-5 text-muted">
-        <i class="bi bi-cart fs-1 d-block mb-2"></i>
-        Klik produk untuk menambahkan
+    <div class="cart-items" role="list" aria-label="Daftar item dalam keranjang">
+
+      <div *ngIf="cart.length === 0" 
+        class="cart-empty"
+        role="status"
+        aria-live="polite">
+        <i class="bi bi-cart-x" aria-hidden="true"></i>
+        <p>Keranjang masih kosong</p>
+        <small class="text-muted">Klik produk untuk menambahkan</small>
       </div>
 
-      <div *ngFor="let item of cart" class="cart-item">
+      <div *ngFor="let item of cart" 
+        class="cart-item"
+        role="listitem"
+        [attr.aria-label]="item.product.name + ', jumlah: ' + item.quantity + ', subtotal: ' + (item.subtotal | rupiah)">
         <div class="cart-item-info">
           <div class="cart-item-name">{{ item.product.name }}</div>
-          <div class="cart-item-price">{{ item.product.sellPrice | rupiah }}</div>
+          <div class="cart-item-price">{{ item.product.sellPrice | rupiah }} / {{ item.product.unit }}</div>
         </div>
-        <div class="cart-item-controls">
-          <button class="qty-btn" (click)="updateQty(item, item.quantity - 1)">
-            <i class="bi bi-dash"></i>
+        <div class="cart-item-controls" role="group" [attr.aria-label]="'Kontrol jumlah ' + item.product.name">
+          <button class="qty-btn" 
+            (click)="updateQty(item, item.quantity - 1)"
+            aria-label="Kurangi jumlah"
+            type="button">
+            <i class="bi bi-dash" aria-hidden="true"></i>
           </button>
-          <input type="number" class="qty-input" [value]="item.quantity"
+          <input type="number" 
+            class="qty-input" 
+            [value]="item.quantity"
             (change)="updateQty(item, +$any($event.target).value)"
-            min="1" [max]="item.product.stock" />
-          <button class="qty-btn" (click)="updateQty(item, item.quantity + 1)"
-            [disabled]="item.quantity >= item.product.stock">
-            <i class="bi bi-plus"></i>
+            min="1" 
+            [max]="item.product.stock"
+            [attr.aria-label]="'Jumlah ' + item.product.name" />
+          <button class="qty-btn" 
+            (click)="updateQty(item, item.quantity + 1)"
+            [disabled]="item.quantity >= item.product.stock"
+            aria-label="Tambah jumlah"
+            type="button">
+            <i class="bi bi-plus" aria-hidden="true"></i>
           </button>
         </div>
         <div class="cart-item-subtotal">{{ item.subtotal | rupiah }}</div>
       </div>
+
     </div>
 
     <!-- Cart Summary -->
@@ -105,79 +164,103 @@
 
       <!-- Customer -->
       <div class="summary-section">
-        <label class="summary-label">Pelanggan (opsional)</label>
+        <span class="summary-label">
+          <i class="bi bi-person me-1"></i>Pelanggan (opsional)
+        </span>
         <div class="customer-search-wrap" *ngIf="!selectedCustomer">
           <input type="text" class="form-control form-control-sm"
-            placeholder="Cari pelanggan..."
+            placeholder="Cari nama pelanggan..."
             [(ngModel)]="customerQuery"
             (input)="searchCustomer()" />
           <div *ngIf="customerResults.length > 0" class="customer-dropdown">
             <div *ngFor="let c of customerResults" class="customer-option"
               (click)="selectCustomer(c)">
-              <i class="bi bi-person me-2"></i>{{ c.name }}
+              <i class="bi bi-person-circle me-2 text-primary"></i>
+              <strong>{{ c.name }}</strong>
               <span class="text-muted small ms-1">{{ c.phone }}</span>
             </div>
           </div>
         </div>
         <div *ngIf="selectedCustomer" class="selected-customer">
-          <i class="bi bi-person-check-fill me-2 text-success"></i>
-          {{ selectedCustomer.name }}
+          <i class="bi bi-person-check-fill me-2"></i>
+          <span>{{ selectedCustomer.name }}</span>
+          <span class="text-success small ms-2">{{ maxPoints }} poin</span>
           <button class="btn-remove-customer" (click)="clearCustomer()">
-            <i class="bi bi-x"></i>
+            <i class="bi bi-x-circle"></i>
           </button>
         </div>
       </div>
 
       <!-- Payment Method -->
       <div class="summary-section">
-        <label class="summary-label">Metode Pembayaran</label>
-        <div class="payment-methods">
+        <span class="summary-label">
+          <i class="bi bi-credit-card me-1" aria-hidden="true"></i>Metode Pembayaran
+        </span>
+        <div class="payment-methods" role="group" aria-label="Pilih metode pembayaran">
           <button *ngFor="let pm of paymentMethods"
             class="payment-btn"
             [class.active]="paymentMethod === pm.value"
-            (click)="paymentMethod = pm.value">
-            <i class="bi {{ pm.icon }}"></i>
+            (click)="paymentMethod = pm.value"
+            [attr.aria-pressed]="paymentMethod === pm.value"
+            [attr.aria-label]="'Metode pembayaran: ' + pm.label"
+            type="button">
+            <i class="bi {{ pm.icon }}" aria-hidden="true"></i>
             <span>{{ pm.label }}</span>
           </button>
         </div>
         <div *ngIf="paymentMethod === 'hutang' && !selectedCustomer"
-          class="alert alert-warning py-2 small mt-2">
-          <i class="bi bi-exclamation-triangle me-1"></i>Pilih pelanggan untuk hutang
+          class="alert alert-warning py-2 small mt-2 mb-0"
+          role="alert">
+          <i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>Pilih pelanggan untuk hutang
         </div>
       </div>
 
       <!-- Discount -->
       <div class="summary-section">
-        <label class="summary-label">Diskon</label>
+        <span class="summary-label">
+          <i class="bi bi-tag me-1" aria-hidden="true"></i>Diskon
+        </span>
         <div class="input-group input-group-sm">
           <span class="input-group-text">Rp</span>
-          <input type="number" class="form-control" [(ngModel)]="discount" min="0" [max]="subtotal" />
+          <input type="number" 
+            class="form-control" 
+            [(ngModel)]="discount"
+            min="0" 
+            [max]="subtotal" 
+            placeholder="0"
+            (focus)="discount === 0 ? discount = null! : null"
+            (blur)="discount = discount || 0"
+            aria-label="Masukkan jumlah diskon dalam rupiah" />
         </div>
       </div>
 
       <!-- Loyalty Points -->
       <div class="summary-section" *ngIf="selectedCustomer && maxPoints > 0">
-        <label class="summary-label">
-          <i class="bi bi-star-fill text-warning me-1"></i>
-          Poin Pelanggan: <strong>{{ maxPoints }} poin</strong>
-          <span class="text-muted" style="font-size:10px"> (= {{ maxPoints * 100 | rupiah }})</span>
-        </label>
-        <div class="form-check mb-2">
-          <input class="form-check-input" type="checkbox" id="usePoints"
-            [(ngModel)]="usePoints"
-            (change)="pointsUsed = usePoints ? maxPoints : 0" />
-          <label class="form-check-label small" for="usePoints">
-            Gunakan semua poin
-          </label>
-        </div>
-        <div *ngIf="usePoints">
-          <div class="input-group input-group-sm">
-            <span class="input-group-text">Poin</span>
-            <input type="number" class="form-control" [(ngModel)]="pointsUsed"
-              min="0" [max]="maxPoints" (change)="validatePoints()" />
+        <span class="summary-label">
+          <i class="bi bi-star-fill text-warning me-1"></i>Tukar Poin
+        </span>
+        <div class="points-box">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="small fw-semibold">{{ maxPoints }} poin tersedia</span>
+            <span class="small text-muted">= {{ maxPoints * 100 | rupiah }}</span>
           </div>
-          <div class="small text-success mt-1">
-            Diskon poin: {{ pointsDiscount | rupiah }}
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="usePoints"
+              [(ngModel)]="usePoints"
+              (change)="pointsUsed = usePoints ? maxPoints : 0" />
+            <label class="form-check-label small fw-semibold" for="usePoints">
+              Gunakan semua poin
+            </label>
+          </div>
+          <div *ngIf="usePoints">
+            <div class="input-group input-group-sm">
+              <span class="input-group-text">Poin</span>
+              <input type="number" class="form-control" [(ngModel)]="pointsUsed"
+                min="0" [max]="maxPoints" (change)="validatePoints()" />
+            </div>
+            <div class="small text-success mt-1 fw-semibold">
+              <i class="bi bi-check-circle me-1"></i>Diskon: {{ pointsDiscount | rupiah }}
+            </div>
           </div>
         </div>
       </div>
@@ -190,11 +273,11 @@
         </div>
         <div class="total-row" *ngIf="discount > 0">
           <span class="text-success">Diskon</span>
-          <span class="text-success">-{{ discount | rupiah }}</span>
+          <span class="text-success">- {{ discount | rupiah }}</span>
         </div>
         <div class="total-row" *ngIf="pointsDiscount > 0">
           <span class="text-warning">Diskon Poin</span>
-          <span class="text-warning">-{{ pointsDiscount | rupiah }}</span>
+          <span class="text-warning">- {{ pointsDiscount | rupiah }}</span>
         </div>
         <div class="total-row grand">
           <span>TOTAL</span>
@@ -202,41 +285,54 @@
         </div>
       </div>
 
-      <!-- Amount Paid (tunai only) -->
+      <!-- Amount Paid -->
       <div class="summary-section" *ngIf="paymentMethod === 'tunai'">
-        <label class="summary-label">Uang Diterima</label>
+        <span class="summary-label">
+          <i class="bi bi-cash me-1"></i>Uang Diterima
+        </span>
         <div class="input-group input-group-sm">
           <span class="input-group-text">Rp</span>
-          <input type="number" class="form-control" [(ngModel)]="amountPaid" min="0" />
+          <input type="number" class="form-control" [(ngModel)]="amountPaid"
+            min="0" placeholder="0"
+            (focus)="amountPaid === 0 ? amountPaid = null! : null"
+            (blur)="amountPaid = amountPaid || 0" />
         </div>
-        <div *ngIf="amountPaid >= grandTotal" class="change-display">
+        <div *ngIf="amountPaid >= grandTotal && grandTotal > 0" class="change-display mt-2">
+          <i class="bi bi-arrow-return-left me-1"></i>
           Kembalian: <strong>{{ change | rupiah }}</strong>
         </div>
       </div>
 
       <!-- Notes -->
       <div class="summary-section">
-        <label class="summary-label">Catatan</label>
+        <span class="summary-label">
+          <i class="bi bi-chat-text me-1"></i>Catatan
+        </span>
         <textarea class="form-control form-control-sm" [(ngModel)]="notes"
           rows="2" placeholder="Catatan transaksi (opsional)"></textarea>
       </div>
 
       <!-- Error -->
-      <div *ngIf="errorMsg" class="alert alert-danger py-2 small">
+      <div *ngIf="errorMsg" class="error-alert">
         <i class="bi bi-exclamation-circle me-1"></i>{{ errorMsg }}
       </div>
 
       <!-- Checkout Button -->
       <button class="btn-checkout" (click)="checkout()"
         [disabled]="!isCartValid || isSubmitting">
-        <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
-        <i *ngIf="!isSubmitting" class="bi bi-check-circle me-2"></i>
-        {{ isSubmitting ? 'Memproses...' : 'Proses Transaksi' }}
+        <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm"></span>
+        <ng-container *ngIf="!isSubmitting">
+          <i class="bi bi-lightning-charge-fill"></i>
+          Proses Transaksi — {{ grandTotal | rupiah }}
+        </ng-container>
+        <ng-container *ngIf="isSubmitting">
+          Memproses...
+        </ng-container>
       </button>
 
     </div>
 
-  </div>
+  </aside>
 
 </div>
 
@@ -245,18 +341,19 @@
 <div class="modal-custom" *ngIf="showSuccess">
   <div class="success-dialog">
     <div class="success-icon">
-      <i class="bi bi-check-circle-fill"></i>
+      <i class="bi bi-check-lg"></i>
     </div>
-    <h5 class="fw-bold mb-1">Transaksi Berhasil!</h5>
-    <p class="text-muted mb-1">Invoice: <strong>{{ lastInvoice }}</strong></p>
-    <div class="d-flex gap-2 mt-4 flex-wrap">
+    <h5 class="fw-bold mb-1" style="color:#1e3a5f">Transaksi Berhasil!</h5>
+    <p class="text-muted mb-0">Invoice</p>
+    <p class="fw-bold fs-5 mb-3" style="color:#2563eb">{{ lastInvoice }}</p>
+    <div class="d-flex gap-2 flex-wrap">
       <button class="btn btn-outline-secondary flex-grow-1" (click)="printReceipt()">
         <i class="bi bi-printer me-1"></i>Cetak Struk
       </button>
       <button class="btn btn-outline-primary flex-grow-1" (click)="closeSuccess()">
         <i class="bi bi-plus-circle me-1"></i>Transaksi Baru
       </button>
-      <button class="btn btn-primary flex-grow-1" (click)="router.navigate(['/transactions'])">
+      <button class="btn btn-primary w-100 mt-1" (click)="router.navigate(['/transactions'])">
         <i class="bi bi-receipt me-1"></i>Lihat Transaksi
       </button>
     </div>

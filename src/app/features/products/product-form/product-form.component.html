@@ -4,8 +4,10 @@
 
       <!-- Header -->
       <div class="d-flex align-items-center gap-3 mb-4">
-        <a routerLink="/products" class="btn btn-outline-secondary btn-sm">
-          <i class="bi bi-arrow-left"></i>
+        <a routerLink="/products" 
+          class="btn btn-outline-secondary btn-sm"
+          aria-label="Kembali ke halaman produk">
+          <i class="bi bi-arrow-left" aria-hidden="true"></i>
         </a>
         <div>
           <h4 class="fw-bold mb-0" style="color: #1e3a5f">
@@ -18,15 +20,26 @@
       </div>
 
       <!-- Loading -->
-      <div *ngIf="isLoading" class="text-center py-5">
+      <div *ngIf="isLoading" 
+        class="text-center py-5"
+        role="status"
+        aria-live="polite"
+        aria-label="Memuat form produk">
         <div class="spinner-border text-primary"></div>
       </div>
 
-      <form *ngIf="!isLoading" [formGroup]="form" (ngSubmit)="onSubmit()">
+      <form *ngIf="!isLoading" 
+        [formGroup]="form" 
+        (ngSubmit)="onSubmit()"
+        novalidate>
 
         <!-- Error -->
-        <div *ngIf="errorMsg" class="alert alert-danger mb-4">
-          <i class="bi bi-exclamation-circle me-2"></i>{{ errorMsg }}
+        <div *ngIf="errorMsg" 
+          class="alert alert-danger mb-4"
+          role="alert"
+          aria-live="assertive"
+          aria-atomic="true">
+          <i class="bi bi-exclamation-circle me-2" aria-hidden="true"></i>{{ errorMsg }}
         </div>
 
         <div class="row g-4">
@@ -36,48 +49,89 @@
             <div class="card border-0 shadow-sm">
               <div class="card-header bg-white py-3">
                 <h6 class="fw-bold mb-0">
-                  <i class="bi bi-info-circle me-2 text-primary"></i>Informasi Dasar
+                  <i class="bi bi-info-circle me-2 text-primary" aria-hidden="true"></i>Informasi Dasar
                 </h6>
               </div>
               <div class="card-body">
                 <div class="row g-3">
 
                   <div class="col-12">
-                    <label class="form-label fw-semibold">Nama Produk <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" formControlName="name"
+                    <label for="product-name" class="form-label fw-semibold">
+                      Nama Produk <span class="text-danger" aria-label="required">*</span>
+                    </label>
+                    <input id="product-name"
+                      type="text" 
+                      class="form-control" 
+                      formControlName="name"
                       placeholder="cth: Aqua 600ml"
-                      [class.is-invalid]="isInvalid('name')" />
-                    <div class="invalid-feedback">Nama produk wajib diisi (min. 2 karakter)</div>
+                      [class.is-invalid]="isInvalid('name')"
+                      [attr.aria-invalid]="isInvalid('name')"
+                      aria-required="true"
+                      aria-describedby="product-name-error" />
+                    <div id="product-name-error" 
+                      class="invalid-feedback"
+                      *ngIf="isInvalid('name')">
+                      Nama produk wajib diisi (min. 2 karakter)
+                    </div>
                   </div>
 
                   <div class="col-12 col-md-6">
-                    <label class="form-label fw-semibold">SKU</label>
-                    <input type="text" class="form-control" formControlName="sku"
-                      placeholder="Auto-generate jika kosong" />
-                    <div class="form-text">Kode unik produk (opsional)</div>
+                    <label for="product-sku" class="form-label fw-semibold">SKU</label>
+                    <input id="product-sku"
+                      type="text" 
+                      class="form-control" 
+                      formControlName="sku"
+                      placeholder="Auto-generate jika kosong"
+                      aria-describedby="product-sku-help" />
+                    <div id="product-sku-help" class="form-text">
+                      Kode unik produk (opsional)
+                    </div>
                   </div>
 
                   <div class="col-12 col-md-6">
-                    <label class="form-label fw-semibold">Barcode</label>
-                    <input type="text" class="form-control" formControlName="barcode"
-                      placeholder="Scan atau isi manual" />
+                    <label for="product-barcode" class="form-label fw-semibold">Barcode</label>
+                    <input id="product-barcode"
+                      type="text" 
+                      class="form-control" 
+                      formControlName="barcode"
+                      placeholder="Scan atau isi manual"
+                      aria-describedby="product-barcode-help" />
+                    <div id="product-barcode-help" class="form-text">
+                      Barcode produk (opsional)
+                    </div>
                   </div>
 
                   <div class="col-12 col-md-6">
-                    <label class="form-label fw-semibold">Kategori <span class="text-danger">*</span></label>
-                    <select class="form-select" formControlName="category"
-                      [class.is-invalid]="isInvalid('category')">
+                    <label for="product-category" class="form-label fw-semibold">
+                      Kategori <span class="text-danger" aria-label="required">*</span>
+                    </label>
+                    <select id="product-category"
+                      class="form-select" 
+                      formControlName="category"
+                      [class.is-invalid]="isInvalid('category')"
+                      [attr.aria-invalid]="isInvalid('category')"
+                      aria-required="true"
+                      aria-describedby="product-category-error">
                       <option value="">-- Pilih Kategori --</option>
                       <option *ngFor="let cat of categories" [value]="cat._id">
                         {{ cat.name }}
                       </option>
                     </select>
-                    <div class="invalid-feedback">Kategori wajib dipilih</div>
+                    <div id="product-category-error" 
+                      class="invalid-feedback"
+                      *ngIf="isInvalid('category')">
+                      Kategori wajib dipilih
+                    </div>
                   </div>
 
                   <div class="col-12 col-md-6">
-                    <label class="form-label fw-semibold">Satuan <span class="text-danger">*</span></label>
-                    <select class="form-select" formControlName="unit">
+                    <label for="product-unit" class="form-label fw-semibold">
+                      Satuan <span class="text-danger" aria-label="required">*</span>
+                    </label>
+                    <select id="product-unit"
+                      class="form-select" 
+                      formControlName="unit"
+                      aria-required="true">
                       <option value="pcs">pcs</option>
                       <option value="botol">botol</option>
                       <option value="bungkus">bungkus</option>

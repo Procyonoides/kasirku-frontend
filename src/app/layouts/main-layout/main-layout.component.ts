@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
 import { AuthService } from '../../core/auth/auth.service';
@@ -12,11 +12,13 @@ import { ProductService } from '../../core/services/api.service';
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.css'
 })
-export class MainLayoutComponent implements OnInit {
+export class MainLayoutComponent implements OnInit, OnDestroy {
   isSidebarOpen = signal(true);
   today = new Date();
+  now = new Date();
   lowStockProducts: any[] = [];
   showStockNotif = false;
+  private clockInterval: any;
 
   menuItems: { path: string; icon: string; label: string; roles: string[] }[] = [
     { path: '/dashboard', icon: 'bi-speedometer2', label: 'Dashboard', roles: ['owner', 'admin', 'kasir'] },
@@ -30,7 +32,7 @@ export class MainLayoutComponent implements OnInit {
     { path: '/settings', icon: 'bi-gear', label: 'Pengaturan', roles: ['owner', 'admin', 'kasir'] },
   ];
 
-  constructor(public authService: AuthService, private router: Router, private productService: ProductService) {}
+  constructor(public authService: AuthService, public router: Router, private productService: ProductService) {}
 
   canAccess(roles: string[]): boolean {
     return this.authService.hasRole(...roles);
@@ -47,6 +49,12 @@ export class MainLayoutComponent implements OnInit {
   ngOnInit() {
     this.loadLowStock();
     setInterval(() => this.loadLowStock(), 30 * 1000); // refresh tiap 30 detik
+    // Live clock
+    this.clockInterval = setInterval(() => { this.now = new Date(); }, 1000);
+  }
+
+  ngOnDestroy() {
+    if (this.clockInterval) clearInterval(this.clockInterval);
   }
 
   loadLowStock() {

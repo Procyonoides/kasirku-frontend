@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { AuthService } from '../../core/auth/auth.service';
 import { SettingService } from '../../core/services/api.service';
 import { ToastService } from '../../core/services/toast.service';
+import { ThemeService } from '../../core/services/theme.service';
 
 @Component({
   selector: 'app-settings',
@@ -13,7 +14,7 @@ import { ToastService } from '../../core/services/toast.service';
   styleUrl: './settings.component.css'
 })
 export class SettingsComponent implements OnInit {
-  activeTab: 'profile' | 'password' | 'store' = 'profile';
+  activeTab: 'profile' | 'password' | 'store' | 'appearance' = 'profile';
 
   // Profile form
   profileForm!: FormGroup;
@@ -37,7 +38,8 @@ export class SettingsComponent implements OnInit {
     private fb: FormBuilder,
     public authService: AuthService,
     private settingService: SettingService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    public themeService: ThemeService
   ) {}
 
   ngOnInit() {

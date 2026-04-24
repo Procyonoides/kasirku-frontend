@@ -20,6 +20,15 @@ export class AuthInterceptor implements HttpInterceptor {
 
     return next.handle(authReq).pipe(
       catchError((error: HttpErrorResponse) => {
+        // Jangan handle 401 untuk auth endpoints — mencegah infinite loop
+        const isAuthEndpoint = req.url.includes('/auth/login') ||
+          req.url.includes('/auth/logout') ||
+          req.url.includes('/auth/refresh-token');
+
+        if (isAuthEndpoint) {
+          return throwError(() => error);
+        }
+
         if (error.status === 401 && error.error?.expired) {
           return this.handle401(authReq, next);
         }

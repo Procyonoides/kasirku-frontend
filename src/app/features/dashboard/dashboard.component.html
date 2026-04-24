@@ -1,15 +1,17 @@
 <div class="container-fluid py-4">
 
   <!-- Page Header -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
+  <header class="d-flex justify-content-between align-items-center mb-4">
     <div>
       <h1 class="fw-bold mb-1">{{ storeName }}</h1>
       <p class="text-muted small mb-0">Selamat datang! Ini ringkasan toko hari ini.</p>
     </div>
-    <a routerLink="/pos" class="btn btn-primary">
-      <i class="bi bi-cart-plus me-2"></i>Transaksi Baru
+    <a routerLink="/pos" 
+      class="btn btn-primary"
+      aria-label="Buat transaksi baru">
+      <i class="bi bi-cart-plus me-2" aria-hidden="true"></i>Transaksi Baru
     </a>
-  </div>
+  </header>
 
   <!-- Loading -->
   <app-loading-spinner *ngIf="isLoading" message="Memuat dashboard..."></app-loading-spinner>
@@ -19,11 +21,16 @@
     <div class="row g-3 mb-4">
       <!-- Card Omzet → /transactions -->
       <div class="col-12 col-sm-6 col-xl-3">
-        <a routerLink="/transactions" class="text-decoration-none">
-          <div class="stat-card stat-blue" style="cursor:pointer; transition: transform 0.15s; " 
+        <a routerLink="/transactions" 
+          class="text-decoration-none"
+          aria-label="Omzet hari ini: navigasi ke halaman transaksi">
+          <div class="stat-card stat-blue" 
+            style="cursor:pointer; transition: transform 0.15s;" 
+            role="link"
+            tabindex="0"
             onmouseover="this.style.transform='translateY(-3px)'"
             onmouseout="this.style.transform='translateY(0)'">
-            <div class="stat-icon"><i class="bi bi-graph-up-arrow"></i></div>
+            <div class="stat-icon" aria-hidden="true"><i class="bi bi-graph-up-arrow"></i></div>
             <div>
               <div class="stat-label">Omzet Hari Ini</div>
               <div class="stat-value">{{ stats.today.revenue | rupiah }}</div>
@@ -35,11 +42,16 @@
 
       <!-- Card Profit → /reports -->
       <div class="col-12 col-sm-6 col-xl-3">
-        <a routerLink="/reports" class="text-decoration-none">
-          <div class="stat-card stat-green" style="cursor:pointer; transition: transform 0.15s;"
+        <a routerLink="/reports" 
+          class="text-decoration-none"
+          aria-label="Profit hari ini: navigasi ke halaman laporan">
+          <div class="stat-card stat-green" 
+            style="cursor:pointer; transition: transform 0.15s;"
+            role="link"
+            tabindex="0"
             onmouseover="this.style.transform='translateY(-3px)'"
             onmouseout="this.style.transform='translateY(0)'">
-            <div class="stat-icon"><i class="bi bi-currency-dollar"></i></div>
+            <div class="stat-icon" aria-hidden="true"><i class="bi bi-currency-dollar"></i></div>
             <div>
               <div class="stat-label">Profit Hari Ini</div>
               <div class="stat-value">{{ stats.today.profit | rupiah }}</div>
@@ -51,17 +63,22 @@
 
       <!-- Card Produk → /products -->
       <div class="col-12 col-sm-6 col-xl-3">
-        <a routerLink="/products" class="text-decoration-none">
-          <div class="stat-card stat-orange" style="cursor:pointer; transition: transform 0.15s;"
+        <a routerLink="/products" 
+          class="text-decoration-none"
+          aria-label="Total produk: navigasi ke halaman produk">
+          <div class="stat-card stat-orange" 
+            style="cursor:pointer; transition: transform 0.15s;"
+            role="link"
+            tabindex="0"
             onmouseover="this.style.transform='translateY(-3px)'"
             onmouseout="this.style.transform='translateY(0)'">
-            <div class="stat-icon"><i class="bi bi-box-seam"></i></div>
+            <div class="stat-icon" aria-hidden="true"><i class="bi bi-box-seam"></i></div>
             <div>
               <div class="stat-label">Total Produk</div>
               <div class="stat-value">{{ stats.inventory.total }}</div>
               <div class="stat-sub">
                 <span *ngIf="stats.inventory.lowStock > 0" class="text-warning">
-                  <i class="bi bi-exclamation-triangle-fill"></i>
+                  <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
                   {{ stats.inventory.lowStock }} menipis
                 </span>
                 <span *ngIf="stats.inventory.lowStock === 0">Semua stok aman</span>
@@ -73,17 +90,22 @@
 
       <!-- Card Pelanggan → /customers -->
       <div class="col-12 col-sm-6 col-xl-3">
-        <a routerLink="/customers" class="text-decoration-none">
-          <div class="stat-card stat-purple" style="cursor:pointer; transition: transform 0.15s;"
+        <a routerLink="/customers" 
+          class="text-decoration-none"
+          aria-label="Total pelanggan: navigasi ke halaman pelanggan">
+          <div class="stat-card stat-purple" 
+            style="cursor:pointer; transition: transform 0.15s;"
+            role="link"
+            tabindex="0"
             onmouseover="this.style.transform='translateY(-3px)'"
             onmouseout="this.style.transform='translateY(0)'">
-            <div class="stat-icon"><i class="bi bi-people"></i></div>
+            <div class="stat-icon" aria-hidden="true"><i class="bi bi-people"></i></div>
             <div>
               <div class="stat-label">Total Pelanggan</div>
               <div class="stat-value">{{ stats.customers.total }}</div>
               <div class="stat-sub">
                 <span *ngIf="stats.customers.debtors > 0" class="text-warning">
-                  <i class="bi bi-exclamation-circle-fill"></i>
+                  <i class="bi bi-exclamation-circle-fill" aria-hidden="true"></i>
                   {{ stats.customers.debtors }} berhutang
                 </span>
                 <span *ngIf="stats.customers.debtors === 0">Tidak ada hutang</span>
@@ -95,79 +117,94 @@
     </div>
 
     <!-- BARIS 1: Grafik Batang + Pie Chart -->
-    <div class="row g-3 mb-3">
+    <section class="row g-3 mb-3" aria-label="Visualisasi data penjualan dan produk">
 
       <!-- Grafik Batang Penjualan -->
-      <div class="col-12 col-xl-7">
+      <article class="col-12 col-xl-7">
         <div class="card border-0 shadow-sm h-100">
           <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
             <h6 class="fw-bold mb-0">
-              <i class="bi bi-bar-chart-line me-2 text-primary"></i>Grafik Penjualan
+              <i class="bi bi-bar-chart-line me-2 text-primary" aria-hidden="true"></i>Grafik Penjualan
             </h6>
-            <div class="btn-group btn-group-sm">
+            <div class="btn-group btn-group-sm" role="group" aria-label="Pilih periode grafik">
               <button class="btn"
                 [class.btn-primary]="selectedPeriod==='today'"
                 [class.btn-outline-primary]="selectedPeriod!=='today'"
-                (click)="changePeriod('today')">Hari Ini</button>
+                (click)="changePeriod('today')"
+                [attr.aria-pressed]="selectedPeriod==='today'"
+                type="button">Hari Ini</button>
               <button class="btn"
                 [class.btn-primary]="selectedPeriod==='7d'"
                 [class.btn-outline-primary]="selectedPeriod!=='7d'"
-                (click)="changePeriod('7d')">7 Hari</button>
+                (click)="changePeriod('7d')"
+                [attr.aria-pressed]="selectedPeriod==='7d'"
+                type="button">7 Hari</button>
               <button class="btn"
                 [class.btn-primary]="selectedPeriod==='30d'"
                 [class.btn-outline-primary]="selectedPeriod!=='30d'"
-                (click)="changePeriod('30d')">30 Hari</button>
+                (click)="changePeriod('30d')"
+                [attr.aria-pressed]="selectedPeriod==='30d'"
+                type="button">30 Hari</button>
             </div>
           </div>
           <div class="card-body" style="height: 340px; position: relative; padding: 16px;">
-            <div *ngIf="salesChart.length === 0" class="text-center py-4 text-muted">
-              <i class="bi bi-bar-chart fs-1 d-block mb-2"></i>
+            <div *ngIf="salesChart.length === 0" class="text-center py-4 text-muted" role="status" aria-live="polite">
+              <i class="bi bi-bar-chart fs-1 d-block mb-2" aria-hidden="true"></i>
               Belum ada data penjualan
             </div>
-            <canvas *ngIf="salesChart.length > 0" id="barCanvas"></canvas>
+            <canvas *ngIf="salesChart.length > 0" id="barCanvas" role="img" aria-label="Grafik batang penjualan"></canvas>
           </div>
         </div>
-      </div>
+      </article>
 
       <!-- Pie Chart: Produk Terlaris -->
-      <div class="col-12 col-xl-5">
+      <article class="col-12 col-xl-5">
         <div class="card border-0 shadow-sm h-100">
           <div class="card-header bg-white border-bottom py-3">
             <h6 class="fw-bold mb-0">
-              <i class="bi bi-pie-chart-fill me-2 text-primary"></i>Produk Terlaris Bulan Ini
+              <i class="bi bi-pie-chart-fill me-2 text-primary" aria-hidden="true"></i>Produk Terlaris Bulan Ini
             </h6>
           </div>
           <div class="card-body" style="height: 340px; position: relative; padding: 16px;">
-            <div *ngIf="topProducts.length === 0" class="text-center py-4 text-muted">
-              <i class="bi bi-pie-chart fs-1 d-block mb-2"></i>
+            <div *ngIf="topProducts.length === 0" class="text-center py-4 text-muted" role="status" aria-live="polite">
+              <i class="bi bi-pie-chart fs-1 d-block mb-2" aria-hidden="true"></i>
               Belum ada data
             </div>
-            <canvas *ngIf="topProducts.length > 0" id="pieCanvas"></canvas>
+            <canvas *ngIf="topProducts.length > 0" id="pieCanvas" role="img" aria-label="Grafik pie produk terlaris bulan ini"></canvas>
           </div>
         </div>
-      </div>
-    </div>
+      </article>
+    </section>
 
     <!-- BARIS 2: Transaksi Terbaru + Stok Menipis -->
-    <div class="row g-3 mb-3">
+    <section class="row g-3 mb-3" aria-label="Ringkasan transaksi terbaru dan status stok">
 
       <!-- Transaksi Terbaru -->
-      <div class="col-12 col-xl-7">
+      <article class="col-12 col-xl-7">
         <div class="card border-0 shadow-sm h-100">
           <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
             <h6 class="fw-bold mb-0">
-              <i class="bi bi-receipt me-2 text-primary"></i>Transaksi Terbaru
+              <i class="bi bi-receipt me-2 text-primary" aria-hidden="true"></i>Transaksi Terbaru
             </h6>
-            <a routerLink="/transactions" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
+            <a routerLink="/transactions" 
+              class="btn btn-sm btn-outline-primary"
+              aria-label="Lihat semua transaksi">Lihat Semua</a>
           </div>
           <div class="card-body p-0">
-            <div *ngIf="recentTransactions.length === 0" class="text-center py-4 text-muted">
-              <i class="bi bi-receipt fs-1 d-block mb-2"></i>
+            <div *ngIf="recentTransactions.length === 0" 
+              class="text-center py-4 text-muted" 
+              role="status" 
+              aria-live="polite">
+              <i class="bi bi-receipt fs-1 d-block mb-2" aria-hidden="true"></i>
               Belum ada transaksi
             </div>
-            <div *ngFor="let tx of recentTransactions" class="transaction-item px-3 py-2 border-bottom">
+            <div *ngFor="let tx of recentTransactions; let last = last" 
+              class="transaction-item px-3 py-2"
+              [class.border-bottom]="!last"
+              role="listitem"
+              [attr.aria-label]="'Transaksi ' + tx.invoiceNumber + ' dari ' + tx.customerName + ' senilai ' + (tx.grandTotal | rupiah)">
               <div class="d-flex align-items-center gap-3">
-                <div class="tx-icon">
+                <div class="tx-icon" aria-hidden="true">
                   <i class="bi {{ getPaymentIcon(tx.paymentMethod) }}"></i>
                 </div>
                 <div class="flex-grow-1">
@@ -176,32 +213,41 @@
                 </div>
                 <div class="text-end">
                   <div class="fw-bold small" style="color:#1e3a5f">{{ tx.grandTotal | rupiah }}</div>
-                  <span class="badge" [ngClass]="getStatusBadge(tx.status)">{{ tx.status }}</span>
+                  <span class="badge" [ngClass]="getStatusBadge(tx.status)" [attr.aria-label]="'Status: ' + tx.status">{{ tx.status }}</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </article>
 
       <!-- Stok Menipis -->
-      <div class="col-12 col-xl-5">
+      <article class="col-12 col-xl-5">
         <div class="card border-0 shadow-sm h-100">
           <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
             <h6 class="fw-bold mb-0">
-              <i class="bi bi-exclamation-triangle-fill me-2 text-warning"></i>
+              <i class="bi bi-exclamation-triangle-fill me-2 text-warning" aria-hidden="true"></i>
               Stok Menipis
-              <span class="badge bg-warning text-dark ms-2">{{ lowStockProducts.length }}</span>
+              <span class="badge bg-warning text-dark ms-2" [attr.aria-label]="lowStockProducts.length + ' produk dengan stok menipis'">{{ lowStockProducts.length }}</span>
             </h6>
-            <a routerLink="/products" class="btn btn-sm btn-outline-warning">Lihat Semua</a>
+            <a routerLink="/products" 
+              class="btn btn-sm btn-outline-warning"
+              aria-label="Lihat semua produk">Lihat Semua</a>
           </div>
-          <div class="card-body p-0">
-            <div *ngIf="lowStockProducts.length === 0" class="text-center py-4 text-muted">
-              <i class="bi bi-check-circle fs-1 d-block mb-2 text-success"></i>
+          <div class="card-body p-0" role="list" aria-label="Daftar produk dengan stok menipis">
+            <div *ngIf="lowStockProducts.length === 0" 
+              class="text-center py-4 text-muted"
+              role="status"
+              aria-live="polite">
+              <i class="bi bi-check-circle fs-1 d-block mb-2 text-success" aria-hidden="true"></i>
               Semua stok aman
             </div>
-            <div *ngFor="let p of lowStockProducts" class="stock-item px-3 py-2 border-bottom d-flex align-items-center gap-3">
-              <div class="stock-icon" [class.stock-habis]="p.stock === 0" [class.stock-menipis]="p.stock > 0">
+            <div *ngFor="let p of lowStockProducts; let last = last" 
+              class="stock-item px-3 py-2 d-flex align-items-center gap-3"
+              [class.border-bottom]="!last"
+              role="listitem"
+              [attr.aria-label]="p.name + ', stok: ' + p.stock + ' dari ' + p.minStock + ', kategori: ' + (p.category?.name || 'tidak ditentukan')">
+              <div class="stock-icon" [class.stock-habis]="p.stock === 0" [class.stock-menipis]="p.stock > 0" aria-hidden="true">
                 <i class="bi" [class.bi-x-circle-fill]="p.stock === 0"
                   [class.bi-exclamation-circle-fill]="p.stock > 0"></i>
               </div>
@@ -223,9 +269,9 @@
             </div>
           </div>
         </div>
-      </div>
+      </article>
 
-    </div>
+    </section>
 
     <!-- REKAP HARI INI -->
     <div class="row g-3 mb-3" *ngIf="dailyRecap">
@@ -242,17 +288,18 @@
             <div class="row g-3">
 
               <!-- Breakdown Pembayaran -->
-              <div class="col-12 col-md-4">
-                <h6 class="fw-semibold mb-3 text-muted small text-uppercase">
-                  <i class="bi bi-credit-card me-1"></i>Breakdown Pembayaran
-                </h6>
-                <div *ngIf="paymentEntries.length === 0" class="text-muted small">
+              <div class="col-12 col-md-4 recap-col">
+                <div class="recap-col-header">
+                  <i class="bi bi-credit-card"></i>
+                  Breakdown Pembayaran
+                </div>
+                <div *ngIf="paymentEntries.length === 0" class="text-muted" style="font-size:13px">
                   Belum ada transaksi hari ini
                 </div>
                 <div *ngFor="let p of paymentEntries" class="recap-payment-item">
                   <div class="d-flex justify-content-between align-items-center mb-1">
-                    <span class="small fw-semibold">{{ p.label }}</span>
-                    <span class="small text-muted">{{ p.count }} transaksi</span>
+                    <span class="fw-semibold" style="font-size:14px">{{ p.label }}</span>
+                    <span style="font-size:13px" class="text-muted">{{ p.count }} transaksi</span>
                   </div>
                   <div class="d-flex justify-content-between align-items-center">
                     <div class="recap-bar-wrap">
@@ -260,7 +307,7 @@
                         [style.width]="(p.total / dailyRecap.summary.totalRevenue * 100) + '%'">
                       </div>
                     </div>
-                    <span class="small fw-bold ms-2" style="color:#1e3a5f; min-width:90px; text-align:right">
+                    <span class="fw-bold ms-2" style="color:#1e3a5f; min-width:90px; text-align:right; font-size:14px">
                       {{ p.total | rupiah }}
                     </span>
                   </div>
@@ -268,11 +315,12 @@
               </div>
 
               <!-- Produk Terlaris Hari Ini -->
-              <div class="col-12 col-md-4">
-                <h6 class="fw-semibold mb-3 text-muted small text-uppercase">
-                  <i class="bi bi-trophy me-1"></i>Produk Terlaris Hari Ini
-                </h6>
-                <div *ngIf="dailyRecap.topProducts.length === 0" class="text-muted small">
+              <div class="col-12 col-md-4 recap-col">
+                <div class="recap-col-header">
+                  <i class="bi bi-trophy"></i>
+                  Produk Terlaris Hari Ini
+                </div>
+                <div *ngIf="dailyRecap.topProducts.length === 0" class="text-muted" style="font-size:13px">
                   Belum ada data
                 </div>
                 <div *ngFor="let p of dailyRecap.topProducts; let i = index" class="recap-product-item">
@@ -280,19 +328,20 @@
                     {{ i + 1 }}
                   </div>
                   <div class="flex-grow-1">
-                    <div class="small fw-semibold">{{ p.name }}</div>
-                    <div class="small text-muted">{{ p.qty }} terjual</div>
+                    <div style="font-size:14px" class="fw-semibold">{{ p.name }}</div>
+                    <div style="font-size:13px" class="text-muted">{{ p.qty }} terjual</div>
                   </div>
-                  <div class="small fw-bold" style="color:#1e3a5f">{{ p.revenue | rupiah }}</div>
+                  <div class="fw-bold" style="color:#1e3a5f; font-size:14px">{{ p.revenue | rupiah }}</div>
                 </div>
               </div>
 
               <!-- Top Pelanggan Hari Ini -->
-              <div class="col-12 col-md-4">
-                <h6 class="fw-semibold mb-3 text-muted small text-uppercase">
-                  <i class="bi bi-people me-1"></i>Top Pelanggan Hari Ini
-                </h6>
-                <div *ngIf="dailyRecap.topCustomers.length === 0" class="text-muted small">
+              <div class="col-12 col-md-4 recap-col">
+                <div class="recap-col-header">
+                  <i class="bi bi-people"></i>
+                  Top Pelanggan Hari Ini
+                </div>
+                <div *ngIf="dailyRecap.topCustomers.length === 0" class="text-muted" style="font-size:13px">
                   Belum ada pelanggan hari ini
                 </div>
                 <div *ngFor="let c of dailyRecap.topCustomers; let i = index" class="recap-product-item">
@@ -300,10 +349,10 @@
                     {{ i + 1 }}
                   </div>
                   <div class="flex-grow-1">
-                    <div class="small fw-semibold">{{ c.name }}</div>
-                    <div class="small text-muted">{{ c.count }} transaksi</div>
+                    <div style="font-size:14px" class="fw-semibold">{{ c.name }}</div>
+                    <div style="font-size:13px" class="text-muted">{{ c.count }} transaksi</div>
                   </div>
-                  <div class="small fw-bold" style="color:#1e3a5f">{{ c.total | rupiah }}</div>
+                  <div class="fw-bold" style="color:#1e3a5f; font-size:14px">{{ c.total | rupiah }}</div>
                 </div>
               </div>
 

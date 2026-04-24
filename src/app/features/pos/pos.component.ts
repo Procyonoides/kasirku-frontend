@@ -221,20 +221,23 @@ export class PosComponent implements OnInit {
     this.isSubmitting = true;
     this.errorMsg = '';
 
-    const payload = {
+    const payload: any = {
       items: this.cart.map(i => ({
         productId: i.product._id,
         qty: i.quantity,
         price: i.product.sellPrice,
         subtotal: i.subtotal
       })),
-      customerId: this.selectedCustomer?._id || null,
       paymentMethod: this.paymentMethod,
       discountPercent: this.subtotal > 0 ? (this.discount / this.subtotal) * 100 : 0,
       amountPaid: this.paymentMethod === 'tunai' ? this.amountPaid : this.grandTotal,
       notes: this.notes,
       pointsUsed: this.pointsUsed
     };
+    // Hanya kirim customerId jika pelanggan dipilih
+    if (this.selectedCustomer?._id) {
+      payload.customerId = this.selectedCustomer._id;
+    }
 
     this.transactionService.create(payload).subscribe({
       next: (res) => {

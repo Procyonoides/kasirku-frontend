@@ -30,13 +30,17 @@ export class AuthService {
   }
 
   logout(): void {
-    this.http.post(`${this.apiUrl}/logout`, {}).subscribe();
+    // Hapus data lokal DULU sebelum HTTP call
+    // agar interceptor tidak attach token ke request logout
+    // dan tidak memicu infinite loop 401
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
     this.currentUser.set(null);
     this.isLoggedIn.set(false);
     this.router.navigate(['/auth/login']);
+    // Fire-and-forget: beritahu server (tidak perlu sukses)
+    this.http.post(`${this.apiUrl}/logout`, {}).subscribe({ error: () => {} });
   }
 
   refreshToken(): Observable<any> {

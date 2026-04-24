@@ -23,3 +23,14 @@
 .badge-admin { background: #0891b2; color: white; }
 .badge-kasir { background: #16a34a; color: white; }
 
+/* Dark mode */
+:host-context([data-theme="dark"]) .user-card {
+  background: #1e293b;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+:host-context([data-theme="dark"]) .user-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+
