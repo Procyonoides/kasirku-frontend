@@ -197,7 +197,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       .toISOString().split('T')[0];
     const today = new Date().toISOString().split('T')[0];
 
-    this.reportService.getTopProducts({ startDate: firstDay, endDate: today, limit: 5 }).pipe(takeUntil(this.destroy$)).subscribe({
+    this.reportService.getTopCategories({ startDate: firstDay, endDate: today, limit: 5 }).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res) => {
         this.topProducts = res.data;
         this.renderPieChart();
@@ -220,7 +220,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
       this.pieChart = new Chart(canvas, {
         type: 'doughnut',
         data: {
-          labels: this.topProducts.map((p: any) => p.productName),
+          labels: this.topProducts.map((p: any) => p.categoryName),
           datasets: [{
             data: this.topProducts.map((p: any) => p.totalQty || 0),
             backgroundColor: ['#2563eb', '#16a34a', '#d97706', '#dc2626', '#7c3aed'],

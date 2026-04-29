@@ -186,6 +186,9 @@ export class ReportService {
   getTopProducts(params?: any): Observable<any> {
     return this.http.get<any>(`${this.url}/top-products`, { params });
   }
+  getTopCategories(params?: any): Observable<any> {
+    return this.http.get<any>(`${this.url}/top-categories`, { params });
+  }
   getCashflow(params?: any): Observable<any> {
     return this.http.get<any>(`${this.url}/cashflow`, { params });
   }
