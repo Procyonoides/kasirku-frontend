@@ -28,3 +28,7 @@
 .table-hover tbody tr:hover {
   background: #f8fafc;
 }
+
+.sr-only{
+  padding: 5px;
+}

@@ -196,7 +196,9 @@
                     <div class="input-group">
                       <span class="input-group-text">Rp</span>
                       <input type="number" class="form-control" formControlName="buyPrice"
-                        min="0" [class.is-invalid]="isInvalid('buyPrice')" />
+                        min="0" [class.is-invalid]="isInvalid('buyPrice')"
+                        (focus)="onFocusNumber('buyPrice')"
+                        (blur)="onBlurNumber('buyPrice')" />
                       <div class="invalid-feedback">Harga beli tidak valid</div>
                     </div>
                   </div>
@@ -206,7 +208,9 @@
                     <div class="input-group">
                       <span class="input-group-text">Rp</span>
                       <input type="number" class="form-control" formControlName="sellPrice"
-                        min="1" [class.is-invalid]="isInvalid('sellPrice')" />
+                        min="1" [class.is-invalid]="isInvalid('sellPrice')"
+                        (focus)="onFocusNumber('sellPrice')"
+                        (blur)="onBlurNumber('sellPrice')" />
                       <div class="invalid-feedback">Harga jual harus lebih dari 0</div>
                     </div>
                   </div>
@@ -247,13 +251,17 @@
                   <div class="col-12 col-md-6">
                     <label class="form-label fw-semibold">Stok Awal <span class="text-danger">*</span></label>
                     <input type="number" class="form-control" formControlName="stock"
-                      min="0" [class.is-invalid]="isInvalid('stock')" />
+                      min="0" [class.is-invalid]="isInvalid('stock')"
+                      (focus)="onFocusNumber('stock')"
+                      (blur)="onBlurNumber('stock')" />
                     <div class="invalid-feedback">Stok tidak boleh negatif</div>
                   </div>
 
                   <div class="col-12 col-md-6">
                     <label class="form-label fw-semibold">Stok Minimum <span class="text-danger">*</span></label>
-                    <input type="number" class="form-control" formControlName="minStock" min="0" />
+                    <input type="number" class="form-control" formControlName="minStock" min="0"
+                      (focus)="onFocusNumber('minStock')"
+                      (blur)="onBlurNumber('minStock')" />
                     <div class="form-text">Peringatan akan muncul jika stok ≤ nilai ini</div>
                   </div>
 

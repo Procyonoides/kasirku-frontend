@@ -634,3 +634,14 @@ app-reports .table td {
   background: #1a2942 !important;
   border-color: #334155 !important;
 }
+
+/* Hilangkan spinner di input number */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}

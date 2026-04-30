@@ -34,6 +34,12 @@
               <i class="bi bi-palette"></i>
               <span>Tampilan</span>
             </button>
+            <button *ngIf="authService.hasRole('owner')"
+              class="settings-menu-item" [class.active]="activeTab === 'backup'"
+              (click)="activeTab = 'backup'">
+              <i class="bi bi-database"></i>
+              <span>Backup & Restore</span>
+            </button>
           </div>
         </div>
 
@@ -289,6 +295,70 @@
                     <div class="small" style="color: var(--text-secondary, #64748b)">Ini adalah contoh tampilan teks dalam card</div>
                   </div>
                 </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- Backup & Restore Tab -->
+          <div *ngIf="activeTab === 'backup'">
+            <div class="card border-0 shadow-sm mb-4">
+              <div class="card-header bg-white py-3">
+                <h6 class="fw-bold mb-0">
+                  <i class="bi bi-database-down me-2 text-primary"></i>Backup Database
+                </h6>
+              </div>
+              <div class="card-body">
+                <p class="text-muted small mb-3">
+                  Download semua data aplikasi sebagai file backup (.zip). 
+                  Simpan file ini di tempat yang aman.
+                </p>
+                <button class="btn btn-primary" (click)="downloadBackup()" [disabled]="isBackingUp">
+                  <span *ngIf="isBackingUp" class="spinner-border spinner-border-sm me-2"></span>
+                  <i *ngIf="!isBackingUp" class="bi bi-download me-2"></i>
+                  {{ isBackingUp ? 'Memproses...' : 'Download Backup' }}
+                </button>
+              </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+              <div class="card-header bg-white py-3">
+                <h6 class="fw-bold mb-0">
+                  <i class="bi bi-database-up me-2 text-warning"></i>Restore Database
+                </h6>
+              </div>
+              <div class="card-body">
+
+                <div class="alert alert-warning py-2 small mb-3">
+                  <i class="bi bi-exclamation-triangle me-1"></i>
+                  <strong>Perhatian!</strong> Restore akan menimpa semua data yang ada sekarang. 
+                  Pastikan kamu sudah backup data terbaru sebelum restore.
+                </div>
+
+                <div *ngIf="restoreError" class="alert alert-danger py-2 small mb-3">
+                  <i class="bi bi-x-circle me-1"></i>{{ restoreError }}
+                </div>
+
+                <div *ngIf="restoreSuccess" class="alert alert-success py-2 small mb-3">
+                  <i class="bi bi-check-circle me-1"></i>{{ restoreSuccess }}
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Pilih File Backup (.zip)</label>
+                  <input type="file" class="form-control" accept=".zip"
+                    #restoreInput
+                    (change)="onRestoreFileSelected($event)" />
+                  <div class="form-text" *ngIf="restoreFile">
+                    <i class="bi bi-file-zip me-1 text-primary"></i>{{ restoreFile.name }}
+                  </div>
+                </div>
+
+                <button class="btn btn-warning" (click)="submitRestore()" 
+                  [disabled]="isRestoring || !restoreFile">
+                  <span *ngIf="isRestoring" class="spinner-border spinner-border-sm me-2"></span>
+                  <i *ngIf="!isRestoring" class="bi bi-database-up me-2"></i>
+                  {{ isRestoring ? 'Memproses...' : 'Restore Database' }}
+                </button>
 
               </div>
             </div>

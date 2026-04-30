@@ -4,11 +4,12 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { AuthService } from '../../core/auth/auth.service';
 import { ToastComponent } from '../../shared/components/toast/toast.component';
 import { ProductService } from '../../core/services/api.service';
+import { ClickOutsideDirective } from '../../shared/directives/click-outside.directive';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [CommonModule, DatePipe, RouterOutlet, RouterLink, RouterLinkActive, ToastComponent],
+  imports: [CommonModule, DatePipe, RouterOutlet, RouterLink, RouterLinkActive, ToastComponent, ClickOutsideDirective],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.css'
 })

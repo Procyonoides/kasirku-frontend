@@ -189,4 +189,18 @@ export class ProductFormComponent implements OnInit {
     const c = this.form.get(field);
     return !!(c?.invalid && c?.touched);
   }
+
+  onFocusNumber(field: string) {
+    const control = this.form.get(field);
+    if (control?.value === 0 || control?.value === null) {
+      control.setValue(null);
+    }
+  }
+
+  onBlurNumber(field: string) {
+    const control = this.form.get(field);
+    if (control?.value === null || control?.value === '') {
+      control.setValue(0);
+    }
+  }
 }
