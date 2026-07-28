@@ -123,7 +123,14 @@
                   title="Batalkan">
                   <i class="bi bi-x-circle"></i>
                 </button>
-                <span *ngIf="tx.status === 'dibatalkan'" class="text-muted small">-</span>
+                <button
+                  *ngIf="tx.status === 'dibatalkan' && authService.hasRole('owner')"
+                  class="btn btn-sm btn-outline-secondary"
+                  (click)="deleteTransaction(tx._id, tx.invoiceNumber)"
+                  title="Hapus permanen">
+                  <i class="bi bi-trash"></i>
+                </button>
+                <span *ngIf="tx.status === 'dibatalkan' && !authService.hasRole('owner')" class="text-muted small">-</span>
               </td>
             </tr>
           </tbody>

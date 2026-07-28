@@ -3,6 +3,8 @@ import { CommonModule, NgClass } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TransactionService } from '../../../core/services/api.service';
+import { AuthService } from '../../../core/auth/auth.service';
+import { ToastService } from '../../../core/services/toast.service';
 import { Transaction } from '../../../shared/models';
 import { RupiahPipe } from '../../../shared/pipes';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -31,7 +33,11 @@ export class TransactionListComponent implements OnInit {
   confirmMessage = '';
   confirmAction: (() => void) | null = null;
 
-  constructor(private transactionService: TransactionService) {}
+  constructor(
+    private transactionService: TransactionService,
+    public authService: AuthService,
+    private toastService: ToastService
+  ) {}
 
   ngOnInit() {
     const today = new Date().toISOString().split('T')[0];
@@ -81,6 +87,25 @@ export class TransactionListComponent implements OnInit {
     this.confirmAction = () => {
       this.transactionService.cancel(id).subscribe({
         next: () => { this.loadTransactions(); }
+      });
+    };
+    this.showConfirm = true;
+  }
+
+  // Hapus permanen — hanya untuk owner, dan hanya transaksi yang
+  // statusnya sudah 'dibatalkan' (backend juga memvalidasi ini).
+  deleteTransaction(id: string, invoice: string) {
+    this.confirmTitle = 'Hapus Transaksi Permanen';
+    this.confirmMessage = `Transaksi ${invoice} akan DIHAPUS PERMANEN dan tidak bisa dikembalikan lagi. Yakin?`;
+    this.confirmAction = () => {
+      this.transactionService.delete(id).subscribe({
+        next: () => {
+          this.loadTransactions();
+          this.toastService.success('Transaksi dihapus', `Transaksi ${invoice} berhasil dihapus permanen`);
+        },
+        error: (err) => {
+          this.toastService.error('Gagal menghapus', err?.error?.message || 'Terjadi kesalahan');
+        }
       });
     };
     this.showConfirm = true;

@@ -143,6 +143,9 @@ export class TransactionService {
   cancel(id: string): Observable<ApiResponse<any>> {
     return this.http.patch<ApiResponse<any>>(`${this.url}/${id}/cancel`, {});
   }
+  delete(id: string): Observable<ApiResponse<any>> {
+    return this.http.delete<ApiResponse<any>>(`${this.url}/${id}`);
+  }
   payDebt(id: string, data: any): Observable<ApiResponse<any>> {
     return this.http.post<ApiResponse<any>>(`${this.url}/debt/${id}/pay`, data);
   }
