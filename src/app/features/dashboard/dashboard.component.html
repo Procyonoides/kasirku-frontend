@@ -259,7 +259,7 @@
                 <div class="fw-bold small"
                   [class.text-danger]="p.stock === 0"
                   [class.text-warning]="p.stock > 0">
-                  {{ p.stock }} / {{ p.minStock }} {{ p.unit }}
+                  {{ p.stock }} / {{ p.minStock }} {{ p.unit?.name }}
                 </div>
                 <div style="font-size:11px" class="text-muted">tersisa / minimum</div>
               </div>

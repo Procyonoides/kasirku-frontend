@@ -17,6 +17,13 @@ export interface Category {
   icon: string;
 }
 
+// ─── Unit ──────────────────────────────────────────────────────
+export interface Unit {
+  _id: string;
+  name: string;
+  description?: string;
+}
+
 // ─── Product ───────────────────────────────────────────────────
 export interface Product {
   _id: string;
@@ -30,7 +37,7 @@ export interface Product {
   sellPrice: number;
   stock: number;
   minStock: number;
-  unit: string;
+  unit?: Unit | null;
   isActive: boolean;
   profitMargin?: string;
   stockStatus?: 'aman' | 'menipis' | 'habis';

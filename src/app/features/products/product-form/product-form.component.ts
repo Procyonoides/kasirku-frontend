@@ -2,8 +2,8 @@ import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
-import { ProductService, CategoryService } from '../../../core/services/api.service';
-import { Category } from '../../../shared/models';
+import { ProductService, CategoryService, UnitService } from '../../../core/services/api.service';
+import { Category, Unit } from '../../../shared/models';
 import { ToastService } from '../../../core/services/toast.service';
 
 
@@ -17,6 +17,7 @@ import { ToastService } from '../../../core/services/toast.service';
 export class ProductFormComponent implements OnInit {
   form!: FormGroup;
   categories: Category[] = [];
+  units: Unit[] = [];
   isLoading = false;
   isSubmitting = false;
   isEditMode = false;
@@ -31,6 +32,7 @@ export class ProductFormComponent implements OnInit {
     private fb: FormBuilder,
     private productService: ProductService,
     private categoryService: CategoryService,
+    private unitService: UnitService,
     private router: Router,
     private route: ActivatedRoute,
     private toastService: ToastService
@@ -39,6 +41,7 @@ export class ProductFormComponent implements OnInit {
   ngOnInit() {
     this.buildForm();
     this.loadCategories();
+    this.loadUnits();
 
     this.productId = this.route.snapshot.params['id'];
     if (this.productId) {
@@ -53,7 +56,7 @@ export class ProductFormComponent implements OnInit {
       sku: [''],
       barcode: [''],
       category: ['', Validators.required],
-      unit: ['pcs', Validators.required],
+      unit: ['', Validators.required],
       buyPrice: [0, [Validators.required, Validators.min(0)]],
       sellPrice: [0, [Validators.required, Validators.min(1)]],
       stock: [0, [Validators.required, Validators.min(0)]],
@@ -68,6 +71,12 @@ export class ProductFormComponent implements OnInit {
     });
   }
 
+  loadUnits() {
+    this.unitService.getAll().subscribe({
+      next: (res) => { this.units = res.data; }
+    });
+  }
+
   loadProduct() {
     this.isLoading = true;
     this.imageDeleted = false;
@@ -79,7 +88,7 @@ export class ProductFormComponent implements OnInit {
           sku: p.sku,
           barcode: p.barcode,
           category: p.category?._id || p.category,
-          unit: p.unit,
+          unit: p.unit?._id || p.unit,
           buyPrice: p.buyPrice,
           sellPrice: p.sellPrice,
           stock: p.stock,

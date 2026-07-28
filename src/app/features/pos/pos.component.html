@@ -86,7 +86,7 @@
         <div class="product-card-name">{{ p.name }}</div>
         <div class="product-card-price">{{ p.sellPrice | rupiah }}</div>
         <div class="product-card-stock">
-          <i class="bi bi-box me-1" aria-hidden="true"></i>{{ p.stock }} {{ p.unit }}
+          <i class="bi bi-box me-1" aria-hidden="true"></i>{{ p.stock }} {{ p.unit?.name }}
         </div>
 
       </button>
@@ -130,7 +130,7 @@
         [attr.aria-label]="item.product.name + ', jumlah: ' + item.quantity + ', subtotal: ' + (item.subtotal | rupiah)">
         <div class="cart-item-info">
           <div class="cart-item-name">{{ item.product.name }}</div>
-          <div class="cart-item-price">{{ item.product.sellPrice | rupiah }} / {{ item.product.unit }}</div>
+          <div class="cart-item-price">{{ item.product.sellPrice | rupiah }} / {{ item.product.unit?.name }}</div>
         </div>
         <div class="cart-item-controls" role="group" [attr.aria-label]="'Kontrol jumlah ' + item.product.name">
           <button class="qty-btn" 

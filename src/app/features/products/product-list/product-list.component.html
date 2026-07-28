@@ -14,6 +14,11 @@
         aria-label="Kelola kategori produk">
         <i class="bi bi-tags me-2" aria-hidden="true"></i>Kelola Kategori
       </a>
+      <a routerLink="/products/units" 
+        class="btn btn-outline-secondary"
+        aria-label="Kelola satuan produk">
+        <i class="bi bi-rulers me-2" aria-hidden="true"></i>Kelola Satuan
+      </a>
       <a routerLink="/products/add" 
         class="btn btn-primary"
         aria-label="Tambah produk baru">
@@ -147,7 +152,7 @@
               <td role="cell">{{ product.sellPrice | rupiah }}</td>
               <td role="cell">
                 <span class="fw-semibold">{{ product.stock }}</span>
-                <span class="text-muted small ms-1">{{ product.unit }}</span>
+                <span class="text-muted small ms-1">{{ product.unit?.name }}</span>
               </td>
               <td role="cell">
                 <span class="badge" [ngClass]="getStockBadge(product)">

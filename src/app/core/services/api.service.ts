@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { ApiResponse, Product, Customer, Transaction, Finance, DashboardStats, Category } from '../../shared/models';
+import { ApiResponse, Product, Customer, Transaction, Finance, DashboardStats, Category, Unit } from '../../shared/models';
 
 // ─── Category Service ─────────────────────────────────────────
 @Injectable({ providedIn: 'root' })
@@ -18,6 +18,26 @@ export class CategoryService {
   }
   update(id: string, data: Partial<Category>): Observable<ApiResponse<Category>> {
     return this.http.put<ApiResponse<Category>>(`${this.url}/${id}`, data);
+  }
+  delete(id: string): Observable<ApiResponse<any>> {
+    return this.http.delete<ApiResponse<any>>(`${this.url}/${id}`);
+  }
+}
+
+// ─── Unit Service ──────────────────────────────────────────────
+@Injectable({ providedIn: 'root' })
+export class UnitService {
+  private url = `${environment.apiUrl}/units`;
+  constructor(private http: HttpClient) {}
+
+  getAll(): Observable<ApiResponse<Unit[]>> {
+    return this.http.get<ApiResponse<Unit[]>>(this.url);
+  }
+  create(data: Partial<Unit>): Observable<ApiResponse<Unit>> {
+    return this.http.post<ApiResponse<Unit>>(this.url, data);
+  }
+  update(id: string, data: Partial<Unit>): Observable<ApiResponse<Unit>> {
+    return this.http.put<ApiResponse<Unit>>(`${this.url}/${id}`, data);
   }
   delete(id: string): Observable<ApiResponse<any>> {
     return this.http.delete<ApiResponse<any>>(`${this.url}/${id}`);

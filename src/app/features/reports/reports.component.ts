@@ -911,7 +911,7 @@ export class ReportsComponent implements OnInit {
               ? { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } }
               : { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
             
-            [p.sku, p.name, p.category?.name || '-', p.buyPrice, p.sellPrice, p.stock, p.minStock, p.unit, p.stockStatus || '-']
+            [p.sku, p.name, p.category?.name || '-', p.buyPrice, p.sellPrice, p.stock, p.minStock, p.unit?.name || '-', p.stockStatus || '-']
               .forEach((val, j) => {
                 const cell = row.getCell(j + 1);
                 cell.value = val;

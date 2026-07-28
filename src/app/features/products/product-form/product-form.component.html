@@ -131,17 +131,23 @@
                     <select id="product-unit"
                       class="form-select" 
                       formControlName="unit"
-                      aria-required="true">
-                      <option value="pcs">pcs</option>
-                      <option value="botol">botol</option>
-                      <option value="bungkus">bungkus</option>
-                      <option value="kg">kg</option>
-                      <option value="gram">gram</option>
-                      <option value="liter">liter</option>
-                      <option value="lusin">lusin</option>
-                      <option value="dus">dus</option>
-                      <option value="karton">karton</option>
+                      [class.is-invalid]="isInvalid('unit')"
+                      [attr.aria-invalid]="isInvalid('unit')"
+                      aria-required="true"
+                      aria-describedby="product-unit-error">
+                      <option value="">-- Pilih Satuan --</option>
+                      <option *ngFor="let u of units" [value]="u._id">
+                        {{ u.name }}
+                      </option>
                     </select>
+                    <div id="product-unit-error" 
+                      class="invalid-feedback"
+                      *ngIf="isInvalid('unit')">
+                      Satuan wajib dipilih
+                    </div>
+                    <div class="form-text" *ngIf="units.length === 0">
+                      Belum ada satuan. <a routerLink="/products/units">Tambah satuan dulu</a>.
+                    </div>
                   </div>
 
                   <div class="col-12">

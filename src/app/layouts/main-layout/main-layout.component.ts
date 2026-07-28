@@ -20,6 +20,7 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   lowStockProducts: any[] = [];
   showStockNotif = false;
   private clockInterval: any;
+  private lowStockInterval: any;
 
   menuItems: { path: string; icon: string; label: string; roles: string[] }[] = [
     { path: '/dashboard', icon: 'bi-speedometer2', label: 'Dashboard', roles: ['owner', 'admin', 'kasir'] },
@@ -49,13 +50,14 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.loadLowStock();
-    setInterval(() => this.loadLowStock(), 30 * 1000); // refresh tiap 30 detik
+    this.lowStockInterval = setInterval(() => this.loadLowStock(), 30 * 1000); // refresh tiap 30 detik
     // Live clock
     this.clockInterval = setInterval(() => { this.now = new Date(); }, 1000);
   }
 
   ngOnDestroy() {
     if (this.clockInterval) clearInterval(this.clockInterval);
+    if (this.lowStockInterval) clearInterval(this.lowStockInterval);
   }
 
   loadLowStock() {
