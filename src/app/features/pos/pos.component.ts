@@ -13,6 +13,8 @@ interface CartItem {
   product: Product;
   quantity: number;
   subtotal: number;
+  customPrice: number | null;
+  isCustomPrice: boolean;
 }
 
 @Component({
@@ -41,6 +43,10 @@ export class PosComponent implements OnInit {
   pointsUsed = 0;
   maxPoints = 0;
   usePoints = false;
+
+  // Custom price editing
+  editingPriceItem: CartItem | null = null;
+  tempCustomPrice: number | null = null;
 
   // Customer search
   customerQuery = '';
@@ -112,20 +118,23 @@ export class PosComponent implements OnInit {
     if (existing) {
       if (existing.quantity >= product.stock) return;
       existing.quantity++;
-      existing.subtotal = existing.quantity * product.sellPrice;
+      existing.subtotal = existing.quantity * this.getPrice(existing);
     } else {
-      this.cart.push({ product, quantity: 1, subtotal: product.sellPrice });
+      this.cart.push({ product, quantity: 1, subtotal: product.sellPrice, customPrice: null, isCustomPrice: false });
     }
   }
 
   updateQty(item: CartItem, qty: number) {
     if (qty <= 0) { this.removeFromCart(item); return; }
-    if (qty > item.product.stock) return;
+    if (qty > item.product.stock) {
+      qty = item.product.stock; // potong ke stok maksimal, jangan ditolak diam-diam
+    }
     item.quantity = qty;
-    item.subtotal = qty * item.product.sellPrice;
+    item.subtotal = qty * this.getPrice(item);
   }
 
   removeFromCart(item: CartItem) {
+    if (this.editingPriceItem === item) this.cancelEditPrice();
     this.cart = this.cart.filter(i => i.product._id !== item.product._id);
   }
 
@@ -135,6 +144,8 @@ export class PosComponent implements OnInit {
     this.confirmMessage = 'Apakah Anda yakin ingin mengosongkan keranjang belanja?';
     this.confirmAction = () => {
       this.cart = [];
+      this.editingPriceItem = null;
+      this.tempCustomPrice = null;
       this.selectedCustomer = null;
       this.discount = 0;
       this.amountPaid = 0;
@@ -144,6 +155,43 @@ export class PosComponent implements OnInit {
       this.usePoints = false;
     };
     this.showConfirm = true;
+  }
+
+  startEditPrice(item: CartItem) {
+    this.editingPriceItem = item;
+    this.tempCustomPrice = this.getPrice(item);
+  }
+
+  confirmCustomPrice() {
+    if (!this.editingPriceItem) return;
+    const item = this.editingPriceItem;
+    const price = Number(this.tempCustomPrice);
+
+    if (isNaN(price) || price < 0) {
+      this.cancelEditPrice();
+      return;
+    }
+
+    if (price === item.product.sellPrice) {
+      item.isCustomPrice = false;
+      item.customPrice = null;
+    } else {
+      item.isCustomPrice = true;
+      item.customPrice = price;
+    }
+    item.subtotal = item.quantity * this.getPrice(item);
+    this.cancelEditPrice();
+  }
+
+  cancelEditPrice() {
+    this.editingPriceItem = null;
+    this.tempCustomPrice = null;
+  }
+
+  resetPrice(item: CartItem) {
+    item.isCustomPrice = false;
+    item.customPrice = null;
+    item.subtotal = item.quantity * this.getPrice(item);
   }
 
   onConfirmed() {
@@ -175,9 +223,13 @@ export class PosComponent implements OnInit {
 
   get isCartValid(): boolean {
     if (this.cart.length === 0) return false;
-    if (this.paymentMethod === 'hutang' && !this.selectedCustomer) return false;
+    if (this.paymentMethod === 'hutang' && !this.selectedCustomer && !this.notes.trim()) return false;
     if (this.paymentMethod === 'tunai' && this.amountPaid < this.grandTotal) return false;
     return true;
+  }
+
+  getPrice(item: CartItem): number {
+    return item.isCustomPrice && item.customPrice !== null ? item.customPrice : item.product.sellPrice;
   }
 
   searchCustomer() {
@@ -221,20 +273,28 @@ export class PosComponent implements OnInit {
     this.isSubmitting = true;
     this.errorMsg = '';
 
+    const isDebtWithoutCustomer = this.paymentMethod === 'hutang' && !this.selectedCustomer;
+    const finalNotes = isDebtWithoutCustomer
+      ? `[Hutang tanpa pelanggan terdaftar] ${this.notes.trim()}`
+      : this.notes;
+
     const payload: any = {
-      items: this.cart.map(i => ({
-        productId: i.product._id,
-        qty: i.quantity,
-        price: i.product.sellPrice,
-        subtotal: i.subtotal
-      })),
+      items: this.cart.map(i => {
+        const base: any = {
+          productId: i.product._id,
+          qty: i.quantity,
+          price: this.getPrice(i),
+          subtotal: i.subtotal
+        };
+        if (i.isCustomPrice) base.customPrice = i.customPrice;
+        return base;
+      }),
       paymentMethod: this.paymentMethod,
       discountPercent: this.subtotal > 0 ? (this.discount / this.subtotal) * 100 : 0,
       amountPaid: this.paymentMethod === 'tunai' ? this.amountPaid : this.grandTotal,
-      notes: this.notes,
+      notes: finalNotes,
       pointsUsed: this.pointsUsed
     };
-    // Hanya kirim customerId jika pelanggan dipilih
     if (this.selectedCustomer?._id) {
       payload.customerId = this.selectedCustomer._id;
     }
@@ -246,6 +306,8 @@ export class PosComponent implements OnInit {
         this.lastTransaction = res.data;
         this.isSubmitting = false;
         this.cart = [];
+        this.editingPriceItem = null;
+        this.tempCustomPrice = null;
         this.selectedCustomer = null;
         this.discount = 0;
         this.amountPaid = 0;
@@ -269,6 +331,16 @@ export class PosComponent implements OnInit {
       cashier: { name: this.authService.currentUser()?.name || '-' }
     };
     this.receiptService.printReceipt(tx);
+  }
+
+  onQtyChange(item: CartItem, event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.updateQty(item, +input.value);
+    // Paksa sinkron tampilan kotak input ke nilai final,
+    // karena binding [value] Angular gak re-render kalau
+    // item.quantity kebetulan sama dengan sebelumnya (misal
+    // sama-sama ke-clamp ke 50 dua kali berturut-turut)
+    input.value = String(item.quantity);
   }
 
   closeSuccess() { this.showSuccess = false; }

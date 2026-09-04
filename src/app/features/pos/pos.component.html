@@ -128,11 +128,47 @@
         class="cart-item"
         role="listitem"
         [attr.aria-label]="item.product.name + ', jumlah: ' + item.quantity + ', subtotal: ' + (item.subtotal | rupiah)">
+
         <div class="cart-item-info">
           <div class="cart-item-name">{{ item.product.name }}</div>
-          <div class="cart-item-price">{{ item.product.sellPrice | rupiah }} / {{ item.product.unit?.name }}</div>
+
+          <!-- Tampilan harga normal -->
+          <div class="cart-item-price-row" *ngIf="editingPriceItem !== item">
+            <span class="cart-item-price" [class.custom-price]="item.isCustomPrice">
+              {{ getPrice(item) | rupiah }} / {{ item.product.unit?.name }}
+            </span>
+            <button type="button" class="btn-edit-price"
+              (click)="startEditPrice(item)"
+              [attr.aria-label]="'Ubah harga ' + item.product.name">
+              <i class="bi bi-pencil" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="btn-reset-price" *ngIf="item.isCustomPrice"
+              (click)="resetPrice(item)"
+              aria-label="Kembalikan ke harga normal">
+              <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+            </button>
+          </div>
+
+          <!-- Mode edit harga custom -->
+          <div class="cart-item-price-edit" *ngIf="editingPriceItem === item">
+            <input type="number"
+              class="price-input"
+              [(ngModel)]="tempCustomPrice"
+              min="0"
+              [attr.aria-label]="'Harga custom ' + item.product.name"
+              (keyup.enter)="confirmCustomPrice()"
+              (keyup.escape)="cancelEditPrice()" />
+            <button type="button" class="btn-confirm-price" (click)="confirmCustomPrice()" aria-label="Simpan harga">
+              <i class="bi bi-check-lg" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="btn-cancel-price" (click)="cancelEditPrice()" aria-label="Batal">
+              <i class="bi bi-x-lg" aria-hidden="true"></i>
+            </button>
+          </div>
         </div>
-        <div class="cart-item-controls" role="group" [attr.aria-label]="'Kontrol jumlah ' + item.product.name">
+
+        <!-- Qty controls disembunyikan sementara saat lagi edit harga, biar gak sempit -->
+        <div class="cart-item-controls" role="group" [attr.aria-label]="'Kontrol jumlah ' + item.product.name" *ngIf="editingPriceItem !== item">
           <button class="qty-btn" 
             (click)="updateQty(item, item.quantity - 1)"
             aria-label="Kurangi jumlah"
@@ -142,7 +178,7 @@
           <input type="number" 
             class="qty-input" 
             [value]="item.quantity"
-            (change)="updateQty(item, +$any($event.target).value)"
+            (change)="onQtyChange(item, $event)"
             min="1" 
             [max]="item.product.stock"
             [attr.aria-label]="'Jumlah ' + item.product.name" />
@@ -154,7 +190,8 @@
             <i class="bi bi-plus" aria-hidden="true"></i>
           </button>
         </div>
-        <div class="cart-item-subtotal">{{ item.subtotal | rupiah }}</div>
+
+        <div class="cart-item-subtotal" *ngIf="editingPriceItem !== item">{{ item.subtotal | rupiah }}</div>
       </div>
 
     </div>
@@ -211,7 +248,7 @@
         <div *ngIf="paymentMethod === 'hutang' && !selectedCustomer"
           class="alert alert-warning py-2 small mt-2 mb-0"
           role="alert">
-          <i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>Pilih pelanggan untuk hutang
+          <i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>Tanpa pelanggan terdaftar? Isi nama penghutang di kolom Catatan di bawah.
         </div>
       </div>
 
@@ -307,9 +344,13 @@
       <div class="summary-section">
         <span class="summary-label">
           <i class="bi bi-chat-text me-1"></i>Catatan
+          <span class="text-danger" *ngIf="paymentMethod === 'hutang' && !selectedCustomer"> * wajib (nama penghutang)</span>
         </span>
         <textarea class="form-control form-control-sm" [(ngModel)]="notes"
-          rows="2" placeholder="Catatan transaksi (opsional)"></textarea>
+          rows="2"
+          [placeholder]="paymentMethod === 'hutang' && !selectedCustomer ? 'Contoh: Hutang a.n. Budi, RT 03' : 'Catatan transaksi (opsional)'"
+          [class.is-invalid]="paymentMethod === 'hutang' && !selectedCustomer && !notes.trim()">
+        </textarea>
       </div>
 
       <!-- Error -->
