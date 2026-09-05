@@ -4,7 +4,7 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { CommonModule, NgClass } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { DashboardService, ReportService, SettingService, ProductService } from '../../core/services/api.service';
+import { DashboardService, ReportService, SettingService, ProductService, CustomerService } from '../../core/services/api.service';
 import { DashboardStats, Transaction } from '../../shared/models';
 import { RupiahPipe } from '../../shared/pipes';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
@@ -38,6 +38,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   today = new Date();
   isToday = false;
   topProducts: any[] = [];
+  debtReminders: any = null;
   barChartData: any = null;
   pieChartData: any = null;
 
@@ -53,6 +54,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     private settingService: SettingService,
     private productService: ProductService,
     private reportService: ReportService,
+    private customerService: CustomerService,
     public themeService: ThemeService
   ) {}
 
@@ -86,6 +88,7 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loadLowStock();
     this.loadTopProducts();
     this.loadDailyRecap();
+    this.loadDebtReminders();
   }
 
   loadStats() {
@@ -175,6 +178,12 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   loadLowStock() {
     this.productService.getLowStock().pipe(takeUntil(this.destroy$)).subscribe({
       next: (res) => { this.lowStockProducts = res.data.slice(0, 5); }
+    });
+  }
+
+  loadDebtReminders() {
+    this.customerService.getDebtReminders(7).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (res) => { this.debtReminders = res.data; }
     });
   }
 

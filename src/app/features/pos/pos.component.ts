@@ -17,6 +17,21 @@ interface CartItem {
   isCustomPrice: boolean;
 }
 
+interface HeldCart {
+  id: string;
+  label: string;
+  heldAt: string;
+  cart: CartItem[];
+  selectedCustomer: Customer | null;
+  paymentMethod: string;
+  discount: number;
+  amountPaid: number;
+  notes: string;
+  pointsUsed: number;
+  maxPoints: number;
+  usePoints: boolean;
+}
+
 @Component({
   selector: 'app-pos',
   standalone: true,
@@ -47,6 +62,8 @@ export class PosComponent implements OnInit {
   // Custom price editing
   editingPriceItem: CartItem | null = null;
   tempCustomPrice: number | null = null;
+  heldCarts: HeldCart[] = [];
+  private holdCounter = 0;
 
   // Customer search
   customerQuery = '';
@@ -84,7 +101,10 @@ export class PosComponent implements OnInit {
     public router: Router
   ) {}
 
-  ngOnInit() { this.loadProducts(); }
+  ngOnInit() { 
+    this.loadProducts();
+    this.loadHeldCarts();
+  }
 
   loadProducts() {
     this.isLoadingProducts = true;
@@ -143,18 +163,104 @@ export class PosComponent implements OnInit {
     this.confirmTitle = 'Kosongkan Keranjang';
     this.confirmMessage = 'Apakah Anda yakin ingin mengosongkan keranjang belanja?';
     this.confirmAction = () => {
-      this.cart = [];
-      this.editingPriceItem = null;
-      this.tempCustomPrice = null;
-      this.selectedCustomer = null;
-      this.discount = 0;
-      this.amountPaid = 0;
-      this.notes = '';
-      this.pointsUsed = 0;
-      this.maxPoints = 0;
-      this.usePoints = false;
+      this.resetCartState();
     };
     this.showConfirm = true;
+  }
+
+  // ── Tahan Transaksi (Park Cart) ──────────────────────────
+  private buildHeldCart(): HeldCart {
+    this.holdCounter++;
+    return {
+      id: `hold-${Date.now()}`,
+      label: this.selectedCustomer ? this.selectedCustomer.name : `Antrian ${this.holdCounter}`,
+      heldAt: new Date().toISOString(),
+      cart: this.cart,
+      selectedCustomer: this.selectedCustomer,
+      paymentMethod: this.paymentMethod,
+      discount: this.discount,
+      amountPaid: this.amountPaid,
+      notes: this.notes,
+      pointsUsed: this.pointsUsed,
+      maxPoints: this.maxPoints,
+      usePoints: this.usePoints
+    };
+  }
+
+  holdCurrentCart() {
+    if (this.cart.length === 0) return;
+    this.heldCarts.push(this.buildHeldCart());
+    this.saveHeldCarts();
+    this.resetCartState();
+  }
+
+  resumeHeldCart(held: HeldCart) {
+    if (this.cart.length > 0) {
+      // transaksi yang lagi jalan otomatis ikut ditahan, gak hilang
+      this.heldCarts.push(this.buildHeldCart());
+    }
+
+    this.cart = held.cart;
+    this.selectedCustomer = held.selectedCustomer;
+    this.paymentMethod = held.paymentMethod;
+    this.discount = held.discount;
+    this.amountPaid = held.amountPaid;
+    this.notes = held.notes;
+    this.pointsUsed = held.pointsUsed;
+    this.maxPoints = held.maxPoints;
+    this.usePoints = held.usePoints;
+    this.editingPriceItem = null;
+    this.tempCustomPrice = null;
+    this.customerQuery = held.selectedCustomer ? held.selectedCustomer.name : '';
+    this.customerResults = [];
+
+    this.heldCarts = this.heldCarts.filter(h => h.id !== held.id);
+    this.saveHeldCarts();
+  }
+
+  deleteHeldCart(held: HeldCart, event: Event) {
+    event.stopPropagation(); // biar gak ikut trigger resumeHeldCart
+    this.heldCarts = this.heldCarts.filter(h => h.id !== held.id);
+    this.saveHeldCarts();
+  }
+
+  heldCartTotal(held: HeldCart): number {
+    return held.cart.reduce((s, i) => s + i.subtotal, 0);
+  }
+
+  heldCartItemCount(held: HeldCart): number {
+    return held.cart.reduce((s, i) => s + i.quantity, 0);
+  }
+
+  private saveHeldCarts() {
+    try {
+      localStorage.setItem('kasirku_held_carts', JSON.stringify(this.heldCarts));
+    } catch { /* localStorage penuh/diblokir, abaikan */ }
+  }
+
+  private loadHeldCarts() {
+    try {
+      const raw = localStorage.getItem('kasirku_held_carts');
+      this.heldCarts = raw ? JSON.parse(raw) : [];
+      this.holdCounter = this.heldCarts.length;
+    } catch {
+      this.heldCarts = [];
+    }
+  }
+
+  private resetCartState() {
+    this.cart = [];
+    this.editingPriceItem = null;
+    this.tempCustomPrice = null;
+    this.selectedCustomer = null;
+    this.customerQuery = '';
+    this.customerResults = [];
+    this.discount = 0;
+    this.amountPaid = 0;
+    this.notes = '';
+    this.pointsUsed = 0;
+    this.maxPoints = 0;
+    this.usePoints = false;
   }
 
   startEditPrice(item: CartItem) {
@@ -325,16 +431,7 @@ export class PosComponent implements OnInit {
         this.showSuccess = true;
         this.lastTransaction = res.data;
         this.isSubmitting = false;
-        this.cart = [];
-        this.editingPriceItem = null;
-        this.tempCustomPrice = null;
-        this.selectedCustomer = null;
-        this.discount = 0;
-        this.amountPaid = 0;
-        this.notes = '';
-        this.pointsUsed = 0;
-        this.maxPoints = 0;
-        this.usePoints = false;
+        this.resetCartState();
         this.loadProducts();
       },
       error: (err) => {

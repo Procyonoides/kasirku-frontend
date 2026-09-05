@@ -70,6 +70,23 @@
 .stock-habis  { background: #fee2e2; color: #dc2626; }
 .stock-menipis { background: #fef9c3; color: #d97706; }
 
+/* Debt reminder list */
+.debt-item { transition: background 0.15s; }
+.debt-item:hover { background: #f8fafc; }
+.debt-item:last-child { border-bottom: none !important; }
+.debt-item .fw-semibold { font-size: 14px !important; }
+.debt-item .text-muted  { font-size: 13px !important; }
+.debt-item .fw-bold     { font-size: 14px !important; }
+
+.debt-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 19px; flex-shrink: 0;
+}
+.debt-warning { background: #fef9c3; color: #d97706; }
+.debt-urgent  { background: #fee2e2; color: #dc2626; }
+
 /* Rekap Harian */
 .recap-payment-item { margin-bottom: 14px; }
 
@@ -170,4 +187,4 @@
   font-size: 14px;
   color: #2563eb;
 }
-
+

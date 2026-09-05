@@ -103,13 +103,40 @@
         <i class="bi bi-cart3 me-2" aria-hidden="true"></i>Keranjang
         <span class="badge ms-1" aria-label="Jumlah item dalam keranjang">{{ cart.length }} item</span>
       </h6>
-      <button class="btn-clear-cart" 
-        (click)="clearCart()" 
-        [disabled]="cart.length === 0"
-        aria-label="Kosongkan keranjang belanja"
-        type="button">
-        <i class="bi bi-trash me-1" aria-hidden="true"></i>Kosongkan
-      </button>
+      <div class="cart-header-actions">
+        <button class="btn-hold-cart"
+          (click)="holdCurrentCart()"
+          [disabled]="cart.length === 0"
+          aria-label="Tahan transaksi ini untuk dilanjutkan nanti"
+          type="button">
+          <i class="bi bi-pause-circle me-1" aria-hidden="true"></i>Tahan
+        </button>
+        <button class="btn-clear-cart" 
+          (click)="clearCart()" 
+          [disabled]="cart.length === 0"
+          aria-label="Kosongkan keranjang belanja"
+          type="button">
+          <i class="bi bi-trash me-1" aria-hidden="true"></i>Kosongkan
+        </button>
+      </div>
+    </div>
+
+    <!-- Held Carts (Antrian Tertahan) -->
+    <div class="held-carts-row" *ngIf="heldCarts.length > 0" role="list" aria-label="Transaksi yang ditahan">
+      <div class="held-cart-chip" *ngFor="let held of heldCarts"
+        (click)="resumeHeldCart(held)"
+        role="listitem"
+        [attr.aria-label]="'Lanjutkan transaksi ' + held.label + ', ' + heldCartItemCount(held) + ' item'">
+        <div class="held-chip-info">
+          <span class="held-chip-label">{{ held.label }}</span>
+          <span class="held-chip-detail">{{ heldCartItemCount(held) }} item · {{ heldCartTotal(held) | rupiah }}</span>
+        </div>
+        <button type="button" class="held-chip-remove"
+          (click)="deleteHeldCart(held, $event)"
+          aria-label="Hapus transaksi tertahan ini">
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
+      </div>
     </div>
 
     <!-- Cart Items -->

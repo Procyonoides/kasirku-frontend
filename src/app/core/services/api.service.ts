@@ -102,6 +102,11 @@ export class CustomerService {
   getDebtors(): Observable<any> {
     return this.http.get<any>(`${this.url}/debtors`);
   }
+  getDebtReminders(days?: number): Observable<any> {
+    const params: { [key: string]: number } = {};
+    if (days) params['days'] = days;
+    return this.http.get<any>(`${this.url}/debt-reminders`, { params });
+  }
   getOne(id: string): Observable<ApiResponse<Customer>> {
     return this.http.get<ApiResponse<Customer>>(`${this.url}/${id}`);
   }
