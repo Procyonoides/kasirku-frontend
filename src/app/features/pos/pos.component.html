@@ -327,6 +327,14 @@
         <span class="summary-label">
           <i class="bi bi-cash me-1"></i>Uang Diterima
         </span>
+        <div class="quick-cash-row" *ngIf="quickCashOptions.length > 0">
+          <button type="button" class="quick-cash-btn"
+            *ngFor="let amount of quickCashOptions"
+            [class.exact]="amount === grandTotal"
+            (click)="setAmountPaid(amount)">
+            {{ amount === grandTotal ? 'Uang Pas' : (amount | rupiah) }}
+          </button>
+        </div>
         <div class="input-group input-group-sm">
           <span class="input-group-text">Rp</span>
           <input type="number" class="form-control" [(ngModel)]="amountPaid"

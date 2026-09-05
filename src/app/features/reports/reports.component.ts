@@ -10,6 +10,7 @@ import { ProfitLossComponent } from './profit-loss/profit-loss.component';
 import { TopProductsComponent } from './top-products/top-products.component';
 import { SalesComponent } from './sales/sales.component';
 import { CashflowComponent } from './cashflow/cashflow.component';
+import { CustomPriceComponent } from './custom-price/custom-price.component';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 
 @Component({
@@ -24,6 +25,7 @@ import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner
     TopProductsComponent, 
     SalesComponent, 
     CashflowComponent, 
+    CustomPriceComponent,
     LoadingSpinnerComponent
   ],
   templateUrl: './reports.component.html',
@@ -31,7 +33,7 @@ import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner
 })
 export class ReportsComponent implements OnInit {
   @ViewChild('reportContent') reportContent!: ElementRef;
-  activeTab: 'sales' | 'profit' | 'top-products' | 'cashflow' = 'sales';
+  activeTab: 'sales' | 'profit' | 'top-products' | 'cashflow' | 'custom-price' = 'sales';
   isLoading = false;
   isExporting = false;
   dateFrom = '';
@@ -41,6 +43,7 @@ export class ReportsComponent implements OnInit {
   profitData: any = null;
   topProducts: any[] = [];
   cashflowData: any = null;
+  customPriceData: any = null;
 
   constructor(private reportService: ReportService) {}
 
@@ -81,10 +84,16 @@ export class ReportsComponent implements OnInit {
           error: () => { this.isLoading = false; }
         });
         break;
+      case 'custom-price':
+        this.reportService.getCustomPriceReport(params).subscribe({
+          next: (res) => { this.customPriceData = res.data; this.isLoading = false; },
+          error: () => { this.isLoading = false; }
+        });
+        break;
     }
   }
 
-  switchTab(tab: 'sales' | 'profit' | 'top-products' | 'cashflow') {
+  switchTab(tab: 'sales' | 'profit' | 'top-products' | 'cashflow' | 'custom-price') {
     this.activeTab = tab;
     this.loadReport();
   }
@@ -96,7 +105,8 @@ export class ReportsComponent implements OnInit {
       'sales': 'Penjualan',
       'profit': 'Laba Rugi',
       'top-products': 'Produk Terlaris',
-      'cashflow': 'Arus Kas'
+      'cashflow': 'Arus Kas',
+      'custom-price': 'Diskon Manual'
     };
     return map[this.activeTab] || '';
   }
@@ -145,6 +155,20 @@ export class ReportsComponent implements OnInit {
           'Pemasukan (Rp)': row.income,
           'Pengeluaran (Rp)': row.expense,
           'Net (Rp)': row.net
+        }));
+        break;
+
+      case 'custom-price':
+        if (!this.customPriceData?.items?.length) return;
+        data = this.customPriceData.items.map((row: any) => ({
+          'Invoice': row.invoiceNumber,
+          'Tanggal': new Date(row.createdAt).toLocaleString('id-ID'),
+          'Kasir': row.cashierName,
+          'Produk': row.productName,
+          'Qty': row.qty,
+          'Harga Normal (Rp)': row.originalPrice,
+          'Harga Diberikan (Rp)': row.sellPrice,
+          'Selisih (Rp)': row.totalSelisih
         }));
         break;
     }
@@ -762,6 +786,46 @@ export class ReportsComponent implements OnInit {
         { x: colX.inc, value: `Rp ${sumInc.toLocaleString('id-ID')}` },
         { x: colX.exp, value: `Rp ${sumExp.toLocaleString('id-ID')}` },
         { x: colX.net, value: `Rp ${sumNet.toLocaleString('id-ID')}` },
+      ], pageWidth - margin * 2);
+    }
+
+    // ════════════════════════════════════════════════════════
+    // TAB CUSTOM PRICE
+    // ════════════════════════════════════════════════════════
+    else if (this.activeTab === 'custom-price') {
+      const items = this.customPriceData?.items || [];
+      if (!items.length) { pdf.save(`laporan-custom-price-${this.dateFrom}-${this.dateTo}.pdf`); return; }
+
+      pdf.setFontSize(9);
+      pdf.setFont('helvetica', 'bold');
+      const colX = { inv: margin, tgl: margin + 32, produk: margin + 62, qty: margin + 110, normal: margin + 125, diberi: margin + 150, selisih: margin + 175 };
+      pdf.text('Invoice', colX.inv, y);
+      pdf.text('Tanggal', colX.tgl, y);
+      pdf.text('Produk', colX.produk, y);
+      pdf.text('Qty', colX.qty, y);
+      pdf.text('Normal', colX.normal, y);
+      pdf.text('Diberikan', colX.diberi, y);
+      pdf.text('Selisih', colX.selisih, y);
+      y += 6;
+
+      let totalSelisih = 0;
+      pdf.setFont('helvetica', 'normal');
+      items.forEach((row: any) => {
+        checkPage(8);
+        totalSelisih += row.totalSelisih;
+        pdf.text(row.invoiceNumber, colX.inv, y);
+        pdf.text(new Date(row.createdAt).toLocaleDateString('id-ID'), colX.tgl, y);
+        pdf.text(String(row.productName).substring(0, 20), colX.produk, y);
+        pdf.text(String(row.qty), colX.qty, y);
+        pdf.text(`Rp${row.originalPrice.toLocaleString('id-ID')}`, colX.normal, y);
+        pdf.text(`Rp${row.sellPrice.toLocaleString('id-ID')}`, colX.diberi, y);
+        pdf.text(`${row.totalSelisih > 0 ? '-' : '+'}Rp${Math.abs(row.totalSelisih).toLocaleString('id-ID')}`, colX.selisih, y);
+        y += 6;
+      });
+
+      drawTotalRow([
+        { x: colX.inv, value: 'TOTAL SELISIH' },
+        { x: colX.selisih, value: `${totalSelisih > 0 ? '-' : '+'}Rp ${Math.abs(totalSelisih).toLocaleString('id-ID')}` },
       ], pageWidth - margin * 2);
     }
 

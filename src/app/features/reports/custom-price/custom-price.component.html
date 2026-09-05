@@ -1,0 +1,61 @@
+<div class="card border-0 shadow-sm">
+  <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+    <h6 class="fw-bold mb-0">
+      <i class="bi bi-pencil-square me-2 text-warning"></i>Riwayat Harga Manual
+    </h6>
+    <span class="badge bg-warning-subtle text-warning-emphasis" *ngIf="data?.count">
+      {{ data?.count }} item
+    </span>
+  </div>
+  <div class="card-body">
+
+    <div *ngIf="!data?.items?.length" class="text-center py-4 text-muted">
+      <i class="bi bi-check2-circle fs-1 d-block mb-2"></i>
+      Tidak ada transaksi dengan harga manual di periode ini
+    </div>
+
+    <div class="table-responsive" *ngIf="data?.items?.length">
+      <table class="table table-sm align-middle">
+        <thead>
+          <tr class="text-muted small">
+            <th>Invoice</th>
+            <th>Tanggal</th>
+            <th>Kasir</th>
+            <th>Produk</th>
+            <th class="text-end">Qty</th>
+            <th class="text-end">Harga Normal</th>
+            <th class="text-end">Harga Diberikan</th>
+            <th class="text-end">Selisih</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of data?.items">
+            <td class="fw-semibold">{{ row.invoiceNumber }}</td>
+            <td class="small">{{ row.createdAt | date:'dd/MM/yy HH:mm' }}</td>
+            <td class="small">{{ row.cashierName }}</td>
+            <td>{{ row.productName }}</td>
+            <td class="text-end">{{ row.qty }}</td>
+            <td class="text-end text-muted">{{ row.originalPrice | rupiah }}</td>
+            <td class="text-end fw-semibold text-warning-emphasis">{{ row.sellPrice | rupiah }}</td>
+            <td class="text-end"
+              [class.text-danger]="row.totalSelisih > 0"
+              [class.text-success]="row.totalSelisih < 0">
+              {{ selisihSign(row.totalSelisih) }} {{ selisihAbs(row.totalSelisih) | rupiah }}
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr class="fw-bold">
+            <td colspan="7" class="text-end">Total Selisih Harga</td>
+            <td class="text-end"
+              [class.text-danger]="(data?.totalSelisih ?? 0) > 0"
+              [class.text-success]="(data?.totalSelisih ?? 0) < 0">
+              {{ selisihSign(data?.totalSelisih ?? 0) }} {{ selisihAbs(data?.totalSelisih ?? 0) | rupiah }}
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+  </div>
+</div>

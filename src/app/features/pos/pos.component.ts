@@ -221,6 +221,26 @@ export class PosComponent implements OnInit {
     return Math.max(0, this.amountPaid - this.grandTotal);
   }
 
+  get quickCashOptions(): number[] {
+    const total = this.grandTotal;
+    if (total <= 0) return [];
+
+    const denominations = [5000, 10000, 20000, 50000, 100000, 150000, 200000];
+    const roundUp = (n: number, base: number) => Math.ceil(n / base) * base;
+
+    const suggestions = new Set<number>();
+    suggestions.add(total); // uang pas
+    denominations.filter(d => d >= total).forEach(d => suggestions.add(d));
+    suggestions.add(roundUp(total, 50000));
+    suggestions.add(roundUp(total, 100000));
+
+    return Array.from(suggestions).sort((a, b) => a - b).slice(0, 5);
+  }
+
+  setAmountPaid(value: number) {
+    this.amountPaid = value;
+  }
+
   get isCartValid(): boolean {
     if (this.cart.length === 0) return false;
     if (this.paymentMethod === 'hutang' && !this.selectedCustomer && !this.notes.trim()) return false;

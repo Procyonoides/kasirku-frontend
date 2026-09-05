@@ -27,6 +27,10 @@
         (click)="switchTab('cashflow')">
         <i class="bi bi-arrow-left-right me-2"></i>Arus Kas
       </button>
+      <button class="report-tab" [class.active]="activeTab === 'custom-price'"
+        (click)="switchTab('custom-price')">
+        <i class="bi bi-pencil-square me-2"></i>Diskon Manual
+      </button>
     </div>
     <div class="d-flex gap-2">
       <button class="btn btn-outline-success btn-sm" (click)="exportExcel()" [disabled]="isLoading || isExporting">
@@ -90,6 +94,11 @@
     <!-- ── CASHFLOW ── -->
     <div *ngIf="!isLoading && activeTab === 'cashflow'">
       <app-cashflow [data]="cashflowData"></app-cashflow>
+    </div>
+
+    <!-- ── CUSTOM PRICE ── -->
+    <div *ngIf="!isLoading && activeTab === 'custom-price'">
+      <app-custom-price [data]="customPriceData"></app-custom-price>
     </div>
   </div>
 

@@ -215,6 +215,9 @@ export class ReportService {
   getCashflow(params?: any): Observable<any> {
     return this.http.get<any>(`${this.url}/cashflow`, { params });
   }
+  getCustomPriceReport(params?: any): Observable<any> {
+    return this.http.get<any>(`${this.url}/custom-price`, { params });
+  }
 
   getAllProducts(): Observable<any> {
     return this.http.get<any>(`${environment.apiUrl}/products`, { params: { limit: '9999' } });
