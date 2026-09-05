@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule, NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -62,6 +62,11 @@ export class PosComponent implements OnInit {
   // Custom price editing
   editingPriceItem: CartItem | null = null;
   tempCustomPrice: number | null = null;
+  @ViewChild('searchInputRef') searchInputRef!: ElementRef<HTMLInputElement>;
+  @ViewChild('customerInputRef') customerInputRef?: ElementRef<HTMLInputElement>;
+  @ViewChild('discountInputRef') discountInputRef?: ElementRef<HTMLInputElement>;
+  @ViewChild('amountPaidInputRef') amountPaidInputRef?: ElementRef<HTMLInputElement>;
+  @ViewChild('notesInputRef') notesInputRef?: ElementRef<HTMLTextAreaElement>;
   heldCarts: HeldCart[] = [];
   private holdCounter = 0;
 
@@ -104,6 +109,68 @@ export class PosComponent implements OnInit {
   ngOnInit() { 
     this.loadProducts();
     this.loadHeldCarts();
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  handleKeyboardShortcut(event: KeyboardEvent) {
+    // Esc buat batal edit harga custom
+    if (event.key === 'Escape' && this.editingPriceItem) {
+      event.preventDefault();
+      this.cancelEditPrice();
+      return;
+    }
+
+    // Shortcut lain gak boleh aktif kalau lagi edit harga
+    if (this.editingPriceItem) return;
+
+    switch (event.key) {
+      case 'F2':
+        event.preventDefault();
+        this.searchInputRef?.nativeElement.focus();
+        this.searchInputRef?.nativeElement.select();
+        break;
+
+      case 'F3':
+        event.preventDefault();
+        this.customerInputRef?.nativeElement.focus();
+        break;
+
+      case 'F4':
+        event.preventDefault();
+        this.holdCurrentCart();
+        break;
+
+      case 'F5':
+        event.preventDefault();
+        this.clearCart();
+        break;
+
+      case 'F6':
+        event.preventDefault();
+        this.discountInputRef?.nativeElement.focus();
+        this.discountInputRef?.nativeElement.select();
+        break;
+
+      case 'F7':
+        event.preventDefault();
+        if (this.paymentMethod === 'tunai') {
+          this.amountPaidInputRef?.nativeElement.focus();
+          this.amountPaidInputRef?.nativeElement.select();
+        }
+        break;
+
+      case 'F8':
+        event.preventDefault();
+        this.notesInputRef?.nativeElement.focus();
+        break;
+
+      case 'F9':
+        event.preventDefault();
+        if (this.isCartValid && !this.isSubmitting) {
+          this.checkout();
+        }
+        break;
+    }
   }
 
   loadProducts() {
