@@ -8,11 +8,12 @@ import { RupiahPipe } from '../../../shared/pipes';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { ToastService } from '../../../core/services/toast.service';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 
 @Component({
   selector: 'app-product-list',
   standalone: true,
-  imports: [CommonModule, NgClass, RouterLink, FormsModule, RupiahPipe, ConfirmDialogComponent, LoadingSpinnerComponent],
+  imports: [CommonModule, NgClass, RouterLink, FormsModule, RupiahPipe, ConfirmDialogComponent, LoadingSpinnerComponent, PaginationComponent],
   templateUrl: './product-list.component.html',
   styleUrl: './product-list.component.css'
 })
@@ -24,6 +25,7 @@ export class ProductListComponent implements OnInit {
   selectedCategory = '';
   selectedStatus = '';
   currentPage = 1;
+  pageSize = 20;
   totalPages = 1;
   totalItems = 0;
 
@@ -52,7 +54,7 @@ export class ProductListComponent implements OnInit {
 
   loadProducts() {
     this.isLoading = true;
-    const params: any = { page: this.currentPage, limit: 20 };
+    const params: any = { page: this.currentPage, limit: this.pageSize };
     if (this.searchQuery) params.search = this.searchQuery;
     if (this.selectedCategory) params.category = this.selectedCategory;
     if (this.selectedStatus) params.status = this.selectedStatus;
@@ -89,6 +91,12 @@ export class ProductListComponent implements OnInit {
   changePage(page: number) {
     if (page < 1 || page > this.totalPages) return;
     this.currentPage = page;
+    this.loadProducts();
+  }
+
+  changePageSize(size: number) {
+    this.pageSize = size;
+    this.currentPage = 1;
     this.loadProducts();
   }
 

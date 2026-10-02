@@ -1,0 +1,56 @@
+<div *ngIf="totalItems > 0"
+  class="pagination-wrapper d-flex flex-wrap justify-content-between align-items-center gap-3 px-4 py-3 border-top">
+
+  <div class="d-flex flex-wrap align-items-center gap-3">
+    <small class="text-muted">
+      Menampilkan {{ startItem }}–{{ endItem }} dari {{ totalItems }} {{ itemLabel }}
+    </small>
+    <div class="d-flex align-items-center gap-2">
+      <small class="text-muted">Per halaman</small>
+      <select class="form-select form-select-sm page-size-select"
+        aria-label="Jumlah data per halaman"
+        (change)="onSizeChange($any($event.target).value)">
+        <option *ngFor="let s of pageSizeOptions" [value]="s" [selected]="s === pageSize">{{ s }}</option>
+      </select>
+    </div>
+  </div>
+
+  <nav *ngIf="totalPages > 1" aria-label="Navigasi halaman">
+    <ul class="pagination pagination-sm mb-0">
+      <li class="page-item" [class.disabled]="currentPage === 1">
+        <button type="button" class="page-link" title="Halaman pertama"
+          aria-label="Halaman pertama" (click)="go(1)">
+          <i class="bi bi-chevron-double-left"></i>
+        </button>
+      </li>
+      <li class="page-item" [class.disabled]="currentPage === 1">
+        <button type="button" class="page-link" title="Sebelumnya"
+          aria-label="Halaman sebelumnya" (click)="go(currentPage - 1)">
+          <i class="bi bi-chevron-left"></i>
+        </button>
+      </li>
+
+      <li *ngFor="let p of pages" class="page-item"
+        [class.active]="p === currentPage" [class.disabled]="p === -1">
+        <span *ngIf="p === -1" class="page-link">…</span>
+        <button *ngIf="p !== -1" type="button" class="page-link"
+          [attr.aria-label]="'Halaman ' + p"
+          [attr.aria-current]="p === currentPage ? 'page' : null"
+          (click)="go(p)">{{ p }}</button>
+      </li>
+
+      <li class="page-item" [class.disabled]="currentPage === totalPages">
+        <button type="button" class="page-link" title="Berikutnya"
+          aria-label="Halaman berikutnya" (click)="go(currentPage + 1)">
+          <i class="bi bi-chevron-right"></i>
+        </button>
+      </li>
+      <li class="page-item" [class.disabled]="currentPage === totalPages">
+        <button type="button" class="page-link" title="Halaman terakhir"
+          aria-label="Halaman terakhir" (click)="go(totalPages)">
+          <i class="bi bi-chevron-double-right"></i>
+        </button>
+      </li>
+    </ul>
+  </nav>
+</div>

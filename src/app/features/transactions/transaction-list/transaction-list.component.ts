@@ -9,11 +9,12 @@ import { Transaction } from '../../../shared/models';
 import { RupiahPipe } from '../../../shared/pipes';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 
 @Component({
   selector: 'app-transaction-list',
   standalone: true,
-  imports: [CommonModule, NgClass, RouterLink, FormsModule, RupiahPipe, ConfirmDialogComponent, LoadingSpinnerComponent],
+  imports: [CommonModule, NgClass, RouterLink, FormsModule, RupiahPipe, ConfirmDialogComponent, LoadingSpinnerComponent, PaginationComponent],
   templateUrl: './transaction-list.component.html',
   styleUrl: './transaction-list.component.css'
 })
@@ -24,6 +25,7 @@ export class TransactionListComponent implements OnInit {
   dateTo = '';
   selectedStatus = '';
   currentPage = 1;
+  pageSize = 20;
   totalPages = 1;
   totalItems = 0;
 
@@ -48,7 +50,7 @@ export class TransactionListComponent implements OnInit {
 
   loadTransactions() {
     this.isLoading = true;
-    const params: any = { page: this.currentPage, limit: 20 };
+    const params: any = { page: this.currentPage, limit: this.pageSize };
     if (this.dateFrom) params.startDate = this.dateFrom;
     if (this.dateTo) params.endDate = this.dateTo;
     if (this.selectedStatus) params.status = this.selectedStatus;
@@ -78,6 +80,12 @@ export class TransactionListComponent implements OnInit {
   changePage(page: number) {
     if (page < 1 || page > this.totalPages) return;
     this.currentPage = page;
+    this.loadTransactions();
+  }
+
+  changePageSize(size: number) {
+    this.pageSize = size;
+    this.currentPage = 1;
     this.loadTransactions();
   }
 

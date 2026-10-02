@@ -1,8 +1,9 @@
-import { Component, OnInit, HostListener, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, HostListener, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule, NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ProductService, CustomerService, TransactionService } from '../../core/services/api.service';
+import { ProductService, CustomerService, TransactionService, CategoryService } from '../../core/services/api.service';
+import { Subscription } from 'rxjs';
 import { Product, Customer } from '../../shared/models';
 import { RupiahPipe } from '../../shared/pipes';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -39,14 +40,23 @@ interface HeldCart {
   templateUrl: './pos.component.html',
   styleUrl: './pos.component.css'
 })
-export class PosComponent implements OnInit {
+export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   // Products
-  products: Product[] = [];
   filteredProducts: Product[] = [];
   categories: any[] = [];
   searchQuery = '';
   selectedCategory = '';
   isLoadingProducts = true;
+
+  // Paginasi produk (diproses di server)
+  readonly pageSize = 30;
+  productPage = 1;
+  totalProducts = 0;
+  hasMoreProducts = false;
+  isLoadingMore = false;
+  private productSub?: Subscription;
+  private searchTimer: any;
+  private observer?: IntersectionObserver;
 
   // Cart
   cart: CartItem[] = [];
@@ -63,6 +73,8 @@ export class PosComponent implements OnInit {
   editingPriceItem: CartItem | null = null;
   tempCustomPrice: number | null = null;
   @ViewChild('searchInputRef') searchInputRef!: ElementRef<HTMLInputElement>;
+  @ViewChild('productGridRef') productGridRef?: ElementRef<HTMLElement>;
+  @ViewChild('sentinelRef') sentinelRef?: ElementRef<HTMLElement>;
   @ViewChild('customerInputRef') customerInputRef?: ElementRef<HTMLInputElement>;
   @ViewChild('discountInputRef') discountInputRef?: ElementRef<HTMLInputElement>;
   @ViewChild('amountPaidInputRef') amountPaidInputRef?: ElementRef<HTMLInputElement>;
@@ -103,12 +115,43 @@ export class PosComponent implements OnInit {
     private transactionService: TransactionService,
     private receiptService: ReceiptService,
     public authService: AuthService,
-    public router: Router
+    public router: Router,
+    private categoryService: CategoryService,
   ) {}
 
   ngOnInit() { 
     this.loadProducts();
     this.loadHeldCarts();
+    this.loadCategories();
+  }
+
+  // Pantau penanda di dasar grid: begitu hampir terlihat, muat produk berikutnya
+  ngAfterViewInit() {
+    if (!this.sentinelRef || !this.productGridRef) return;
+    this.observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some(e => e.isIntersecting)) this.loadMoreProducts();
+      },
+      { root: this.productGridRef.nativeElement, rootMargin: '0px 0px 300px 0px' }
+    );
+    this.observer.observe(this.sentinelRef.nativeElement);
+  }
+
+  ngOnDestroy() {
+    this.observer?.disconnect();
+    this.productSub?.unsubscribe();
+    clearTimeout(this.searchTimer);
+  }
+
+  // Dipanggil setelah produk selesai dimuat: kalau penanda masih terlihat
+  // (layar besar / produk belum memenuhi layar), langsung muat halaman berikutnya
+  private recheckSentinel() {
+    setTimeout(() => {
+      const el = this.sentinelRef?.nativeElement;
+      if (!this.observer || !el) return;
+      this.observer.unobserve(el);
+      this.observer.observe(el);
+    });
   }
 
   @HostListener('window:keydown', ['$event'])
@@ -173,31 +216,62 @@ export class PosComponent implements OnInit {
     }
   }
 
-  loadProducts() {
-    this.isLoadingProducts = true;
-    this.productService.getAll({ limit: 100 }).subscribe({
-      next: (res) => {
-        this.products = res.data.filter((p: Product) => p.stock > 0);
-        this.filteredProducts = this.products;
-        const catMap = new Map();
-        this.products.forEach(p => {
-          if (p.category) catMap.set(p.category._id, p.category);
-        });
-        this.categories = Array.from(catMap.values());
-        this.isLoadingProducts = false;
-      },
-      error: () => { this.isLoadingProducts = false; }
+  loadCategories() {
+    this.categoryService.getAll().subscribe({
+      next: (res) => { this.categories = res.data; }
     });
   }
 
-  filterProducts() {
-    this.filteredProducts = this.products.filter(p => {
-      const matchSearch = !this.searchQuery ||
-        p.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        p.sku?.toLowerCase().includes(this.searchQuery.toLowerCase());
-      const matchCat = !this.selectedCategory || p.category?._id === this.selectedCategory;
-      return matchSearch && matchCat;
+  // Ambil produk dari server. reset=true -> mulai dari halaman 1, false -> tambah halaman berikutnya
+  loadProducts(reset = true) {
+    if (reset) {
+      this.productPage = 1;
+      this.isLoadingProducts = true;
+      this.isLoadingMore = false;
+    } else {
+      this.isLoadingMore = true;
+    }
+
+    const params: any = {
+      page: this.productPage,
+      limit: this.pageSize,
+      inStock: 'true'
+    };
+    if (this.searchQuery.trim()) params.search = this.searchQuery.trim();
+    if (this.selectedCategory) params.category = this.selectedCategory;
+
+    this.productSub?.unsubscribe(); // batalkan request lama supaya hasilnya tidak tertimpa
+    this.productSub = this.productService.getAll(params).subscribe({
+      next: (res: any) => {
+        this.filteredProducts = reset ? res.data : [...this.filteredProducts, ...res.data];
+        this.totalProducts = res.pagination?.total ?? this.filteredProducts.length;
+        this.hasMoreProducts = this.productPage < (res.pagination?.pages ?? 1);
+        this.isLoadingProducts = false;
+        this.isLoadingMore = false;
+        this.recheckSentinel();
+      },
+      error: () => {
+        this.isLoadingProducts = false;
+        this.isLoadingMore = false;
+      }
     });
+  }
+
+  loadMoreProducts() {
+    if (!this.hasMoreProducts || this.isLoadingMore || this.isLoadingProducts) return;
+    this.productPage++;
+    this.loadProducts(false);
+  }
+
+  // Dipanggil saat mengetik (tunggu 300ms) atau ganti kategori (langsung)
+  filterProducts(immediate = false) {
+    clearTimeout(this.searchTimer);
+    if (this.productGridRef) this.productGridRef.nativeElement.scrollTop = 0;
+    if (immediate) {
+      this.loadProducts();
+    } else {
+      this.searchTimer = setTimeout(() => this.loadProducts(), 300);
+    }
   }
 
   addToCart(product: Product) {

@@ -24,7 +24,7 @@
     <div class="category-tabs" role="tablist" aria-label="Filter kategori produk">
       <button class="cat-tab" 
         [class.active]="selectedCategory === ''"
-        (click)="selectedCategory = ''; filterProducts()"
+        (click)="selectedCategory = ''; filterProducts(true)"
         role="tab"
         [attr.aria-selected]="selectedCategory === ''"
         type="button">
@@ -33,7 +33,7 @@
       <button *ngFor="let cat of categories" 
         class="cat-tab"
         [class.active]="selectedCategory === cat._id"
-        (click)="selectedCategory = cat._id; filterProducts()"
+        (click)="selectedCategory = cat._id; filterProducts(true)"
         role="tab"
         [attr.aria-selected]="selectedCategory === cat._id"
         [attr.aria-label]="'Kategori ' + cat.name"
@@ -43,7 +43,7 @@
     </div>
 
     <!-- Product Grid -->
-    <div class="product-grid" role="list" aria-label="Daftar produk yang tersedia">
+    <div #productGridRef class="product-grid" role="list" aria-label="Daftar produk yang tersedia">
 
       <div *ngIf="isLoadingProducts" 
         class="text-center py-5"
@@ -97,6 +97,18 @@
         </div>
 
       </button>
+      
+      <!-- Penanda dasar grid: memicu pemuatan produk berikutnya saat di-scroll -->
+      <div #sentinelRef style="grid-column: 1/-1; height: 1px;" aria-hidden="true"></div>
+
+      <div *ngIf="isLoadingMore"
+        class="text-center py-3"
+        style="grid-column: 1/-1;"
+        role="status"
+        aria-live="polite"
+        aria-label="Memuat produk berikutnya">
+        <div class="spinner-border spinner-border-sm text-primary"></div>
+      </div>
     </div>
 
   </section>

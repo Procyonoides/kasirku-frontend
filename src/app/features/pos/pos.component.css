@@ -75,12 +75,13 @@
   overflow-y: auto;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+  grid-auto-rows: max-content;
   gap: 12px;
   align-content: start;
   padding: 4px 2px;
 }
 
-.product-grid::-webkit-scrollbar { width: 4px; }
+.product-grid::-webkit-scrollbar { width: 8px; }
 .product-grid::-webkit-scrollbar-track { background: transparent; }
 .product-grid::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
 

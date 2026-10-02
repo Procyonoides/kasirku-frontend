@@ -7,12 +7,13 @@ import { Customer } from '../../../shared/models';
 import { RupiahPipe } from '../../../shared/pipes';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-customer-list',
   standalone: true,
-  imports: [CommonModule, NgClass, RouterLink, FormsModule, RupiahPipe, ConfirmDialogComponent, LoadingSpinnerComponent],
+  imports: [CommonModule, NgClass, RouterLink, FormsModule, RupiahPipe, ConfirmDialogComponent, LoadingSpinnerComponent, PaginationComponent],
   templateUrl: './customer-list.component.html',
   styleUrl: './customer-list.component.css'
 })
@@ -22,6 +23,7 @@ export class CustomerListComponent implements OnInit {
   searchQuery = '';
   filterDebt = false;
   currentPage = 1;
+  pageSize = 20;
   totalPages = 1;
   totalItems = 0;
   showModal = false;
@@ -50,7 +52,7 @@ export class CustomerListComponent implements OnInit {
 
   loadCustomers() {
     this.isLoading = true;
-    const params: any = { page: this.currentPage, limit: 20 };
+    const params: any = { page: this.currentPage, limit: this.pageSize };
     if (this.searchQuery) params.search = this.searchQuery;
 
     const req = this.filterDebt
@@ -79,6 +81,12 @@ export class CustomerListComponent implements OnInit {
   changePage(page: number) {
     if (page < 1 || page > this.totalPages) return;
     this.currentPage = page;
+    this.loadCustomers();
+  }
+
+  changePageSize(size: number) {
+    this.pageSize = size;
+    this.currentPage = 1;
     this.loadCustomers();
   }
 

@@ -5,12 +5,13 @@ import { FinanceService } from '../../core/services/api.service';
 import { RupiahPipe } from '../../shared/pipes';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
+import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-finance',
   standalone: true,
-  imports: [CommonModule, FormsModule, RupiahPipe, NgClass, ConfirmDialogComponent, LoadingSpinnerComponent],
+  imports: [CommonModule, FormsModule, RupiahPipe, NgClass, ConfirmDialogComponent, LoadingSpinnerComponent, PaginationComponent],
   templateUrl: './finance.component.html',
   styleUrl: './finance.component.css'
 })
@@ -22,6 +23,7 @@ export class FinanceComponent implements OnInit {
   dateTo = '';
   selectedType = '';
   currentPage = 1;
+  pageSize = 20;
   totalPages = 1;
   totalItems = 0;
   selectedRecord: any = null;
@@ -84,7 +86,7 @@ export class FinanceComponent implements OnInit {
 
   loadRecords() {
     this.isLoading = true;
-    const params: any = { page: this.currentPage, limit: 20 };
+    const params: any = { page: this.currentPage, limit: this.pageSize };
     if (this.dateFrom) params.startDate = this.dateFrom;
     if (this.dateTo) params.endDate = this.dateTo;
     if (this.selectedType) params.type = this.selectedType;
@@ -130,6 +132,12 @@ export class FinanceComponent implements OnInit {
     if (page < 1 || page > this.totalPages) return;
     this.currentPage = page;
     this.loadRecords();
+  }
+
+  changePageSize(size: number) {
+    this.pageSize = size;
+    this.currentPage = 1;
+    this.loadRecords(); // ringkasan tidak ikut dimuat ulang, karena tidak berubah
   }
 
   openModal(type: 'income' | 'expense') {
