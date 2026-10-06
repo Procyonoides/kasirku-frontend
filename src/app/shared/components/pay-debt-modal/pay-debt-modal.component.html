@@ -1,0 +1,124 @@
+<ng-container *ngIf="show">
+  <div class="modal-backdrop-custom" (click)="close()"></div>
+
+  <div class="modal-custom" role="dialog" aria-modal="true" aria-label="Bayar hutang">
+    <div class="modal-custom-dialog">
+
+      <div class="modal-custom-header">
+        <h6 class="fw-bold mb-0">
+          <i class="bi bi-cash-coin me-2 text-warning" aria-hidden="true"></i>Bayar Hutang
+        </h6>
+        <button type="button" class="btn-close-custom" (click)="close()" aria-label="Tutup">
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <div class="modal-custom-body">
+
+        <div *ngIf="isLoading" class="text-center py-4" role="status" aria-live="polite">
+          <div class="spinner-border text-warning"></div>
+        </div>
+
+        <div *ngIf="loadError" class="alert alert-danger py-2 small">{{ loadError }}</div>
+
+        <ng-container *ngIf="info && !isLoading">
+
+          <!-- Ringkasan hutang -->
+          <div class="debt-summary">
+            <div class="debt-summary-head">
+              <div class="fw-bold">{{ info.invoiceNumber }}</div>
+              <div class="small text-muted">
+                {{ info.customerName }}<span *ngIf="info.notes"> · {{ info.notes }}</span>
+              </div>
+            </div>
+            <div class="debt-row">
+              <span>Total hutang</span>
+              <span>{{ info.grandTotal | rupiah }}</span>
+            </div>
+            <div class="debt-row">
+              <span>Sudah dibayar</span>
+              <span class="text-success">{{ info.totalPaid | rupiah }}</span>
+            </div>
+            <div class="debt-row debt-row-remaining">
+              <span>Sisa hutang</span>
+              <span>{{ info.remaining | rupiah }}</span>
+            </div>
+          </div>
+
+          <div *ngIf="info.status === 'dibatalkan'" class="alert alert-secondary py-2 small mt-3 mb-0">
+            Transaksi ini sudah dibatalkan, tidak bisa dibayar.
+          </div>
+          <div *ngIf="info.status !== 'dibatalkan' && info.remaining <= 0" class="alert alert-success py-2 small mt-3 mb-0">
+            <i class="bi bi-check-circle me-1" aria-hidden="true"></i>Hutang ini sudah lunas.
+          </div>
+
+          <!-- Form pembayaran -->
+          <div *ngIf="canPay" class="mt-3">
+            <div *ngIf="payError" class="alert alert-danger py-2 small">{{ payError }}</div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Nominal Bayar <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text">Rp</span>
+                <input type="number" class="form-control" [(ngModel)]="payAmount"
+                  min="1" [max]="info.remaining" (keyup.enter)="submit()" />
+                <button type="button" class="btn btn-outline-secondary" (click)="payInFull()">
+                  Lunas
+                </button>
+              </div>
+              <div class="form-text" *ngIf="remainingAfter > 0 && payAmount > 0">
+                Sisa hutang setelah ini: <strong>{{ remainingAfter | rupiah }}</strong>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Metode Pembayaran</label>
+              <select class="form-select" [(ngModel)]="payMethod">
+                <option value="tunai">Tunai</option>
+                <option value="transfer">Transfer</option>
+                <option value="qris">QRIS</option>
+              </select>
+            </div>
+
+            <div class="mb-1">
+              <label class="form-label fw-semibold">Catatan <span class="text-muted fw-normal">(opsional)</span></label>
+              <input type="text" class="form-control" [(ngModel)]="payNotes" maxlength="200" />
+            </div>
+          </div>
+
+          <!-- Riwayat pembayaran -->
+          <div *ngIf="info.payments?.length" class="mt-4">
+            <div class="small fw-bold text-muted text-uppercase mb-2">Riwayat Pembayaran</div>
+            <div class="pay-history">
+              <div class="pay-history-item" *ngFor="let p of info.payments">
+                <div>
+                  <div class="fw-semibold">{{ p.amountPaid | rupiah }}</div>
+                  <div class="small text-muted">
+                    {{ p.createdAt | date:'dd/MM/yyyy HH:mm' }} · {{ p.paymentMethod }}
+                    <span *ngIf="p.recordedBy?.name"> · {{ p.recordedBy.name }}</span>
+                  </div>
+                  <div class="small text-muted" *ngIf="p.notes">{{ p.notes }}</div>
+                </div>
+                <div class="small text-muted text-end">
+                  Sisa<br />{{ p.remainingDebt | rupiah }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </ng-container>
+      </div>
+
+      <div class="modal-custom-footer">
+        <button type="button" class="btn btn-outline-secondary" (click)="close()" [disabled]="isSubmitting">
+          {{ canPay ? 'Batal' : 'Tutup' }}
+        </button>
+        <button *ngIf="canPay" type="button" class="btn btn-warning" (click)="submit()" [disabled]="isSubmitting">
+          <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-1"></span>
+          Bayar
+        </button>
+      </div>
+
+    </div>
+  </div>
+</ng-container>

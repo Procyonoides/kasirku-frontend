@@ -151,6 +151,9 @@ export class TransactionService {
   delete(id: string): Observable<ApiResponse<any>> {
     return this.http.delete<ApiResponse<any>>(`${this.url}/${id}`);
   }
+  getDebtInfo(id: string): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(`${this.url}/debt/${id}`);
+  }
   payDebt(id: string, data: any): Observable<ApiResponse<any>> {
     return this.http.post<ApiResponse<any>>(`${this.url}/debt/${id}/pay`, data);
   }

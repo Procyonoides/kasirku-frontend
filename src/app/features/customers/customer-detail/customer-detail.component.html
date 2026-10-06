@@ -195,49 +195,9 @@
 </div>
 
 <!-- Pay Debt Modal -->
-<div class="modal-backdrop-custom" *ngIf="showPayDebtModal" (click)="closePayDebt()"></div>
-<div class="modal-custom" *ngIf="showPayDebtModal">
-  <div class="modal-custom-dialog">
-    <div class="modal-custom-header">
-      <h6 class="fw-bold mb-0">
-        <i class="bi bi-cash-coin me-2 text-warning"></i>Bayar Hutang
-      </h6>
-      <button class="btn-close-custom" (click)="closePayDebt()">
-        <i class="bi bi-x-lg"></i>
-      </button>
-    </div>
-    <div class="modal-custom-body">
-      <div *ngIf="payError" class="alert alert-danger py-2 small">{{ payError }}</div>
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Invoice</label>
-        <input type="text" class="form-control" [value]="selectedDebtTx?.invoiceNumber" disabled />
-      </div>
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Total Hutang</label>
-        <input type="text" class="form-control" [value]="selectedDebtTx?.grandTotal | rupiah" disabled />
-      </div>
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Nominal Bayar <span class="text-danger">*</span></label>
-        <div class="input-group">
-          <span class="input-group-text">Rp</span>
-          <input type="number" class="form-control" [(ngModel)]="payAmount" min="1" />
-        </div>
-      </div>
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Metode Pembayaran</label>
-        <select class="form-select" [(ngModel)]="payMethod">
-          <option value="tunai">Tunai</option>
-          <option value="transfer">Transfer</option>
-          <option value="qris">QRIS</option>
-        </select>
-      </div>
-    </div>
-    <div class="modal-custom-footer">
-      <button class="btn btn-outline-secondary" (click)="closePayDebt()">Batal</button>
-      <button class="btn btn-warning" (click)="submitPayDebt()" [disabled]="paySubmitting">
-        <span *ngIf="paySubmitting" class="spinner-border spinner-border-sm me-1"></span>
-        Bayar
-      </button>
-    </div>
-  </div>
-</div>
+<app-pay-debt-modal
+  [show]="showPayDebtModal"
+  [transactionId]="payDebtTxId"
+  (paid)="onDebtPaid()"
+  (closed)="closePayDebt()">
+</app-pay-debt-modal>

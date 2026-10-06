@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule, NgClass } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { TransactionService } from '../../../core/services/api.service';
+import { TransactionService, CategoryService } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { Transaction } from '../../../shared/models';
@@ -10,11 +10,12 @@ import { RupiahPipe } from '../../../shared/pipes';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+import { PayDebtModalComponent } from '../../../shared/components/pay-debt-modal/pay-debt-modal.component';
 
 @Component({
   selector: 'app-transaction-list',
   standalone: true,
-  imports: [CommonModule, NgClass, RouterLink, FormsModule, RupiahPipe, ConfirmDialogComponent, LoadingSpinnerComponent, PaginationComponent],
+  imports: [CommonModule, NgClass, RouterLink, FormsModule, RupiahPipe, ConfirmDialogComponent, LoadingSpinnerComponent, PaginationComponent, PayDebtModalComponent],
   templateUrl: './transaction-list.component.html',
   styleUrl: './transaction-list.component.css'
 })
@@ -24,10 +25,20 @@ export class TransactionListComponent implements OnInit {
   dateFrom = '';
   dateTo = '';
   selectedStatus = '';
+  productQuery = '';
+  activeProduct = '';
+  categories: any[] = [];
+  selectedCategory = '';
+  activeCategoryName = '';
+  productSummary: any = null;
   currentPage = 1;
   pageSize = 20;
   totalPages = 1;
   totalItems = 0;
+
+  // Bayar hutang
+  showPayDebt = false;
+  payDebtTxId = '';
 
   // Confirm dialog
   showConfirm = false;
@@ -37,6 +48,7 @@ export class TransactionListComponent implements OnInit {
 
   constructor(
     private transactionService: TransactionService,
+    private categoryService: CategoryService,
     public authService: AuthService,
     private toastService: ToastService
   ) {}
@@ -45,7 +57,22 @@ export class TransactionListComponent implements OnInit {
     const today = new Date().toISOString().split('T')[0];
     this.dateFrom = today;
     this.dateTo = today;
+    this.loadCategories();
     this.loadTransactions();
+  }
+
+  loadCategories() {
+    this.categoryService.getAll().subscribe({
+      next: (res) => { this.categories = res.data; }
+    });
+  }
+
+  // Judul kotak ringkasan, mis. "aqua" di kategori Minuman
+  get summaryTitle(): string {
+    const parts: string[] = [];
+    if (this.activeProduct) parts.push(`"${this.activeProduct}"`);
+    if (this.activeCategoryName) parts.push(`kategori ${this.activeCategoryName}`);
+    return parts.join(' di ');
   }
 
   loadTransactions() {
@@ -54,10 +81,15 @@ export class TransactionListComponent implements OnInit {
     if (this.dateFrom) params.startDate = this.dateFrom;
     if (this.dateTo) params.endDate = this.dateTo;
     if (this.selectedStatus) params.status = this.selectedStatus;
+    if (this.productQuery.trim()) params.product = this.productQuery.trim();
+    if (this.selectedCategory) params.category = this.selectedCategory;
 
     this.transactionService.getAll(params).subscribe({
-      next: (res) => {
+      next: (res: any) => {
         this.transactions = res.data;
+        this.productSummary = res.productSummary || null;
+        this.activeProduct = params.product || '';
+        this.activeCategoryName = this.categories.find(c => c._id === params.category)?.name || '';
         this.totalItems = res.pagination?.total || res.data.length;
         this.totalPages = res.pagination?.pages || 1;
         this.isLoading = false;
@@ -73,7 +105,34 @@ export class TransactionListComponent implements OnInit {
     this.dateFrom = today;
     this.dateTo = today;
     this.selectedStatus = '';
+    this.productQuery = '';
+    this.selectedCategory = '';
     this.currentPage = 1;
+    this.loadTransactions();
+  }
+
+  // Tampilkan semua hutang (terdaftar maupun tanpa nama), tanpa batas tanggal
+  showDebtOnly() {
+    this.selectedStatus = 'hutang';
+    this.dateFrom = '';
+    this.dateTo = '';
+    this.productQuery = '';
+    this.selectedCategory = '';
+    this.currentPage = 1;
+    this.loadTransactions();
+  }
+
+  openPayDebt(tx: Transaction) {
+    this.payDebtTxId = tx._id;
+    this.showPayDebt = true;
+  }
+
+  closePayDebt() {
+    this.showPayDebt = false;
+  }
+
+  onDebtPaid() {
+    this.showPayDebt = false;
     this.loadTransactions();
   }
 
@@ -94,7 +153,10 @@ export class TransactionListComponent implements OnInit {
     this.confirmMessage = `Apakah Anda yakin ingin membatalkan transaksi ${invoice}? Stok produk akan dikembalikan.`;
     this.confirmAction = () => {
       this.transactionService.cancel(id).subscribe({
-        next: () => { this.loadTransactions(); }
+        next: () => { this.loadTransactions(); },
+        error: (err) => {
+          this.toastService.error('Gagal membatalkan', err?.error?.message || 'Terjadi kesalahan');
+        }
       });
     };
     this.showConfirm = true;

@@ -1,0 +1,62 @@
+.debt-summary {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: #f8fafc;
+}
+
+.debt-summary-head {
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.debt-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  padding: 2px 0;
+}
+
+.debt-row-remaining {
+  font-size: 16px;
+  font-weight: 800;
+  color: #b45309;
+  border-top: 1px solid #e2e8f0;
+  margin-top: 6px;
+  padding-top: 8px;
+}
+
+.pay-history {
+  max-height: 180px;
+  overflow-y: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.pay-history-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.pay-history-item + .pay-history-item {
+  border-top: 1px solid #f1f5f9;
+}
+
+[data-theme="dark"] .debt-summary,
+[data-theme="dark"] .pay-history {
+  background: transparent;
+  border-color: #334155;
+}
+
+[data-theme="dark"] .debt-summary-head,
+[data-theme="dark"] .debt-row-remaining {
+  border-color: #334155;
+}
+
+[data-theme="dark"] .pay-history-item + .pay-history-item {
+  border-color: #334155;
+}

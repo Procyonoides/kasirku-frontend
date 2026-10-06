@@ -4,11 +4,12 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CustomerService, TransactionService } from '../../../core/services/api.service';
 import { RupiahPipe } from '../../../shared/pipes';
+import { PayDebtModalComponent } from '../../../shared/components/pay-debt-modal/pay-debt-modal.component';
 
 @Component({
   selector: 'app-customer-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, RupiahPipe, NgClass],
+  imports: [CommonModule, FormsModule, RouterLink, RupiahPipe, NgClass, PayDebtModalComponent],
   templateUrl: './customer-detail.component.html',
   styleUrl: './customer-detail.component.css'
 })
@@ -22,11 +23,7 @@ export class CustomerDetailComponent implements OnInit {
   customerId = '';
 
   showPayDebtModal = false;
-  selectedDebtTx: any = null;
-  payAmount = 0;
-  payMethod = 'tunai';
-  payError = '';
-  paySubmitting = false;
+  payDebtTxId = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -68,35 +65,16 @@ export class CustomerDetailComponent implements OnInit {
   }
 
   openPayDebt(tx: any) {
-    this.selectedDebtTx = tx;
-    this.payAmount = tx.grandTotal;
-    this.payMethod = 'tunai';
-    this.payError = '';
+    this.payDebtTxId = tx._id;
     this.showPayDebtModal = true;
   }
 
   closePayDebt() { this.showPayDebtModal = false; }
 
-  submitPayDebt() {
-    if (this.payAmount <= 0) { this.payError = 'Nominal harus lebih dari 0'; return; }
-    this.paySubmitting = true;
-    this.payError = '';
-
-    this.transactionService.payDebt(this.selectedDebtTx._id, {
-      amountPaid: this.payAmount,
-      paymentMethod: this.payMethod
-    }).subscribe({
-      next: () => {
-        this.showPayDebtModal = false;
-        this.paySubmitting = false;
-        this.loadCustomer();
-        this.loadTransactions();
-      },
-      error: (err) => {
-        this.payError = err?.error?.message || 'Terjadi kesalahan';
-        this.paySubmitting = false;
-      }
-    });
+  onDebtPaid() {
+    this.showPayDebtModal = false;
+    this.loadCustomer();
+    this.loadTransactions();
   }
 
   getStatusClass(status: string): string {
