@@ -39,15 +39,15 @@
   <div class="card border-0 shadow-sm mb-4">
     <div class="card-body">
       <div class="row g-3">
-        <div class="col-12 col-md-2">
+        <div class="col-12 col-md-3">
           <label class="form-label small fw-semibold text-muted">Dari Tanggal</label>
           <input type="date" class="form-control" [(ngModel)]="dateFrom" />
         </div>
-        <div class="col-12 col-md-2">
+        <div class="col-12 col-md-3">
           <label class="form-label small fw-semibold text-muted">Sampai Tanggal</label>
           <input type="date" class="form-control" [(ngModel)]="dateTo" />
         </div>
-        <div class="col-12 col-md-2">
+        <div class="col-12 col-md-3">
           <label class="form-label small fw-semibold text-muted">Status</label>
           <select class="form-select" [(ngModel)]="selectedStatus">
             <option value="">Semua Status</option>
@@ -56,26 +56,35 @@
             <option value="dibatalkan">Dibatalkan</option>
           </select>
         </div>
-        <div class="col-12 col-md-2">
+        <div class="col-12 col-md-3">
           <label class="form-label small fw-semibold text-muted">Kategori</label>
           <select class="form-select" [(ngModel)]="selectedCategory">
             <option value="">Semua Kategori</option>
             <option *ngFor="let c of categories" [value]="c._id">{{ c.name }}</option>
           </select>
         </div>
-        <div class="col-12 col-md-2">
+        <div class="col-12 col-md-4">
           <label class="form-label small fw-semibold text-muted">Cari Produk</label>
           <input type="text" class="form-control"
-            placeholder="Nama atau SKU"
+            placeholder="Nama atau SKU produk"
             [(ngModel)]="productQuery"
             (keyup.enter)="onFilter()"
             autocomplete="off" />
         </div>
-        <div class="col-12 col-md-2 d-flex align-items-end gap-2">
-          <button class="btn btn-primary flex-grow-1" (click)="onFilter()">
+        <div class="col-12 col-md-5">
+          <label class="form-label small fw-semibold text-muted">Cari Transaksi</label>
+          <input type="text" class="form-control"
+            placeholder="Invoice, nama pelanggan, atau catatan"
+            [(ngModel)]="searchText"
+            (keyup.enter)="onFilter()"
+            autocomplete="off" />
+        </div>
+        <div class="col-12 col-md-3 d-flex align-items-end gap-2">
+          <button class="btn btn-primary filter-btn flex-grow-1" (click)="onFilter()">
             <i class="bi bi-funnel me-1"></i>Filter
           </button>
-          <button class="btn btn-outline-secondary" (click)="resetFilter()">
+          <button class="btn btn-outline-secondary filter-btn filter-btn-icon" (click)="resetFilter()"
+            title="Reset filter" aria-label="Reset filter">
             <i class="bi bi-arrow-counterclockwise"></i>
           </button>
         </div>
@@ -127,6 +136,13 @@
     </div>
   </div>
 
+  <!-- Total hutang belum lunas (muncul saat filter status Hutang) -->
+  <div class="debt-banner mb-3" *ngIf="!isLoading && debtSummary">
+    <i class="bi bi-clock-history me-2" aria-hidden="true"></i>
+    <strong>{{ debtSummary.count }}</strong> hutang belum lunas
+    · Total sisa <strong>{{ debtSummary.totalRemaining | rupiah }}</strong>
+  </div>
+
   <!-- Table -->
   <div class="card border-0 shadow-sm">
     <div class="card-body p-0">
@@ -161,7 +177,11 @@
                   {{ tx.invoiceNumber }}
                 </a>
               </td>
-              <td>{{ tx.customerName || 'Umum' }}</td>
+              <td>
+                {{ tx.customerName || 'Umum' }}
+                <small *ngIf="tx.status === 'hutang' && getDebtNote(tx)" class="text-muted d-block debt-note"
+                  [title]="getDebtNote(tx)">{{ getDebtNote(tx) }}</small>
+              </td>
               <td>
                 <i class="bi {{ getPaymentIcon(tx.paymentMethod) }} me-1 text-primary"></i>
                 {{ tx.paymentMethod | titlecase }}
@@ -170,8 +190,14 @@
                 <span class="badge bg-light text-dark border">
                   {{ tx.items.length || 0 }} item
                 </span>
+                <small *ngIf="tx.status === 'hutang'" class="text-muted d-block items-summary"
+                  [title]="getItemsSummary(tx)">{{ getItemsSummary(tx) }}
+                </small>
               </td>
-              <td class="fw-semibold">{{ tx.grandTotal | rupiah }}</td>
+              <td class="fw-semibold">
+                {{ tx.grandTotal | rupiah }}
+                <small *ngIf="tx.status === 'hutang'" class="d-block debt-left">Sisa {{ getDebtRemaining(tx) | rupiah }}</small>
+              </td>
               <td>
                 <span class="badge" [ngClass]="getStatusClass(tx.status)">
                   {{ tx.status | titlecase }}

@@ -26,6 +26,8 @@ export class TransactionListComponent implements OnInit {
   dateTo = '';
   selectedStatus = '';
   productQuery = '';
+  searchText = '';
+  debtSummary: any = null;
   activeProduct = '';
   categories: any[] = [];
   selectedCategory = '';
@@ -82,12 +84,15 @@ export class TransactionListComponent implements OnInit {
     if (this.dateTo) params.endDate = this.dateTo;
     if (this.selectedStatus) params.status = this.selectedStatus;
     if (this.productQuery.trim()) params.product = this.productQuery.trim();
+    if (this.searchText.trim()) params.search = this.searchText.trim();
+    if (this.selectedStatus === 'hutang') params.sort = 'oldest';
     if (this.selectedCategory) params.category = this.selectedCategory;
 
     this.transactionService.getAll(params).subscribe({
       next: (res: any) => {
         this.transactions = res.data;
         this.productSummary = res.productSummary || null;
+        this.debtSummary = res.debtSummary || null;
         this.activeProduct = params.product || '';
         this.activeCategoryName = this.categories.find(c => c._id === params.category)?.name || '';
         this.totalItems = res.pagination?.total || res.data.length;
@@ -106,6 +111,7 @@ export class TransactionListComponent implements OnInit {
     this.dateTo = today;
     this.selectedStatus = '';
     this.productQuery = '';
+    this.searchText = '';
     this.selectedCategory = '';
     this.currentPage = 1;
     this.loadTransactions();
@@ -117,6 +123,7 @@ export class TransactionListComponent implements OnInit {
     this.dateFrom = '';
     this.dateTo = '';
     this.productQuery = '';
+    this.searchText = '';
     this.selectedCategory = '';
     this.currentPage = 1;
     this.loadTransactions();
@@ -190,6 +197,22 @@ export class TransactionListComponent implements OnInit {
   onCancelled() {
     this.showConfirm = false;
     this.confirmAction = null;
+  }
+
+  getDebtRemaining(tx: any): number {
+    return tx?.debtRemaining ?? 0;
+  }
+
+  // Catatan hutang tanpa awalan teknis "[Hutang tanpa pelanggan terdaftar]"
+  getDebtNote(tx: any): string {
+    return (tx?.notes || '').replace('[Hutang tanpa pelanggan terdaftar]', '').trim();
+  }
+
+  // Ringkasan barang, mis. "Aqua ×2, Chitato ×1 +3 lainnya"
+  getItemsSummary(tx: any): string {
+    const items: any[] = tx?.items || [];
+    const first = items.slice(0, 2).map(i => `${i.productName} ×${i.qty}`).join(', ');
+    return items.length > 2 ? `${first} +${items.length - 2} lainnya` : first;
   }
 
   getStatusClass(status: string): string {

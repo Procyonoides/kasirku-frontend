@@ -56,6 +56,10 @@ export class ReceiptService {
       }
     `;
 
+    // Hutang: struk menampilkan uang muka (kalau ada) dan jumlah hutangnya, bukan "pembayaran" penuh
+    const isDebtTx = transaction.paymentMethod === 'hutang';
+    const downPayment = transaction.downPayment || 0;
+    const debtAmount = Math.max(0, (transaction.grandTotal || 0) - downPayment);
     const items = transaction.items?.map((item: any) => `
       <tr>
         <td>
@@ -141,6 +145,22 @@ export class ReceiptService {
               <span>TOTAL</span>
               <span>Rp ${transaction.grandTotal?.toLocaleString('id-ID')}</span>
             </div>
+            ${isDebtTx ? `
+            ${downPayment > 0 ? `
+            <div class="summary-row">
+              <span>Dibayar sekarang</span>
+              <span>Rp ${downPayment.toLocaleString('id-ID')}</span>
+            </div>` : ''}
+            <div class="summary-row" style="font-weight:700">
+              <span>${transaction.status === 'selesai' ? 'Hutang saat transaksi' : (downPayment > 0 ? 'Sisa hutang' : 'HUTANG')}</span>
+              <span>Rp ${debtAmount.toLocaleString('id-ID')}</span>
+            </div>
+            ${transaction.status === 'selesai' ? `
+            <div class="summary-row change">
+              <span>Status</span>
+              <span>LUNAS</span>
+            </div>` : ''}
+            ` : `
             <div class="summary-row">
               <span>Pembayaran (${transaction.paymentMethod?.toUpperCase()})</span>
               <span>Rp ${transaction.amountPaid?.toLocaleString('id-ID')}</span>
@@ -148,8 +168,9 @@ export class ReceiptService {
             ${transaction.change > 0 ? `
             <div class="summary-row change">
               <span>Kembalian</span>
-              <span>Rp ${transaction.change?.toLocaleString('id-ID')}</span>
+              <span>${transaction.keptChange > 0 ? 'Kembalian (tidak diambil)' : 'Kembalian'}</span>
             </div>` : ''}
+            `}
           </div>
 
           <!-- Footer -->

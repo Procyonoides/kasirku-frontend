@@ -297,7 +297,29 @@
         <div *ngIf="paymentMethod === 'hutang' && !selectedCustomer"
           class="alert alert-warning py-2 small mt-2 mb-0"
           role="alert">
-          <i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>Tanpa pelanggan terdaftar? Isi nama penghutang di kolom Catatan di bawah.
+          <i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>Pelanggan belum terdaftar? Isi nama atau ciri-ciri di kolom Catatan supaya mudah dicari saat dia membayar.
+        </div>
+
+        <!-- Hutang sebagian: uang muka -->
+        <div *ngIf="paymentMethod === 'hutang'" class="mt-2">
+          <span class="summary-label">
+            <i class="bi bi-cash-stack me-1" aria-hidden="true"></i>Dibayar Sekarang (opsional)
+          </span>
+          <div class="input-group input-group-sm">
+            <span class="input-group-text">Rp</span>
+            <input type="number" class="form-control" [(ngModel)]="downPayment"
+              min="0" placeholder="0 = hutang penuh"
+              (focus)="downPayment === 0 ? downPayment = null! : null"
+              (blur)="downPayment = downPayment || 0"
+              [class.is-invalid]="isDownPaymentInvalid"
+              aria-label="Uang muka yang dibayar sekarang" />
+          </div>
+          <div *ngIf="isDownPaymentInvalid" class="small text-danger mt-1">
+            Harus kurang dari total. Untuk bayar penuh, pilih Tunai.
+          </div>
+          <div *ngIf="!isDownPaymentInvalid && downPayment > 0" class="small mt-1">
+            Sisa hutang: <strong class="text-warning">{{ debtRemaining | rupiah }}</strong>
+          </div>
         </div>
       </div>
 
@@ -397,6 +419,15 @@
             <i class="bi bi-arrow-return-left me-1" aria-hidden="true"></i>Kembalian
           </span>
           <span class="change-amount">{{ change | rupiah }}</span>
+        </div>
+        <div *ngIf="canKeepChange" class="form-check mt-2">
+          <input class="form-check-input" type="checkbox" id="keepChange"
+            [checked]="isKeepChange"
+            (change)="toggleKeepChange($any($event.target).checked)" />
+          <label class="form-check-label small" for="keepChange">
+            Kembalian tidak diambil
+            <span class="text-muted">(dicatat sebagai pemasukan lain)</span>
+          </label>
         </div>
       </div>
 

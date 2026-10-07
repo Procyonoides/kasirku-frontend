@@ -31,6 +31,7 @@ interface HeldCart {
   pointsUsed: number;
   maxPoints: number;
   usePoints: boolean;
+  downPayment?: number;
 }
 
 @Component({
@@ -64,6 +65,8 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   paymentMethod = 'tunai';
   discount = 0;
   amountPaid = 0;
+  downPayment = 0;
+  keepChangeAmount = 0;
   notes = '';
   pointsUsed = 0;
   maxPoints = 0;
@@ -324,7 +327,8 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
       notes: this.notes,
       pointsUsed: this.pointsUsed,
       maxPoints: this.maxPoints,
-      usePoints: this.usePoints
+      usePoints: this.usePoints,
+      downPayment: this.downPayment
     };
   }
 
@@ -350,6 +354,7 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     this.pointsUsed = held.pointsUsed;
     this.maxPoints = held.maxPoints;
     this.usePoints = held.usePoints;
+    this.downPayment = held.downPayment || 0;
     this.editingPriceItem = null;
     this.tempCustomPrice = null;
     this.customerQuery = held.selectedCustomer ? held.selectedCustomer.name : '';
@@ -398,6 +403,8 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     this.customerResults = [];
     this.discount = 0;
     this.amountPaid = 0;
+    this.downPayment = 0;
+    this.keepChangeAmount = 0;
     this.notes = '';
     this.pointsUsed = 0;
     this.maxPoints = 0;
@@ -464,6 +471,21 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     return Math.max(0, this.subtotal - this.discount - this.pointsDiscount);
   }
 
+  // Kembalian hanya ada untuk pembayaran tunai
+  get canKeepChange(): boolean {
+    return this.paymentMethod === 'tunai' && this.change > 0;
+  }
+
+  // Tercentang hanya untuk nominal kembalian saat dicentang. Kalau uang diterima berubah
+  // sehingga kembaliannya berbeda, centang otomatis lepas (mencegah salah catat).
+  get isKeepChange(): boolean {
+    return this.canKeepChange && this.keepChangeAmount === this.change;
+  }
+
+  toggleKeepChange(checked: boolean) {
+    this.keepChangeAmount = checked ? this.change : 0;
+  }
+
   get change(): number {
     return Math.max(0, this.amountPaid - this.grandTotal);
   }
@@ -492,7 +514,19 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.cart.length === 0) return false;
     if (this.paymentMethod === 'hutang' && !this.selectedCustomer && !this.notes.trim()) return false;
     if (this.paymentMethod === 'tunai' && this.amountPaid < this.grandTotal) return false;
+    if (this.paymentMethod === 'hutang' && this.isDownPaymentInvalid) return false;
     return true;
+  }
+
+  // Uang muka valid kalau kosong/0, atau lebih dari 0 tapi kurang dari total
+  get isDownPaymentInvalid(): boolean {
+    const dp = Number(this.downPayment) || 0;
+    return dp < 0 || (dp > 0 && dp >= this.grandTotal);
+  }
+
+  // Sisa yang benar-benar jadi hutang setelah uang muka
+  get debtRemaining(): number {
+    return Math.max(0, this.grandTotal - (Number(this.downPayment) || 0));
   }
 
   getPrice(item: CartItem): number {
@@ -564,6 +598,14 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     };
     if (this.selectedCustomer?._id) {
       payload.customerId = this.selectedCustomer._id;
+    }
+
+    if (this.paymentMethod === 'hutang' && Number(this.downPayment) > 0) {
+      payload.downPayment = Number(this.downPayment);
+    }
+
+    if (this.isKeepChange) {
+      payload.keepChange = true;
     }
 
     this.transactionService.create(payload).subscribe({
