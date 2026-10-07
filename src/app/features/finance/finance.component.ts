@@ -156,8 +156,15 @@ export class FinanceComponent implements OnInit {
     this.selectedRecord = null;
   }
 
+  // Penjualan dan Piutang Masuk dicatat otomatis dari kasir, jadi disembunyikan dari pilihan
+  // supaya tidak tercatat dobel. (Catatan lama berkategori itu tetap bisa diedit.)
+  private readonly autoCategories = ['penjualan', 'piutang_masuk'];
+
   get currentCategories(): { value: string, label: string }[] {
-    return this.formType === 'income' ? this.incomeCategories : this.expenseCategories;
+    if (this.formType !== 'income') return this.expenseCategories;
+    return this.incomeCategories.filter(
+      c => !this.autoCategories.includes(c.value) || c.value === this.formCategory
+    );
   }
 
   submitForm() {

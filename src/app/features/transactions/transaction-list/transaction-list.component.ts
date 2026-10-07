@@ -37,6 +37,7 @@ export class TransactionListComponent implements OnInit {
   pageSize = 20;
   totalPages = 1;
   totalItems = 0;
+  totalRevenue = 0;
 
   // Bayar hutang
   showPayDebt = false;
@@ -96,6 +97,7 @@ export class TransactionListComponent implements OnInit {
         this.activeProduct = params.product || '';
         this.activeCategoryName = this.categories.find(c => c._id === params.category)?.name || '';
         this.totalItems = res.pagination?.total || res.data.length;
+        this.totalRevenue = res.totalRevenue ?? 0;
         this.totalPages = res.pagination?.pages || 1;
         this.isLoading = false;
       },

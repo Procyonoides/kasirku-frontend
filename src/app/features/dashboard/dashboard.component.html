@@ -404,7 +404,7 @@
       </div>
     </div>
 
-        <!-- KAS MASUK HARI INI -->
+    <!-- KAS MASUK HARI INI -->
     <div class="row g-3 mb-3" *ngIf="dailyRecap?.cashIn">
       <div class="col-12">
         <div class="card border-0 shadow-sm">
@@ -428,6 +428,7 @@
                     <th class="text-end">Penjualan</th>
                     <th class="text-end">Uang Muka</th>
                     <th class="text-end">Cicilan Hutang</th>
+                    <th class="text-end">Pemasukan Lain</th>
                     <th class="text-end pe-4">Total</th>
                   </tr>
                 </thead>
@@ -437,6 +438,7 @@
                     <td class="text-end">{{ r.sales ? (r.sales | rupiah) : '-' }}</td>
                     <td class="text-end">{{ r.downPayment ? (r.downPayment | rupiah) : '-' }}</td>
                     <td class="text-end">{{ r.installments ? (r.installments | rupiah) : '-' }}</td>
+                    <td class="text-end">{{ r.otherIncome ? (r.otherIncome | rupiah) : '-' }}</td>
                     <td class="text-end fw-bold pe-4">{{ r.total | rupiah }}</td>
                   </tr>
                 </tbody>
@@ -446,13 +448,15 @@
                     <td class="text-end">{{ dailyRecap.cashIn.totals.sales | rupiah }}</td>
                     <td class="text-end">{{ dailyRecap.cashIn.totals.downPayment | rupiah }}</td>
                     <td class="text-end">{{ dailyRecap.cashIn.totals.installments | rupiah }}</td>
+                    <td class="text-end">{{ dailyRecap.cashIn.totals.otherIncome | rupiah }}</td>
                     <td class="text-end pe-4 text-success">{{ dailyRecap.cashIn.totals.total | rupiah }}</td>
                   </tr>
                 </tfoot>
               </table>
             </div>
             <small class="text-muted d-block px-4 py-2">
-              Uang muka dihitung tunai. Hutang yang belum dibayar tidak termasuk.
+              Uang muka dihitung tunai. Pemasukan lain berasal dari menu Keuangan (modal, pinjaman, kembalian tidak diambil, dll).
+              Hutang yang belum dibayar tidak termasuk.
             </small>
           </div>
         </div>
