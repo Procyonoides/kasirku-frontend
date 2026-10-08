@@ -4,18 +4,25 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TransactionService } from '../../../core/services/api.service';
 import { RupiahPipe } from '../../../shared/pipes';
 import { ReceiptService } from '../../../core/services/receipt.service';
+import { PayDebtModalComponent } from '../../../shared/components/pay-debt-modal/pay-debt-modal.component';
 
 
 @Component({
   selector: 'app-transaction-detail',
   standalone: true,
-  imports: [CommonModule, NgClass, RouterLink, RupiahPipe],
+  imports: [CommonModule, NgClass, RouterLink, RupiahPipe, PayDebtModalComponent],
   templateUrl: './transaction-detail.component.html',
   styleUrl: './transaction-detail.component.css'
 })
 export class TransactionDetailComponent implements OnInit {
   transaction: any = null;
   isLoading = true;
+
+  // Info hutang (hanya terisi kalau metode pembayarannya hutang)
+  debtInfo: any = null;
+  showPayDebt = false;
+
+  private transactionId = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -24,11 +31,51 @@ export class TransactionDetailComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    const id = this.route.snapshot.params['id'];
-    this.transactionService.getOne(id).subscribe({
-      next: (res) => { this.transaction = res.data; this.isLoading = false; },
+    this.transactionId = this.route.snapshot.params['id'];
+    this.loadTransaction();
+  }
+
+  private loadTransaction() {
+    this.transactionService.getOne(this.transactionId).subscribe({
+      next: (res) => {
+        this.transaction = res.data;
+        this.isLoading = false;
+        if (this.transaction.paymentMethod === 'hutang') {
+          this.loadDebtInfo();
+        }
+      },
       error: () => { this.isLoading = false; }
     });
+  }
+
+  private loadDebtInfo() {
+    this.transactionService.getDebtInfo(this.transactionId).subscribe({
+      next: (res) => { this.debtInfo = res.data; },
+      error: () => { this.debtInfo = null; }
+    });
+  }
+
+  // Tombol Bayar hanya muncul untuk hutang yang masih berjalan dan belum dibatalkan
+  get canPayDebt(): boolean {
+    return !!this.transaction
+      && this.transaction.isDebt
+      && this.transaction.status !== 'dibatalkan'
+      && !!this.debtInfo
+      && this.debtInfo.remaining > 0;
+  }
+
+  openPayDebt() {
+    this.showPayDebt = true;
+  }
+
+  closePayDebt() {
+    this.showPayDebt = false;
+  }
+
+  // Setelah pembayaran tercatat: tutup modal, lalu muat ulang status transaksi dan info hutang
+  onDebtPaid() {
+    this.showPayDebt = false;
+    this.loadTransaction();
   }
 
   getStatusClass(status: string): string {
