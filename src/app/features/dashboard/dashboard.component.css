@@ -71,7 +71,7 @@
 .stock-menipis { background: #fef9c3; color: #d97706; }
 
 /* Debt reminder list */
-.debt-item { transition: background 0.15s; }
+.debt-item { transition: background 0.15s; cursor: pointer; }
 .debt-item:hover { background: #f8fafc; }
 .debt-item:last-child { border-bottom: none !important; }
 .debt-item .fw-semibold { font-size: 14px !important; }
