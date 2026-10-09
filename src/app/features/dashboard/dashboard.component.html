@@ -283,9 +283,9 @@
               Piutang Perlu Ditagih
               <span class="badge bg-danger ms-2" [attr.aria-label]="debtReminders.count + ' hutang perlu ditagih'">{{ debtReminders.count }}</span>
             </h6>
-            <a routerLink="/customers" 
+            <a routerLink="/transactions" [queryParams]="{ status: 'hutang' }"
               class="btn btn-sm btn-outline-danger"
-              aria-label="Lihat semua pelanggan">Lihat Semua</a>
+              aria-label="Lihat semua hutang">Lihat Semua</a>
           </div>
           <div class="card-body p-0" role="list" aria-label="Daftar hutang jatuh tempo">
             <div *ngFor="let d of debtReminders.customers; let last = last" 
