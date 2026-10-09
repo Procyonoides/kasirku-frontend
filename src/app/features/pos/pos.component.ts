@@ -9,6 +9,7 @@ import { RupiahPipe } from '../../shared/pipes';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { ReceiptService } from '../../core/services/receipt.service';
 import { AuthService } from '../../core/auth/auth.service';
+import { ToastService } from '../../core/services/toast.service';
 
 interface CartItem {
   product: Product;
@@ -127,6 +128,7 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     public authService: AuthService,
     public router: Router,
     private categoryService: CategoryService,
+    private toastService: ToastService,
   ) {}
 
   ngOnInit() { 
@@ -242,6 +244,25 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
       this.isLoadingMore = true;
     }
 
+    // Tab Terlaris: ambil dari endpoint khusus (satu daftar saja, tanpa halaman berikutnya)
+    if (this.selectedCategory === 'terlaris') {
+      this.productSub?.unsubscribe();
+      this.productSub = this.productService.getTopSelling(this.pageSize).subscribe({
+        next: (res: any) => {
+          this.filteredProducts = res.data;
+          this.totalProducts = res.data.length;
+          this.hasMoreProducts = false;
+          this.isLoadingProducts = false;
+          this.isLoadingMore = false;
+        },
+        error: () => {
+          this.isLoadingProducts = false;
+          this.isLoadingMore = false;
+        }
+      });
+      return;
+    }
+
     const params: any = {
       page: this.productPage,
       limit: this.pageSize,
@@ -267,6 +288,52 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  // Muat ulang produk yang sudah tampil (mis. setelah checkout, untuk menyegarkan stok)
+  // tanpa spinner dan tanpa kembali ke atas
+  refreshProducts() {
+    if (this.selectedCategory === 'terlaris') {
+      this.productService.getTopSelling(this.pageSize).subscribe({
+        next: (res: any) => {
+          this.filteredProducts = res.data;
+          this.totalProducts = res.data.length;
+        }
+      });
+      return;
+    }
+
+    const loadedCount = this.filteredProducts.length;
+    const params: any = {
+      page: 1,
+      limit: Math.max(loadedCount, this.pageSize), // ambil sekaligus sebanyak yang sudah tampil
+      inStock: 'true'
+    };
+    if (this.searchQuery.trim()) params.search = this.searchQuery.trim();
+    if (this.selectedCategory) params.category = this.selectedCategory;
+
+    this.productSub?.unsubscribe();
+    this.productSub = this.productService.getAll(params).subscribe({
+      next: (res: any) => {
+        const total = res.pagination?.total ?? res.data.length;
+        const allLoaded = res.data.length >= total;
+
+        // Ada produk yang stoknya habis: urutan halaman bergeser, jadi muat ulang dari awal saja
+        if (!allLoaded && res.data.length !== loadedCount) {
+          this.loadProducts();
+          return;
+        }
+
+        this.filteredProducts = res.data;
+        this.totalProducts = total;
+        this.hasMoreProducts = !allLoaded;
+      }
+    });
+  }
+
+  // Dipakai ngFor: kartu produk yang sama dipakai ulang saat daftar disegarkan (posisi scroll terjaga)
+  trackById(index: number, product: Product) {
+    return product._id;
+  }
+
   loadMoreProducts() {
     if (!this.hasMoreProducts || this.isLoadingMore || this.isLoadingProducts) return;
     this.productPage++;
@@ -276,12 +343,40 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   // Dipanggil saat mengetik (tunggu 300ms) atau ganti kategori (langsung)
   filterProducts(immediate = false) {
     clearTimeout(this.searchTimer);
+    // Mengetik pencarian = mencari di semua produk, bukan hanya yang terlaris
+    if (!immediate && this.selectedCategory === 'terlaris') this.selectedCategory = '';
     if (this.productGridRef) this.productGridRef.nativeElement.scrollTop = 0;
     if (immediate) {
       this.loadProducts();
     } else {
       this.searchTimer = setTimeout(() => this.loadProducts(), 300);
     }
+  }
+
+  // Enter di kolom cari (mis. setelah scan barcode): langsung masukkan produk yang cocok ke keranjang
+  addFromSearch() {
+    const query = this.searchQuery.trim();
+    if (!query) return;
+    clearTimeout(this.searchTimer); // batalkan pencarian tertunda, kita cari sendiri di bawah
+
+    this.productService.getAll({ page: 1, limit: 5, inStock: 'true', search: query }).subscribe({
+      next: (res: any) => {
+        const products: Product[] = res.data || [];
+        const q = query.toLowerCase();
+        const exact = products.filter(p => p.barcode?.toLowerCase() === q || p.sku?.toLowerCase() === q);
+        const match = exact.length === 1 ? exact[0] : (products.length === 1 ? products[0] : null);
+
+        if (match) {
+          this.addToCart(match);
+          this.searchQuery = '';
+          this.loadProducts();
+        } else if (products.length === 0) {
+          this.toastService.warning('Produk tidak ditemukan', 'Periksa kode atau stoknya.');
+        } else {
+          this.toastService.info('Ada beberapa produk cocok', 'Pilih produknya dari daftar.');
+        }
+      }
+    });
   }
 
   addToCart(product: Product) {
@@ -626,7 +721,7 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
         this.lastTransaction = res.data;
         this.isSubmitting = false;
         this.resetCartState();
-        this.loadProducts();
+        this.refreshProducts();
       },
       error: (err) => {
         this.errorMsg = err?.error?.message || 'Transaksi gagal';

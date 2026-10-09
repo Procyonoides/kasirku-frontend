@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, NgClass } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TransactionService, CategoryService } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/auth/auth.service';
@@ -53,7 +53,8 @@ export class TransactionListComponent implements OnInit {
     private transactionService: TransactionService,
     private categoryService: CategoryService,
     public authService: AuthService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit() {
@@ -61,7 +62,12 @@ export class TransactionListComponent implements OnInit {
     this.dateFrom = today;
     this.dateTo = today;
     this.loadCategories();
-    this.loadTransactions();
+    // Dibuka dari tautan "Lihat Semua" di Dashboard: langsung tampilkan hutang
+    if (this.route.snapshot.queryParamMap.get('status') === 'hutang') {
+      this.showDebtOnly();
+    } else {
+      this.loadTransactions();
+    }
   }
 
   loadCategories() {
@@ -106,6 +112,31 @@ export class TransactionListComponent implements OnInit {
   }
 
   onFilter() { this.currentPage = 1; this.loadTransactions(); }
+
+  // Tanggal lokal format YYYY-MM-DD (toISOString memakai UTC, bisa mundur sehari di pagi hari WIB)
+  private localDate(d: Date): string {
+    return d.toLocaleDateString('en-CA');
+  }
+
+  // Tombol cepat rentang tanggal: hanya mengubah tanggal, filter lain dibiarkan
+  setDateRange(range: 'today' | 'month') {
+    const now = new Date();
+    this.dateTo = this.localDate(now);
+    this.dateFrom = range === 'today'
+      ? this.dateTo
+      : this.localDate(new Date(now.getFullYear(), now.getMonth(), 1));
+    this.onFilter();
+  }
+
+  // Rentang mana yang sedang aktif (untuk menyorot tombolnya)
+  get activeRange(): string {
+    const now = new Date();
+    const today = this.localDate(now);
+    const monthStart = this.localDate(new Date(now.getFullYear(), now.getMonth(), 1));
+    if (this.dateFrom === today && this.dateTo === today) return 'today';
+    if (this.dateFrom === monthStart && this.dateTo === today) return 'month';
+    return '';
+  }
 
   resetFilter() {
     const today = new Date().toISOString().split('T')[0];

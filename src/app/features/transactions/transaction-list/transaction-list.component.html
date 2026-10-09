@@ -38,6 +38,12 @@
   <!-- Filter -->
   <div class="card border-0 shadow-sm mb-4">
     <div class="card-body">
+      <div class="d-flex gap-2 mb-3">
+        <button type="button" class="btn btn-sm btn-outline-primary"
+          [class.active]="activeRange === 'today'" (click)="setDateRange('today')">Hari ini</button>
+        <button type="button" class="btn btn-sm btn-outline-primary"
+          [class.active]="activeRange === 'month'" (click)="setDateRange('month')">Bulan ini</button>
+      </div>
       <div class="row g-3">
         <div class="col-12 col-md-3">
           <label class="form-label small fw-semibold text-muted">Dari Tanggal</label>

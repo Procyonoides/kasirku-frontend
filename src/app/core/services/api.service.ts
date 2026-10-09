@@ -62,6 +62,9 @@ export class ProductService {
   getLowStock(): Observable<ApiResponse<Product[]>> {
     return this.http.get<ApiResponse<Product[]>>(`${this.url}/low-stock`);
   }
+  getTopSelling(limit = 30): Observable<ApiResponse<Product[]>> {
+    return this.http.get<ApiResponse<Product[]>>(`${this.url}/top-selling`, { params: { limit } });
+  }
   getOne(id: string): Observable<ApiResponse<Product>> {
     return this.http.get<ApiResponse<Product>>(`${this.url}/${id}`);
   }

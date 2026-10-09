@@ -15,6 +15,7 @@
           placeholder="Cari produk atau SKU... (F2)"
           [(ngModel)]="searchQuery"
           (input)="filterProducts()"
+          (keyup.enter)="addFromSearch()"
           aria-label="Cari produk atau SKU"
           autocomplete="off" />
       </div>
@@ -30,6 +31,16 @@
         type="button">
         <i class="bi bi-grid-3x3-gap me-1" aria-hidden="true"></i>Semua
       </button>
+
+      <button class="cat-tab"
+        [class.active]="selectedCategory === 'terlaris'"
+        (click)="selectedCategory = 'terlaris'; filterProducts(true)"
+        role="tab"
+        [attr.aria-selected]="selectedCategory === 'terlaris'"
+        type="button">
+        <i class="bi bi-fire me-1" aria-hidden="true"></i>Terlaris
+      </button>
+
       <button *ngFor="let cat of categories" 
         class="cat-tab"
         [class.active]="selectedCategory === cat._id"
@@ -40,6 +51,12 @@
         type="button">
         {{ cat.name }}
       </button>
+    </div>
+
+    <!-- Info jumlah produk -->
+    <div *ngIf="!isLoadingProducts && filteredProducts.length > 0" class="small text-muted px-1" role="status">
+      Menampilkan {{ filteredProducts.length }} dari {{ totalProducts }} produk
+      <span *ngIf="hasMoreProducts"> · gulir ke bawah untuk memuat lebih banyak</span>
     </div>
 
     <!-- Product Grid -->
@@ -63,7 +80,7 @@
         Produk tidak ditemukan
       </div>
 
-      <button *ngFor="let p of filteredProducts"
+      <button *ngFor="let p of filteredProducts; trackBy: trackById"
         class="product-card"
         (click)="addToCart(p)"
         role="listitem"
