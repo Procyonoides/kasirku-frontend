@@ -32,6 +32,7 @@ interface HeldCart {
   maxPoints: number;
   usePoints: boolean;
   downPayment?: number;
+  downPaymentMethod?: string;
 }
 
 @Component({
@@ -66,6 +67,7 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   discount = 0;
   amountPaid = 0;
   downPayment = 0;
+  downPaymentMethod = 'tunai';
   keepChangeAmount = 0;
   notes = '';
   pointsUsed = 0;
@@ -111,6 +113,11 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     { value: 'kartu_debit', label: 'Kartu Debit', icon: 'bi-credit-card' },
     { value: 'hutang', label: 'Hutang', icon: 'bi-clock-history' },
   ];
+
+  // Metode untuk uang muka: sama seperti pembayaran biasa, tanpa Hutang
+  get downPaymentMethods() {
+    return this.paymentMethods.filter(pm => pm.value !== 'hutang');
+  }
 
   constructor(
     private productService: ProductService,
@@ -328,7 +335,8 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
       pointsUsed: this.pointsUsed,
       maxPoints: this.maxPoints,
       usePoints: this.usePoints,
-      downPayment: this.downPayment
+      downPayment: this.downPayment,
+      downPaymentMethod: this.downPaymentMethod
     };
   }
 
@@ -355,6 +363,7 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     this.maxPoints = held.maxPoints;
     this.usePoints = held.usePoints;
     this.downPayment = held.downPayment || 0;
+    this.downPaymentMethod = held.downPaymentMethod || 'tunai';
     this.editingPriceItem = null;
     this.tempCustomPrice = null;
     this.customerQuery = held.selectedCustomer ? held.selectedCustomer.name : '';
@@ -404,6 +413,7 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     this.discount = 0;
     this.amountPaid = 0;
     this.downPayment = 0;
+    this.downPaymentMethod = 'tunai';
     this.keepChangeAmount = 0;
     this.notes = '';
     this.pointsUsed = 0;
@@ -602,6 +612,7 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (this.paymentMethod === 'hutang' && Number(this.downPayment) > 0) {
       payload.downPayment = Number(this.downPayment);
+      payload.downPaymentMethod = this.downPaymentMethod;
     }
 
     if (this.isKeepChange) {

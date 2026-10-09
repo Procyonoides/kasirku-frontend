@@ -59,6 +59,7 @@ export class ReceiptService {
     // Hutang: struk menampilkan uang muka (kalau ada) dan jumlah hutangnya, bukan "pembayaran" penuh
     const isDebtTx = transaction.paymentMethod === 'hutang';
     const downPayment = transaction.downPayment || 0;
+    const downPaymentMethod = (transaction.downPaymentMethod || 'tunai').toUpperCase().replace('_', ' ');
     const debtAmount = Math.max(0, (transaction.grandTotal || 0) - downPayment);
     const items = transaction.items?.map((item: any) => `
       <tr>
@@ -148,7 +149,7 @@ export class ReceiptService {
             ${isDebtTx ? `
             ${downPayment > 0 ? `
             <div class="summary-row">
-              <span>Dibayar sekarang</span>
+              <span>Dibayar sekarang (${downPaymentMethod})</span>
               <span>Rp ${downPayment.toLocaleString('id-ID')}</span>
             </div>` : ''}
             <div class="summary-row" style="font-weight:700">

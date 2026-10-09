@@ -99,6 +99,18 @@ export class TransactionDetailComponent implements OnInit {
     return map[method] || 'bi-cash';
   }
 
+  getMethodLabel(method: string): string {
+    const map: Record<string, string> = {
+      tunai: 'Tunai',
+      transfer: 'Transfer',
+      qris: 'QRIS',
+      hutang: 'Hutang',
+      kartu_debit: 'Kartu Debit',
+      kartu_kredit: 'Kartu Kredit'
+    };
+    return map[method] || method;
+  }
+
   printReceipt() {
     if (!this.transaction) return;
     this.receiptService.printReceipt(this.transaction);

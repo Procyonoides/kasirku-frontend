@@ -314,6 +314,10 @@
               [class.is-invalid]="isDownPaymentInvalid"
               aria-label="Uang muka yang dibayar sekarang" />
           </div>
+          <select *ngIf="downPayment > 0" class="form-select form-select-sm mt-1"
+            [(ngModel)]="downPaymentMethod" aria-label="Metode pembayaran uang muka">
+            <option *ngFor="let pm of downPaymentMethods" [value]="pm.value">Dibayar via {{ pm.label }}</option>
+          </select>
           <div *ngIf="isDownPaymentInvalid" class="small text-danger mt-1">
             Harus kurang dari total. Untuk bayar penuh, pilih Tunai.
           </div>

@@ -95,14 +95,14 @@
                 <tbody>
                   <tr *ngIf="debtInfo.downPayment > 0">
                     <td class="ps-4">{{ transaction.createdAt | date:'dd MMM yyyy HH:mm' }}</td>
-                    <td>Tunai</td>
+                    <td>{{ getMethodLabel(transaction.downPaymentMethod || 'tunai') }}</td>
                     <td>{{ transaction.cashier?.name || '-' }}</td>
                     <td class="text-muted small">Uang muka</td>
                     <td class="text-end pe-4 fw-semibold">{{ debtInfo.downPayment | rupiah }}</td>
                   </tr>
                   <tr *ngFor="let p of debtInfo.payments">
                     <td class="ps-4">{{ p.createdAt | date:'dd MMM yyyy HH:mm' }}</td>
-                    <td>{{ p.paymentMethod | titlecase }}</td>
+                    <td>{{ getMethodLabel(p.paymentMethod) }}</td>
                     <td>{{ p.recordedBy?.name || '-' }}</td>
                     <td class="text-muted small">{{ p.notes || '-' }}</td>
                     <td class="text-end pe-4 fw-semibold">{{ p.amountPaid | rupiah }}</td>
