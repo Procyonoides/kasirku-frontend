@@ -43,6 +43,15 @@ export class SettingsComponent implements OnInit {
   restoreError = '';
   restoreSuccess = '';
 
+  // Simpan backup ke folder di komputer server
+  backupDir = '';
+  savedBackupDir = '';
+  backupDirError = '';
+  isSavingDir = false;
+  isSavingToFolder = false;
+  lastSavedBackup: { folder: string; fileName: string; path: string; size: number } | null = null;
+  backupList: { folder: string; exists: boolean; files: { fileName: string; size: number; modifiedAt: string }[] } | null = null;
+
   constructor(
     private fb: FormBuilder,
     public authService: AuthService,
@@ -84,6 +93,8 @@ export class SettingsComponent implements OnInit {
     this.settingService.get().subscribe({
       next: (res) => {
         this.storeForm.patchValue(res.data);
+        this.backupDir = res.data.backupDir || '';
+        this.savedBackupDir = this.backupDir;
       }
     });
   }
@@ -184,6 +195,70 @@ export class SettingsComponent implements OnInit {
     });
   }
 
+    // True kalau isi kolom folder berbeda dari yang tersimpan di server
+  get backupDirChanged(): boolean {
+    return this.backupDir.trim() !== this.savedBackupDir;
+  }
+
+  // Folder harus lokasi lengkap di komputer server, mis. D:\Backup KasirKu (atau alamat jaringan \\server\folder)
+  private isValidBackupDir(dir: string): boolean {
+    return /^[A-Za-z]:\\/.test(dir) || dir.startsWith('\\\\');
+  }
+
+  loadBackupList() {
+    this.http.get<any>(`${environment.apiUrl}/backup/list`).subscribe({
+      next: (res) => { this.backupList = res.data; },
+      error: () => { this.backupList = null; }
+    });
+  }
+
+  saveBackupDir() {
+    const dir = this.backupDir.trim();
+    if (!this.isValidBackupDir(dir)) {
+      this.backupDirError = 'Isi dengan lokasi lengkap, contoh: D:\\Backup KasirKu';
+      return;
+    }
+    this.backupDirError = '';
+    this.isSavingDir = true;
+
+    this.settingService.update({ backupDir: dir }).subscribe({
+      next: () => {
+        this.backupDir = dir;
+        this.savedBackupDir = dir;
+        this.isSavingDir = false;
+        this.toastService.success('Folder disimpan', dir);
+        this.loadBackupList();
+      },
+      error: () => {
+        this.isSavingDir = false;
+        this.toastService.error('Gagal menyimpan folder');
+      }
+    });
+  }
+
+  saveBackupToFolder() {
+    this.isSavingToFolder = true;
+    this.lastSavedBackup = null;
+
+    this.http.post<any>(`${environment.apiUrl}/backup/save`, {}).subscribe({
+      next: (res) => {
+        this.isSavingToFolder = false;
+        this.lastSavedBackup = res.data;
+        this.toastService.success('Backup tersimpan', res.data.fileName);
+        this.loadBackupList();
+      },
+      error: (err) => {
+        this.isSavingToFolder = false;
+        this.toastService.error('Backup gagal', err?.error?.message || 'Terjadi kesalahan');
+      }
+    });
+  }
+
+  formatSize(bytes: number): string {
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+  
   onRestoreFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {

@@ -36,7 +36,7 @@
             </button>
             <button *ngIf="authService.hasRole('owner')"
               class="settings-menu-item" [class.active]="activeTab === 'backup'"
-              (click)="activeTab = 'backup'">
+              (click)="activeTab = 'backup'; loadBackupList()">
               <i class="bi bi-database"></i>
               <span>Backup & Restore</span>
             </button>
@@ -305,13 +305,76 @@
             <div class="card border-0 shadow-sm mb-4">
               <div class="card-header bg-white py-3">
                 <h6 class="fw-bold mb-0">
+                  <i class="bi bi-folder-check me-2 text-primary"></i>Simpan Backup ke Folder
+                </h6>
+              </div>
+              <div class="card-body">
+                <p class="text-muted small mb-3">
+                  Backup disimpan langsung di komputer server (komputer yang menjalankan KasirKu),
+                  di folder yang kamu pilih.
+                </p>
+
+                <label class="form-label fw-semibold">Folder tujuan</label>
+                <div class="input-group mb-1">
+                  <input type="text" class="form-control" [(ngModel)]="backupDir"
+                    placeholder="D:\Backup KasirKu" [class.is-invalid]="!!backupDirError"
+                    (keyup.enter)="saveBackupDir()" />
+                  <button class="btn btn-outline-primary" (click)="saveBackupDir()"
+                    [disabled]="isSavingDir || !backupDirChanged">
+                    <span *ngIf="isSavingDir" class="spinner-border spinner-border-sm me-1"></span>Simpan Folder
+                  </button>
+                </div>
+                <div class="text-danger small mb-1" *ngIf="backupDirError">{{ backupDirError }}</div>
+                <div class="form-text mb-3">Folder dibuat otomatis kalau belum ada.</div>
+
+                <button class="btn btn-primary" (click)="saveBackupToFolder()"
+                  [disabled]="isSavingToFolder || backupDirChanged">
+                  <span *ngIf="isSavingToFolder" class="spinner-border spinner-border-sm me-2"></span>
+                  <i *ngIf="!isSavingToFolder" class="bi bi-save me-2"></i>
+                  {{ isSavingToFolder ? 'Memproses...' : 'Backup Sekarang' }}
+                </button>
+                <span class="text-muted small ms-2" *ngIf="backupDirChanged">Simpan folder dulu.</span>
+
+                <div *ngIf="lastSavedBackup" class="alert alert-success small mt-3 mb-0">
+                  <i class="bi bi-check-circle me-1"></i>Tersimpan di:
+                  <code>{{ lastSavedBackup.path }}</code> ({{ formatSize(lastSavedBackup.size) }})
+                </div>
+
+                <div class="mt-4" *ngIf="backupList">
+                  <div class="fw-semibold small mb-2">Backup di folder ini</div>
+                  <div *ngIf="!backupList.exists" class="text-muted small">
+                    Folder belum ada. Akan dibuat saat backup pertama.
+                  </div>
+                  <div *ngIf="backupList.exists && backupList.files.length === 0" class="text-muted small">
+                    Belum ada file backup.
+                  </div>
+                  <div class="table-responsive" *ngIf="backupList.files.length > 0">
+                    <table class="table table-sm align-middle mb-0">
+                      <thead class="table-light">
+                        <tr><th>File</th><th>Waktu</th><th class="text-end">Ukuran</th></tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let f of backupList.files">
+                          <td>{{ f.fileName }}</td>
+                          <td>{{ f.modifiedAt | date:'dd MMM yyyy HH:mm' }}</td>
+                          <td class="text-end">{{ formatSize(f.size) }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card border-0 shadow-sm mb-4">
+              <div class="card-header bg-white py-3">
+                <h6 class="fw-bold mb-0">
                   <i class="bi bi-database-down me-2 text-primary"></i>Backup Database
                 </h6>
               </div>
               <div class="card-body">
                 <p class="text-muted small mb-3">
-                  Download semua data aplikasi sebagai file backup (.zip). 
-                  Simpan file ini di tempat yang aman.
+                  Download semua data aplikasi sebagai file backup (.zip) lewat browser.
+                  File masuk ke folder Download browser, bukan ke folder di atas.
                 </p>
                 <button class="btn btn-primary" (click)="downloadBackup()" [disabled]="isBackingUp">
                   <span *ngIf="isBackingUp" class="spinner-border spinner-border-sm me-2"></span>

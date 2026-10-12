@@ -382,7 +382,10 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   addToCart(product: Product) {
     const existing = this.cart.find(i => i.product._id === product._id);
     if (existing) {
-      if (existing.quantity >= product.stock) return;
+      if (existing.quantity >= product.stock) {
+        this.toastService.warning('Stok tidak cukup', `Stok ${product.name} hanya ${product.stock}.`);
+        return;
+      }
       existing.quantity++;
       existing.subtotal = existing.quantity * this.getPrice(existing);
     } else {

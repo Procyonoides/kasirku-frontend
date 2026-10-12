@@ -108,10 +108,7 @@ export class FinanceComponent implements OnInit {
     if (this.dateTo) params.endDate = this.dateTo;
 
     this.financeService.getSummary(params).subscribe({
-      next: (res) => { 
-        console.log('summary:', res.data); // tambah ini
-        this.summary = res.data; 
-      }
+      next: (res) => { this.summary = res.data; }
     });
   }
 
