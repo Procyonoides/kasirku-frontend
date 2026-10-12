@@ -26,7 +26,9 @@ Aplikasi kasir (POS) full-stack untuk toko kecil.
 
 ## 2. Cara bekerja yang disukai pengguna
 
-- Bahasa: **Indonesia**.
+- Bahasa: **Indonesia santai**: pakai "kamu" (bukan "Anda"), istilah teknis tetap bahasa Inggris (browser, error, dark mode, commit, dll),
+  jangan pakai padanan kaku seperti "peramban" atau "galat". Pengguna minta dipanggil **boss** (di settings akunnya sudah diisi, tapi di satu chat
+  panjang field itu tidak sampai ke asisten, jadi cek/ingatkan di awal chat).
 - Pekerjaan coding dipandu **satu langkah per giliran** (jangan scaffold semuanya sekaligus).
 - **Format petunjuk edit (diubah 9 Okt 2026):** per file, tunjukkan **bagian yang dicari** ("Cari ..."), lalu **penggantinya**
   ("Ganti dengan ..."), disertai penjelasan singkat apa fungsinya dan hasil yang akan terlihat, supaya pengguna sekalian belajar.
@@ -68,6 +70,8 @@ Aplikasi kasir (POS) full-stack untuk toko kecil.
 - `shared/components/` `pagination`, `pay-debt-modal`, `confirm-dialog`, `loading-spinner`
 - `core/services/` `api.service.ts` (semua service HTTP), `receipt.service.ts` (cetak struk), `toast.service.ts`, auth
 - Gaya modal kustom (`modal-custom`, `modal-backdrop-custom`) ada di `src/styles.css` (global, mendukung tema gelap).
+- **Dark mode:** `ThemeService` memasang `data-theme="dark"` di `<html>` (disimpan di `localStorage`). Variabel warna (`--bg-card`, `--text-primary`,
+  `--text-secondary`, `--border-color`, `--bg-input`, `--accent`) dan semua aturan `[data-theme="dark"] ...` ada di `src/styles.css`, **bukan** di CSS komponen.
 - Aturan global `.btn { font-size: 14px }` membuat tombol lebih pendek dari kolom isian; halaman Transaksi memakai
   `.filter-btn` untuk menyamakan tinggi.
 
@@ -200,6 +204,12 @@ Aplikasi kasir (POS) full-stack untuk toko kecil.
 (nama, waktu, ukuran). Kartu "Download Backup" lama tetap ada dengan teks yang dijelaskan ulang. Pengguna melaporkan fitur ini **sudah berjalan**.
 Detail di bagian 4.
 
+**Dark mode (perbaikan, 12 Okt 2026):** audit lewat kode (bukan screenshot) menemukan 4 tempat teks nyaris tak terbaca (kontras 1,0 sampai 1,4;
+batas nyaman 4,5): `.form-label` di form produk, `.grand-total` (baris TOTAL/SISA) di detail transaksi, badge `bg-light text-dark` di daftar dan
+detail Transaksi, dan hover `.debt-item` di kartu piutang Dashboard. Semuanya diperbaiki dengan blok aturan di **akhir `src/styles.css`**.
+Ikut dikerjakan: dialog konfirmasi (`.confirm-*`, termasuk lingkaran ikon), tab Laporan (`.report-tab`), tombol uang cepat / input & tombol edit harga /
+chip transaksi ditahan / badge stok di kasir, dan toast. Mode terang tidak berubah (semua aturan hanya aktif di `data-theme="dark"`).
+
 **Skrip bantu (jalankan dari folder `kasirku-backend`)**
 - `node src/utils/addProducts.js 100` (tambah produk dummy, SKU `DUMMY-xxxxx`), opsi `--dry` untuk pratinjau,
   `node src/utils/addProducts.js hapus` untuk menghapus produk dummy. **Produk dummy di komputer A sengaja dibiarkan.**
@@ -225,7 +235,8 @@ Item 1 sampai 4 dari daftar lama (detail transaksi, pengingat hutang tanpa nama,
    restore memakai `fetch` biasa (tidak ikut pembaruan token otomatis), belum ada pembersihan backup lama (mis. simpan N terakhir).
 4. **Status git:** perubahan 9 Oktober sudah di-commit dan di-push (backend sampai `31c2c7b`, frontend sampai `b25a2c4`).
    Fitur **backup ke folder** (backend: model Setting, `backup.controller.js`, `backup.routes.js`; frontend: halaman Pengaturan)
-   dibuat setelahnya dan perlu di-commit/push (cek `git status`), lalu `git pull` di komputer B.
+   dibuat setelahnya; kalau belum di-commit/push, lakukan (cek `git status`). Perbaikan **dark mode** (hanya `src/styles.css` di frontend) dibuat setelah itu.
+   Setelah semuanya ter-push, `git pull` di komputer B (dan build ulang frontend kalau dilayani nginx dalam mode produksi).
 
 ## 7. Hal yang perlu diwaspadai
 
@@ -240,6 +251,13 @@ Item 1 sampai 4 dari daftar lama (detail transaksi, pengingat hutang tanpa nama,
 - Folder backup ada di komputer server (B). Kalau aplikasi dibuka dari perangkat lain, file tetap tersimpan di B.
 - Catatan alat: saat menguji kode backend di sandbox (Linux), memuat `backup.controller.js` membuat folder literal bernama
   `C:\kasirku-temp-backup` di folder kerja; itu hanya efek sandbox dan tidak boleh ikut di-commit.
+- **Dark mode, cara menambah aturan baru:** aturan dark di `styles.css` memakai `!important` (konvensi yang sudah ada, ±140 tempat) karena CSS komponen
+  punya kekhususan yang sama dan dimuat belakangan, jadi tanpa itu aturan komponen menang. Untuk elemen dengan state (hover/aktif), tulis aturan dark
+  terpisah dan pakai `:not(.active)` / `:not(.exact)` supaya state itu tidak ikut tertimpa. Setiap komponen baru yang memakai warna literal terang
+  (`#fff`, `#f8fafc`, dll) atau teks gelap (`#1e3a5f`, `#374151`, dll) perlu aturan dark, dan hindari `text-dark` pada badge `bg-light`.
+- **Dark mode belum dikonfirmasi lewat layar:** perbaikannya lolos build, tapi diaudit dari kode dan perhitungan kontras. Yang sengaja dibiarkan:
+  halaman login (desain terang), dan kotak pastel kecil yang tetap terbaca (preview laba di form produk `.profit-positive/negative`, ikon `.debt-warning/.debt-urgent`,
+  `.image-dropzone:hover`). Minta screenshot kalau ada halaman yang masih terlihat janggal.
 - Scanner barcode diasumsikan mengirim Enter di akhir. Kalau scanner pengguna tidak, perlu penyesuaian.
 - Hutang lama yang pernah dicicil sebelum perbaikan cicilan bisa punya status tidak sinkron (total cicilan sudah penuh
   tetapi status masih "hutang"). Belum ada alat perbaikannya. Di detail transaksi, sisanya tampil Rp 0 dan tombol Bayar tidak muncul.

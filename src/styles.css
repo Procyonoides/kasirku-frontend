@@ -645,3 +645,102 @@ input[type="number"]::-webkit-inner-spin-button {
 input[type="number"] {
   -moz-appearance: textfield;
 }
+
+
+/* ══════════════════════════════════════════════
+   DARK MODE: perbaikan teks yang tidak terbaca
+══════════════════════════════════════════════ */
+[data-theme="dark"] .form-label { color: var(--text-secondary) !important; }
+[data-theme="dark"] .grand-total {
+  color: var(--text-primary) !important;
+  border-top-color: var(--border-color) !important;
+}
+[data-theme="dark"] .badge.bg-light.text-dark {
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+[data-theme="dark"] .debt-item:hover { background: #293548 !important; }
+
+
+/* Dark mode: dialog konfirmasi (hapus, batalkan, dll) */
+[data-theme="dark"] .confirm-dialog {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border-color);
+}
+[data-theme="dark"] .confirm-title   { color: var(--text-primary) !important; }
+[data-theme="dark"] .confirm-message { color: var(--text-secondary) !important; }
+[data-theme="dark"] .confirm-icon.icon-danger  { background: rgba(220, 38, 38, 0.18) !important; color: #f87171 !important; }
+[data-theme="dark"] .confirm-icon.icon-warning { background: rgba(217, 119, 6, 0.18) !important; color: #fbbf24 !important; }
+[data-theme="dark"] .confirm-icon.icon-primary { background: rgba(37, 99, 235, 0.22) !important; color: #60a5fa !important; }
+
+
+/* Dark mode: kotak-kotak yang tadinya putih (tab Laporan, kasir, toast) */
+[data-theme="dark"] .report-tab:not(.active) {
+  background: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-secondary) !important;
+}
+[data-theme="dark"] .report-tab:not(.active):hover {
+  border-color: var(--accent) !important;
+  color: #60a5fa !important;
+}
+
+[data-theme="dark"] .quick-cash-btn:not(.exact) {
+  background: var(--bg-input) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+[data-theme="dark"] .quick-cash-btn:not(.exact):hover {
+  border-color: var(--accent) !important;
+  color: #60a5fa !important;
+}
+[data-theme="dark"] .quick-cash-btn.exact {
+  background: rgba(22, 163, 74, 0.15) !important;
+  border-color: #16a34a !important;
+  color: #4ade80 !important;
+}
+[data-theme="dark"] .quick-cash-btn.exact:hover {
+  background: #16a34a !important;
+  color: white !important;
+}
+
+[data-theme="dark"] .price-input {
+  background: var(--bg-input) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--accent) !important;
+}
+[data-theme="dark"] .btn-confirm-price,
+[data-theme="dark"] .btn-cancel-price {
+  background: var(--bg-input) !important;
+  border-color: var(--border-color) !important;
+}
+[data-theme="dark"] .btn-confirm-price:hover { background: #16a34a !important; border-color: #16a34a !important; }
+[data-theme="dark"] .btn-cancel-price:hover  { background: #dc2626 !important; border-color: #dc2626 !important; }
+[data-theme="dark"] .btn-edit-price:hover    { background: rgba(37, 99, 235, 0.2) !important; }
+[data-theme="dark"] .btn-reset-price:hover   { background: rgba(217, 119, 6, 0.2) !important; }
+
+[data-theme="dark"] .held-cart-chip {
+  background: rgba(245, 158, 11, 0.12) !important;
+  border-color: rgba(245, 158, 11, 0.4) !important;
+}
+[data-theme="dark"] .held-cart-chip:hover {
+  background: rgba(245, 158, 11, 0.2) !important;
+  border-color: #f59e0b !important;
+}
+[data-theme="dark"] .held-chip-label { color: #fcd34d !important; }
+[data-theme="dark"] .held-chip-detail,
+[data-theme="dark"] .held-chip-remove { color: #fbbf24 !important; }
+[data-theme="dark"] .held-chip-remove:hover { color: #f87171 !important; }
+[data-theme="dark"] .held-carts-row::-webkit-scrollbar-thumb { background: var(--border-color) !important; }
+[data-theme="dark"] .product-card-stock-badge {
+  background: rgba(217, 119, 6, 0.25) !important;
+  color: #fbbf24 !important;
+}
+
+[data-theme="dark"] .toast-success { background: #0f2a1d !important; border-color: #14532d !important; }
+[data-theme="dark"] .toast-error   { background: #2a1215 !important; border-color: #7f1d1d !important; }
+[data-theme="dark"] .toast-warning { background: #2a2110 !important; border-color: #78350f !important; }
+[data-theme="dark"] .toast-info    { background: #0f1f3a !important; border-color: #1e3a8a !important; }
+[data-theme="dark"] .toast-title   { color: var(--text-primary) !important; }
+[data-theme="dark"] .toast-message { color: var(--text-secondary) !important; }
+[data-theme="dark"] .toast-close:hover { color: var(--text-primary) !important; }
