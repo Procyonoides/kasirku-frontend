@@ -1,7 +1,7 @@
 # KasirKu — Catatan Progres & Serah Terima
 
 Dokumen ini dibuat supaya pekerjaan bisa dilanjutkan di chat baru tanpa kehilangan konteks.
-Kondisi per **9 Oktober 2026**.
+Kondisi per **12 Oktober 2026**.
 
 ## 1. Gambaran proyek
 
@@ -142,6 +142,22 @@ Aplikasi kasir (POS) full-stack untuk toko kecil.
   tidak dihitung, **hutang dihitung sebagai terjual** (barang sudah keluar). Hanya produk aktif dan berstok.
 - Ukurannya **jumlah terjual**, bukan omzet, jadi berbeda dari aturan "omzet saat lunas" dan dari laporan Produk Terlaris.
 
+### Backup & Restore (Pengaturan → Backup & Restore, hanya owner)
+- **Download Backup:** `GET /backup/download`. Server menjalankan `mongodump`, men-zip di `C:\kasirku-temp-backup`, mengirim ke browser, lalu
+  menghapus salinan sementara. File akhirnya ada di **folder Download browser** (bukan di server). Inilah alasan dulu file backup
+  "tidak ketemu".
+- **Simpan Backup ke Folder (baru):** folder tujuan diketik di Pengaturan (`Setting.backupDir`, bawaan `C:\KasirKu-Backup`,
+  harus lokasi lengkap seperti `D:\Backup KasirKu` atau alamat jaringan `\\server\folder`). Folder berada di **komputer server**
+  (komputer B, tempat backend jalan), dibuat otomatis kalau belum ada. `POST /backup/save` menyimpan
+  `kasirku-backup-YYYY-MM-DD_HH-mm-ss.zip` (jam WIB) langsung ke folder itu dan mengembalikan lokasi lengkap + ukuran.
+  `GET /backup/list` menampilkan maksimal 50 file `kasirku-backup-*.zip` terbaru di folder itu.
+  Tombol Backup Sekarang nonaktif selama isi kolom folder belum disimpan.
+- **Restore:** `POST /backup/restore` (upload zip, maks 100 MB, hanya `.zip`). Zip harus berisi folder bernama sama dengan database yang
+  sedang dipakai di akar (kedua jenis backup di atas memenuhi ini). Dijalankan `mongorestore --drop`, jadi **menimpa data sekarang**.
+  Belum ada dialog konfirmasi dan belum ada backup otomatis sebelum restore.
+- Aplikasi dijalankan lewat nginx di komputer B. Untuk upload restore, `client_max_body_size` nginx harus cukup besar, dan untuk
+  backup/restore yang lama perlu `proxy_read_timeout` yang cukup (kalau terlalu kecil muncul 413/504 padahal server tetap menyelesaikan prosesnya).
+
 ## 5. Fitur yang sudah selesai (ringkas)
 
 **Kasir (POS)**
@@ -179,6 +195,11 @@ Aplikasi kasir (POS) full-stack untuk toko kecil.
 (termasuk hutang tanpa nama, lihat bagian 4).
 **Keuangan**: kolom Nominal menghapus angka 0 saat difokuskan; kategori otomatis disembunyikan; teks penjelasan di bawah judul sudah terpasang.
 
+**Backup ke folder pilihan (Pengaturan → Backup & Restore):** kartu "Simpan Backup ke Folder" berisi kolom folder tujuan
+(+ tombol Simpan Folder), tombol Backup Sekarang, kotak hijau berisi lokasi lengkap file yang baru dibuat, dan daftar backup di folder itu
+(nama, waktu, ukuran). Kartu "Download Backup" lama tetap ada dengan teks yang dijelaskan ulang. Pengguna melaporkan fitur ini **sudah berjalan**.
+Detail di bagian 4.
+
 **Skrip bantu (jalankan dari folder `kasirku-backend`)**
 - `node src/utils/addProducts.js 100` (tambah produk dummy, SKU `DUMMY-xxxxx`), opsi `--dry` untuk pratinjau,
   `node src/utils/addProducts.js hapus` untuk menghapus produk dummy. **Produk dummy di komputer A sengaja dibiarkan.**
@@ -198,17 +219,27 @@ Item 1 sampai 4 dari daftar lama (detail transaksi, pengingat hutang tanpa nama,
      buat satu fungsi bersama "tanggal lokal" (contoh: `toLocaleDateString('en-CA')`) dan ganti satu per satu; hati-hati dengan
      tanggal catatan Keuangan yang disimpan.
    - Menyimpan `downPaymentMethod` di respons `GET /transactions/debt/:id` (murni kerapian; detail transaksi sudah membacanya dari transaksi).
-3. **Status git (perlu dipastikan):** pengguna menunda commit untuk semua perubahan 9 Oktober (detail transaksi, pengingat,
-   metode uang muka, tab Terlaris, Enter, tombol tanggal, scroll tetap, console.log). Cek `git status` di kedua repo dan
-   commit/push sebelum melanjutkan, lalu `git pull` di komputer B.
+3. **Pengaman restore (opsional, belum dikerjakan):** (a) dialog konfirmasi sebelum restore (komponen `confirm-dialog` sudah ada),
+   (b) backup otomatis ke folder pilihan sebelum restore, dengan nama seperti `kasirku-backup-sebelum-restore-...zip`
+   (bisa memakai `createBackupZip` yang sudah ada di `backup.controller.js`). Hal kecil lain: `.ZIP` huruf besar ditolak,
+   restore memakai `fetch` biasa (tidak ikut pembaruan token otomatis), belum ada pembersihan backup lama (mis. simpan N terakhir).
+4. **Status git:** perubahan 9 Oktober sudah di-commit dan di-push (backend sampai `31c2c7b`, frontend sampai `b25a2c4`).
+   Fitur **backup ke folder** (backend: model Setting, `backup.controller.js`, `backup.routes.js`; frontend: halaman Pengaturan)
+   dibuat setelahnya dan perlu di-commit/push (cek `git status`), lalu `git pull` di komputer B.
 
 ## 7. Hal yang perlu diwaspadai
 
-- **Belum diuji di aplikasi sungguhan:** semua perubahan 9 Oktober lolos build/`node --check` di sandbox dan fungsi murninya
-  diuji, tetapi query MongoDB (pengingat hutang tanpa nama, agregasi uang muka per metode, `top-selling`) dan perilaku layar
+- **Belum diuji di aplikasi sungguhan:** perubahan 9 Oktober lolos build/`node --check` di sandbox dan fungsi murninya
+  diuji (pengguna belum melaporkan hasil uji untuk bagian ini), tetapi query MongoDB (pengingat hutang tanpa nama, agregasi uang muka per metode, `top-selling`) dan perilaku layar
   (scroll tetap, scan Enter) baru terbukti setelah pengguna mencobanya. Daftar uji cepat:
   hutang tanpa nama muncul di Dashboard dan bisa dibayar dari detail; uang muka via Transfer pindah ke baris Transfer di Kas Masuk
   dan Arus Kas; tab Terlaris terisi; Enter + SKU memasukkan produk; scroll tidak lompat setelah checkout.
+- **Backup ke folder:** pengguna melaporkan berhasil. Yang belum dicoba: me-restore file yang dibuat dari folder baru itu (struktur zip-nya
+  sama dengan Download, jadi seharusnya bisa). Cara uji aman: Backup Sekarang, lalu restore file yang baru dibuat itu (isinya sama dengan data sekarang).
+  Restore versi lama (upload) pernah dicoba pengguna dan berhasil.
+- Folder backup ada di komputer server (B). Kalau aplikasi dibuka dari perangkat lain, file tetap tersimpan di B.
+- Catatan alat: saat menguji kode backend di sandbox (Linux), memuat `backup.controller.js` membuat folder literal bernama
+  `C:\kasirku-temp-backup` di folder kerja; itu hanya efek sandbox dan tidak boleh ikut di-commit.
 - Scanner barcode diasumsikan mengirim Enter di akhir. Kalau scanner pengguna tidak, perlu penyesuaian.
 - Hutang lama yang pernah dicicil sebelum perbaikan cicilan bisa punya status tidak sinkron (total cicilan sudah penuh
   tetapi status masih "hutang"). Belum ada alat perbaikannya. Di detail transaksi, sisanya tampil Rp 0 dan tombol Bayar tidak muncul.
@@ -225,7 +256,7 @@ Item 1 sampai 4 dari daftar lama (detail transaksi, pengingat hutang tanpa nama,
 
 1. Unggah file ini ke chat baru.
 2. Minta asisten meng-clone kedua repo dan memeriksa kondisi terbaru (`git log`, build, penanda fitur di atas).
-3. Pastikan perubahan 9 Oktober sudah di-commit (lihat bagian 6, nomor 3), lalu sebutkan apa yang ingin dikerjakan
-   (bagian 6, nomor 1; ide lanjutan sengaja dihentikan dulu karena pengguna punya proyek lain yang ingin dikerjakan).
+3. Pastikan fitur backup ke folder sudah di-commit (bagian 6, nomor 4), lalu sebutkan apa yang ingin dikerjakan
+   (bagian 6, nomor 1 atau 3; ide lanjutan sengaja dihentikan dulu karena pengguna punya proyek lain yang ingin dikerjakan).
 4. Ingatkan preferensi di bagian 2 (satu langkah per giliran, format "cari lalu ganti dengan" beserta penjelasan,
    Bahasa Indonesia).
