@@ -27,6 +27,7 @@ interface HeldCart {
   selectedCustomer: Customer | null;
   paymentMethod: string;
   discount: number;
+  surcharge: number;
   amountPaid: number;
   notes: string;
   pointsUsed: number;
@@ -66,6 +67,8 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   selectedCustomer: Customer | null = null;
   paymentMethod = 'tunai';
   discount = 0;
+  showSurcharge = false;
+  surcharge = 0;
   amountPaid = 0;
   downPayment = 0;
   downPaymentMethod = 'tunai';
@@ -428,6 +431,7 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
       selectedCustomer: this.selectedCustomer,
       paymentMethod: this.paymentMethod,
       discount: this.discount,
+      surcharge: this.surcharge,
       amountPaid: this.amountPaid,
       notes: this.notes,
       pointsUsed: this.pointsUsed,
@@ -455,6 +459,8 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectedCustomer = held.selectedCustomer;
     this.paymentMethod = held.paymentMethod;
     this.discount = held.discount;
+    this.surcharge = held.surcharge || 0;
+    this.showSurcharge = this.surcharge > 0;
     this.amountPaid = held.amountPaid;
     this.notes = held.notes;
     this.pointsUsed = held.pointsUsed;
@@ -509,6 +515,8 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     this.customerQuery = '';
     this.customerResults = [];
     this.discount = 0;
+    this.surcharge = 0;
+    this.showSurcharge = false;
     this.amountPaid = 0;
     this.downPayment = 0;
     this.downPaymentMethod = 'tunai';
@@ -575,8 +583,13 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.pointsUsed * 100;
   }
 
+  // Biaya tambahan / pembulatan: hanya dihitung kalau toggle aktif
+  get surchargeAmount(): number {
+    return this.showSurcharge ? Math.max(0, Number(this.surcharge) || 0) : 0;
+  }
+
   get grandTotal(): number {
-    return Math.max(0, this.subtotal - this.discount - this.pointsDiscount);
+    return Math.max(0, this.subtotal - this.discount + this.surchargeAmount - this.pointsDiscount);
   }
 
   // Kembalian hanya ada untuk pembayaran tunai
@@ -700,6 +713,7 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
       }),
       paymentMethod: this.paymentMethod,
       discountPercent: this.subtotal > 0 ? (this.discount / this.subtotal) * 100 : 0,
+      surcharge: this.surchargeAmount,
       amountPaid: this.paymentMethod === 'tunai' ? this.amountPaid : this.grandTotal,
       notes: finalNotes,
       pointsUsed: this.pointsUsed

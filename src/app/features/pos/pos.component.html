@@ -364,6 +364,26 @@
         </div>
       </div>
 
+      <!-- Biaya Tambahan / Pembulatan -->
+      <div class="summary-section">
+        <div class="form-check form-switch mb-1">
+          <input class="form-check-input" type="checkbox" role="switch" id="useSurcharge"
+            [(ngModel)]="showSurcharge"
+            (change)="surcharge = 0" />
+          <label class="form-check-label summary-label" for="useSurcharge">
+            <i class="bi bi-plus-circle me-1" aria-hidden="true"></i>Biaya Tambahan
+          </label>
+        </div>
+        <div class="input-group input-group-sm" *ngIf="showSurcharge">
+          <span class="input-group-text">Rp</span>
+          <input type="number" class="form-control" [(ngModel)]="surcharge"
+            min="0" placeholder="Contoh: 250 (pembulatan)"
+            (focus)="surcharge === 0 ? surcharge = null! : null"
+            (blur)="surcharge = surcharge || 0"
+            aria-label="Masukkan biaya tambahan atau pembulatan dalam rupiah" />
+        </div>
+      </div>
+
       <!-- Loyalty Points -->
       <div class="summary-section" *ngIf="selectedCustomer && maxPoints > 0">
         <span class="summary-label">
@@ -405,6 +425,10 @@
           <span class="text-success">Diskon</span>
           <span class="text-success">- {{ discount | rupiah }}</span>
         </div>
+        <div class="total-row" *ngIf="surchargeAmount > 0">
+          <span class="text-primary">Biaya Tambahan</span>
+          <span class="text-primary">+ {{ surchargeAmount | rupiah }}</span>
+        </div>
         <div class="total-row" *ngIf="pointsDiscount > 0">
           <span class="text-warning">Diskon Poin</span>
           <span class="text-warning">- {{ pointsDiscount | rupiah }}</span>
@@ -424,6 +448,7 @@
           <button type="button" class="quick-cash-btn"
             *ngFor="let amount of quickCashOptions"
             [class.exact]="amount === grandTotal"
+            [class.selected]="amountPaid === amount"
             (click)="setAmountPaid(amount)">
             {{ amount === grandTotal ? 'Uang Pas' : (amount | rupiah) }}
           </button>
