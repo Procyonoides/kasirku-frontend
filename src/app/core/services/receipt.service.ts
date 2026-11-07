@@ -130,7 +130,7 @@ export class ReceiptService {
           <div class="receipt-summary">
             <div class="summary-row">
               <span>Subtotal</span>
-              <span>Rp ${transaction.subtotal?.toLocaleString('id-ID')}</span>
+              <span>Rp ${((transaction.subtotal || 0) + (transaction.surcharge || 0)).toLocaleString('id-ID')}</span>
             </div>
             ${transaction.discountTotal > 0 ? `
             <div class="summary-row">

@@ -146,7 +146,7 @@
             <hr>
             <div class="summary-row">
               <span class="text-muted">Subtotal</span>
-              <span>{{ transaction.subtotal | rupiah }}</span>
+              <span>{{ (transaction.subtotal || 0) + (transaction.surcharge || 0) | rupiah }}</span>
             </div>
             <div class="summary-row" *ngIf="transaction.discountTotal > 0">
               <span class="text-success">Diskon</span>

@@ -592,6 +592,16 @@ export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
     return Math.max(0, this.subtotal - this.discount + this.surchargeAmount - this.pointsDiscount);
   }
 
+  // Total modal (harga beli) semua barang di keranjang
+  get costTotal(): number {
+    return this.cart.reduce((sum, i) => sum + (i.product.buyPrice || 0) * i.quantity, 0);
+  }
+
+  // Besar kerugian kalau total bayar di bawah modal (0 kalau tidak rugi)
+  get lossAmount(): number {
+    return this.cart.length ? Math.max(0, this.costTotal - this.grandTotal) : 0;
+  }
+
   // Kembalian hanya ada untuk pembayaran tunai
   get canKeepChange(): boolean {
     return this.paymentMethod === 'tunai' && this.change > 0;
