@@ -13,17 +13,16 @@ import { ThemeService } from '../../core/services/theme.service';
 Chart.register(...registerables);
 
 @Component({
-  selector: 'app-dashboard',
-  standalone: true,
-  imports: [
-    CommonModule,
-    NgClass,
-    RouterLink,
-    RupiahPipe,
-    LoadingSpinnerComponent
-  ],
-  templateUrl: './dashboard.component.html',
-  styleUrl: './dashboard.component.css'
+    selector: 'app-dashboard',
+    imports: [
+        CommonModule,
+        NgClass,
+        RouterLink,
+        RupiahPipe,
+        LoadingSpinnerComponent
+    ],
+    templateUrl: './dashboard.component.html',
+    styleUrl: './dashboard.component.css'
 })
 export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   stats: DashboardStats | null = null;

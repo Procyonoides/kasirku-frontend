@@ -13,11 +13,10 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
 import { PayDebtModalComponent } from '../../../shared/components/pay-debt-modal/pay-debt-modal.component';
 
 @Component({
-  selector: 'app-transaction-list',
-  standalone: true,
-  imports: [CommonModule, NgClass, RouterLink, FormsModule, RupiahPipe, ConfirmDialogComponent, LoadingSpinnerComponent, PaginationComponent, PayDebtModalComponent],
-  templateUrl: './transaction-list.component.html',
-  styleUrl: './transaction-list.component.css'
+    selector: 'app-transaction-list',
+    imports: [CommonModule, NgClass, RouterLink, FormsModule, RupiahPipe, ConfirmDialogComponent, LoadingSpinnerComponent, PaginationComponent, PayDebtModalComponent],
+    templateUrl: './transaction-list.component.html',
+    styleUrl: './transaction-list.component.css'
 })
 export class TransactionListComponent implements OnInit {
   transactions: Transaction[] = [];

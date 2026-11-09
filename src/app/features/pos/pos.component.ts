@@ -38,11 +38,10 @@ interface HeldCart {
 }
 
 @Component({
-  selector: 'app-pos',
-  standalone: true,
-  imports: [CommonModule, FormsModule, RupiahPipe, NgClass, ConfirmDialogComponent],
-  templateUrl: './pos.component.html',
-  styleUrl: './pos.component.css'
+    selector: 'app-pos',
+    imports: [CommonModule, FormsModule, RupiahPipe, NgClass, ConfirmDialogComponent],
+    templateUrl: './pos.component.html',
+    styleUrl: './pos.component.css'
 })
 export class PosComponent implements OnInit, AfterViewInit, OnDestroy {
   // Products

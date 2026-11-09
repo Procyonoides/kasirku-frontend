@@ -9,11 +9,10 @@ import { ThemeService } from '../../core/services/theme.service';
 import { environment } from '../../../../environments/environment';
 
 @Component({
-  selector: 'app-settings',
-  standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
-  templateUrl: './settings.component.html',
-  styleUrl: './settings.component.css'
+    selector: 'app-settings',
+    imports: [CommonModule, FormsModule, ReactiveFormsModule],
+    templateUrl: './settings.component.html',
+    styleUrl: './settings.component.css'
 })
 export class SettingsComponent implements OnInit {
   activeTab: 'profile' | 'password' | 'store' | 'appearance' | 'backup' = 'profile';

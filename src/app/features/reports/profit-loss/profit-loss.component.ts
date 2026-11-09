@@ -3,11 +3,10 @@ import { CommonModule } from '@angular/common';
 import { RupiahPipe } from '../../../shared/pipes';
 
 @Component({
-  selector: 'app-profit-loss',
-  standalone: true,
-  imports: [CommonModule, RupiahPipe],
-  templateUrl: './profit-loss.component.html',
-  styleUrl: './profit-loss.component.css'
+    selector: 'app-profit-loss',
+    imports: [CommonModule, RupiahPipe],
+    templateUrl: './profit-loss.component.html',
+    styleUrl: './profit-loss.component.css'
 })
 export class ProfitLossComponent{
   @Input() data: any = null;

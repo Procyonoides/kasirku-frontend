@@ -3,11 +3,10 @@ import { CommonModule } from '@angular/common';
 import { RupiahPipe } from '../../../shared/pipes';
 
 @Component({
-  selector: 'app-custom-price',
-  standalone: true,
-  imports: [CommonModule, RupiahPipe],
-  templateUrl: './custom-price.component.html',
-  styleUrl: './custom-price.component.css'
+    selector: 'app-custom-price',
+    imports: [CommonModule, RupiahPipe],
+    templateUrl: './custom-price.component.html',
+    styleUrl: './custom-price.component.css'
 })
 export class CustomPriceComponent {
   @Input() data: { items: any[]; totalSelisih: number; count: number } | null = null;

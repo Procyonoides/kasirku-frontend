@@ -14,22 +14,21 @@ import { CustomPriceComponent } from './custom-price/custom-price.component';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 
 @Component({
-  selector: 'app-reports',
-  standalone: true,
-  imports: [
-    CommonModule, 
-    FormsModule, 
-    RupiahPipe, 
-    NgClass, 
-    ProfitLossComponent, 
-    TopProductsComponent, 
-    SalesComponent, 
-    CashflowComponent, 
-    CustomPriceComponent,
-    LoadingSpinnerComponent
-  ],
-  templateUrl: './reports.component.html',
-  styleUrl: './reports.component.css'
+    selector: 'app-reports',
+    imports: [
+        CommonModule,
+        FormsModule,
+        RupiahPipe,
+        NgClass,
+        ProfitLossComponent,
+        TopProductsComponent,
+        SalesComponent,
+        CashflowComponent,
+        CustomPriceComponent,
+        LoadingSpinnerComponent
+    ],
+    templateUrl: './reports.component.html',
+    styleUrl: './reports.component.css'
 })
 export class ReportsComponent implements OnInit {
   @ViewChild('reportContent') reportContent!: ElementRef;

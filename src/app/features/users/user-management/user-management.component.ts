@@ -7,11 +7,10 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
 import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
-  selector: 'app-user-management',
-  standalone: true,
-  imports: [CommonModule, FormsModule, NgClass, ConfirmDialogComponent, LoadingSpinnerComponent],
-  templateUrl: './user-management.component.html',
-  styleUrl: './user-management.component.css'
+    selector: 'app-user-management',
+    imports: [CommonModule, FormsModule, NgClass, ConfirmDialogComponent, LoadingSpinnerComponent],
+    templateUrl: './user-management.component.html',
+    styleUrl: './user-management.component.css'
 })
 export class UserManagementComponent implements OnInit {
   users: any[] = [];

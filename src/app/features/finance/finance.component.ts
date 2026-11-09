@@ -9,11 +9,10 @@ import { PaginationComponent } from '../../shared/components/pagination/paginati
 import { ToastService } from '../../core/services/toast.service';
 
 @Component({
-  selector: 'app-finance',
-  standalone: true,
-  imports: [CommonModule, FormsModule, RupiahPipe, NgClass, ConfirmDialogComponent, LoadingSpinnerComponent, PaginationComponent],
-  templateUrl: './finance.component.html',
-  styleUrl: './finance.component.css'
+    selector: 'app-finance',
+    imports: [CommonModule, FormsModule, RupiahPipe, NgClass, ConfirmDialogComponent, LoadingSpinnerComponent, PaginationComponent],
+    templateUrl: './finance.component.html',
+    styleUrl: './finance.component.css'
 })
 export class FinanceComponent implements OnInit {
   records: any[] = [];

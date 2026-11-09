@@ -8,11 +8,10 @@ import { PayDebtModalComponent } from '../../../shared/components/pay-debt-modal
 
 
 @Component({
-  selector: 'app-transaction-detail',
-  standalone: true,
-  imports: [CommonModule, NgClass, RouterLink, RupiahPipe, PayDebtModalComponent],
-  templateUrl: './transaction-detail.component.html',
-  styleUrl: './transaction-detail.component.css'
+    selector: 'app-transaction-detail',
+    imports: [CommonModule, NgClass, RouterLink, RupiahPipe, PayDebtModalComponent],
+    templateUrl: './transaction-detail.component.html',
+    styleUrl: './transaction-detail.component.css'
 })
 export class TransactionDetailComponent implements OnInit {
   transaction: any = null;

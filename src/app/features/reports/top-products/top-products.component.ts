@@ -3,11 +3,10 @@ import { CommonModule } from '@angular/common';
 import { RupiahPipe } from '../../../shared/pipes';
 
 @Component({
-  selector: 'app-top-products',
-  standalone: true,
-  imports: [CommonModule, RupiahPipe],
-  templateUrl: './top-products.component.html',
-  styleUrl: './top-products.component.css'
+    selector: 'app-top-products',
+    imports: [CommonModule, RupiahPipe],
+    templateUrl: './top-products.component.html',
+    styleUrl: './top-products.component.css'
 })
 export class TopProductsComponent {
   @Input() data: any[] = [];

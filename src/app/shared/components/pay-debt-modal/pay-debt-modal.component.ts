@@ -6,11 +6,10 @@ import { ToastService } from '../../../core/services/toast.service';
 import { RupiahPipe } from '../../pipes';
 
 @Component({
-  selector: 'app-pay-debt-modal',
-  standalone: true,
-  imports: [CommonModule, FormsModule, RupiahPipe],
-  templateUrl: './pay-debt-modal.component.html',
-  styleUrl: './pay-debt-modal.component.css'
+    selector: 'app-pay-debt-modal',
+    imports: [CommonModule, FormsModule, RupiahPipe],
+    templateUrl: './pay-debt-modal.component.html',
+    styleUrl: './pay-debt-modal.component.css'
 })
 export class PayDebtModalComponent implements OnChanges {
   @Input() show = false;

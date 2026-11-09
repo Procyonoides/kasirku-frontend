@@ -11,11 +11,10 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
 import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
-  selector: 'app-customer-list',
-  standalone: true,
-  imports: [CommonModule, NgClass, RouterLink, FormsModule, RupiahPipe, ConfirmDialogComponent, LoadingSpinnerComponent, PaginationComponent],
-  templateUrl: './customer-list.component.html',
-  styleUrl: './customer-list.component.css'
+    selector: 'app-customer-list',
+    imports: [CommonModule, NgClass, RouterLink, FormsModule, RupiahPipe, ConfirmDialogComponent, LoadingSpinnerComponent, PaginationComponent],
+    templateUrl: './customer-list.component.html',
+    styleUrl: './customer-list.component.css'
 })
 export class CustomerListComponent implements OnInit {
   customers: Customer[] = [];

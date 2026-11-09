@@ -8,11 +8,10 @@ import { ToastService } from '../../../core/services/toast.service';
 
 
 @Component({
-  selector: 'app-product-form',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
-  templateUrl: './product-form.component.html',
-  styleUrl: './product-form.component.css'
+    selector: 'app-product-form',
+    imports: [CommonModule, ReactiveFormsModule, RouterLink],
+    templateUrl: './product-form.component.html',
+    styleUrl: './product-form.component.css'
 })
 export class ProductFormComponent implements OnInit {
   form!: FormGroup;

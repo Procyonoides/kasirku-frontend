@@ -9,17 +9,16 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
 import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
-  selector: 'app-unit-list',
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    RouterLink,
-    ConfirmDialogComponent,
-    LoadingSpinnerComponent
-  ],
-  templateUrl: './unit-list.component.html',
-  styleUrl: './unit-list.component.css'
+    selector: 'app-unit-list',
+    imports: [
+        CommonModule,
+        FormsModule,
+        RouterLink,
+        ConfirmDialogComponent,
+        LoadingSpinnerComponent
+    ],
+    templateUrl: './unit-list.component.html',
+    styleUrl: './unit-list.component.css'
 })
 export class UnitListComponent implements OnInit {
 

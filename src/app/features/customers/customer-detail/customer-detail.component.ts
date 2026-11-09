@@ -7,11 +7,10 @@ import { RupiahPipe } from '../../../shared/pipes';
 import { PayDebtModalComponent } from '../../../shared/components/pay-debt-modal/pay-debt-modal.component';
 
 @Component({
-  selector: 'app-customer-detail',
-  standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, RupiahPipe, NgClass, PayDebtModalComponent],
-  templateUrl: './customer-detail.component.html',
-  styleUrl: './customer-detail.component.css'
+    selector: 'app-customer-detail',
+    imports: [CommonModule, FormsModule, RouterLink, RupiahPipe, NgClass, PayDebtModalComponent],
+    templateUrl: './customer-detail.component.html',
+    styleUrl: './customer-detail.component.css'
 })
 export class CustomerDetailComponent implements OnInit {
   customer: any = null;

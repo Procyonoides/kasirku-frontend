@@ -11,11 +11,10 @@ import { ToastService } from '../../../core/services/toast.service';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 
 @Component({
-  selector: 'app-product-list',
-  standalone: true,
-  imports: [CommonModule, NgClass, RouterLink, FormsModule, RupiahPipe, ConfirmDialogComponent, LoadingSpinnerComponent, PaginationComponent],
-  templateUrl: './product-list.component.html',
-  styleUrl: './product-list.component.css'
+    selector: 'app-product-list',
+    imports: [CommonModule, NgClass, RouterLink, FormsModule, RupiahPipe, ConfirmDialogComponent, LoadingSpinnerComponent, PaginationComponent],
+    templateUrl: './product-list.component.html',
+    styleUrl: './product-list.component.css'
 })
 export class ProductListComponent implements OnInit {
   products: Product[] = [];

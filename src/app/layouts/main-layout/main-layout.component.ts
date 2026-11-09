@@ -7,11 +7,10 @@ import { ProductService } from '../../core/services/api.service';
 import { ClickOutsideDirective } from '../../shared/directives/click-outside.directive';
 
 @Component({
-  selector: 'app-main-layout',
-  standalone: true,
-  imports: [CommonModule, DatePipe, RouterOutlet, RouterLink, RouterLinkActive, ToastComponent, ClickOutsideDirective],
-  templateUrl: './main-layout.component.html',
-  styleUrl: './main-layout.component.css'
+    selector: 'app-main-layout',
+    imports: [CommonModule, DatePipe, RouterOutlet, RouterLink, RouterLinkActive, ToastComponent, ClickOutsideDirective],
+    templateUrl: './main-layout.component.html',
+    styleUrl: './main-layout.component.css'
 })
 export class MainLayoutComponent implements OnInit, OnDestroy {
   isSidebarOpen = signal(true);

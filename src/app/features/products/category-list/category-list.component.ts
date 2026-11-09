@@ -9,11 +9,10 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
 import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
-  selector: 'app-category-list',
-  standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, ConfirmDialogComponent, LoadingSpinnerComponent],
-  templateUrl: './category-list.component.html',
-  styleUrl: './category-list.component.css'
+    selector: 'app-category-list',
+    imports: [CommonModule, FormsModule, RouterLink, ConfirmDialogComponent, LoadingSpinnerComponent],
+    templateUrl: './category-list.component.html',
+    styleUrl: './category-list.component.css'
 })
 export class CategoryListComponent implements OnInit {
 
