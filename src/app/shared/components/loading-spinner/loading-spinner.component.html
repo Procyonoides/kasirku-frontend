@@ -3,6 +3,8 @@
     <div class="spinner-ring">
       <div></div><div></div><div></div><div></div>
     </div>
-    <p class="spinner-message" *ngIf="message">{{ message }}</p>
+    @if (message) {
+      <p class="spinner-message">{{ message }}</p>
+    }
   </div>
 </div>

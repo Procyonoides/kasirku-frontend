@@ -37,69 +37,89 @@
         <i class="bi bi-file-earmark-excel me-1"></i>Excel
       </button>
       <button class="btn btn-outline-danger btn-sm" (click)="exportPDF()" [disabled]="isLoading || isExporting">
-        <span *ngIf="isExporting" class="spinner-border spinner-border-sm me-1"></span>
-        <i *ngIf="!isExporting" class="bi bi-file-earmark-pdf me-1"></i>PDF
-      </button>
-      <button class="btn btn-outline-secondary btn-sm" (click)="printReport()" [disabled]="isLoading">
-        <i class="bi bi-printer me-1"></i>Print
-      </button>
-      <button class="btn btn-success btn-sm" (click)="exportAllData()" [disabled]="isExporting">
-        <span *ngIf="isExporting" class="spinner-border spinner-border-sm me-1"></span>
-        <i *ngIf="!isExporting" class="bi bi-cloud-download me-1"></i>
-        Export Semua Data
-      </button>
+        @if (isExporting) {
+          <span class="spinner-border spinner-border-sm me-1"></span>
+        }
+        @if (!isExporting) {
+          <i class="bi bi-file-earmark-pdf me-1"></i>
+          }PDF
+        </button>
+        <button class="btn btn-outline-secondary btn-sm" (click)="printReport()" [disabled]="isLoading">
+          <i class="bi bi-printer me-1"></i>Print
+        </button>
+        <button class="btn btn-success btn-sm" (click)="exportAllData()" [disabled]="isExporting">
+          @if (isExporting) {
+            <span class="spinner-border spinner-border-sm me-1"></span>
+          }
+          @if (!isExporting) {
+            <i class="bi bi-cloud-download me-1"></i>
+          }
+          Export Semua Data
+        </button>
+      </div>
     </div>
-  </div>
 
-  <!-- Date Filter -->
-  <div class="card border-0 shadow-sm mb-4">
-    <div class="card-body">
-      <div class="row g-3 align-items-end">
-        <div class="col-12 col-md-4">
-          <label class="form-label small fw-semibold text-muted">Dari Tanggal</label>
-          <input type="date" class="form-control" [(ngModel)]="dateFrom" />
-        </div>
-        <div class="col-12 col-md-4">
-          <label class="form-label small fw-semibold text-muted">Sampai Tanggal</label>
-          <input type="date" class="form-control" [(ngModel)]="dateTo" />
-        </div>
-        <div class="col-12 col-md-4">
-          <button class="btn btn-primary w-100" (click)="onFilter()">
-            <i class="bi bi-funnel me-2"></i>Tampilkan Laporan
-          </button>
+    <!-- Date Filter -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-body">
+        <div class="row g-3 align-items-end">
+          <div class="col-12 col-md-4">
+            <label class="form-label small fw-semibold text-muted">Dari Tanggal</label>
+            <input type="date" class="form-control" [(ngModel)]="dateFrom" />
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label small fw-semibold text-muted">Sampai Tanggal</label>
+            <input type="date" class="form-control" [(ngModel)]="dateTo" />
+          </div>
+          <div class="col-12 col-md-4">
+            <button class="btn btn-primary w-100" (click)="onFilter()">
+              <i class="bi bi-funnel me-2"></i>Tampilkan Laporan
+            </button>
+          </div>
         </div>
       </div>
     </div>
+
+    <!-- Loading -->
+    @if (isLoading) {
+      <app-loading-spinner message="Memuat laporan..."></app-loading-spinner>
+    }
+
+    <div #reportContent>
+      <!-- ── SALES REPORT ── -->
+      @if (!isLoading && activeTab === 'sales') {
+        <div>
+          <app-sales [data]="salesData || []"></app-sales>
+        </div>
+      }
+
+      <!-- ── PROFIT LOSS ── -->
+      @if (!isLoading && activeTab === 'profit') {
+        <div>
+          <app-profit-loss [data]="profitData"></app-profit-loss>
+        </div>
+      }
+
+      <!-- ── TOP PRODUCTS ── -->
+      @if (!isLoading && activeTab === 'top-products') {
+        <div>
+          <app-top-products [data]="topProducts"></app-top-products>
+        </div>
+      }
+
+      <!-- ── CASHFLOW ── -->
+      @if (!isLoading && activeTab === 'cashflow') {
+        <div>
+          <app-cashflow [data]="cashflowData"></app-cashflow>
+        </div>
+      }
+
+      <!-- ── CUSTOM PRICE ── -->
+      @if (!isLoading && activeTab === 'custom-price') {
+        <div>
+          <app-custom-price [data]="customPriceData"></app-custom-price>
+        </div>
+      }
+    </div>
+
   </div>
-
-  <!-- Loading -->
-  <app-loading-spinner *ngIf="isLoading" message="Memuat laporan..."></app-loading-spinner>
-
-  <div #reportContent>
-    <!-- ── SALES REPORT ── -->
-    <div *ngIf="!isLoading && activeTab === 'sales'">
-      <app-sales [data]="salesData || []"></app-sales>
-    </div>
-
-    <!-- ── PROFIT LOSS ── -->
-    <div *ngIf="!isLoading && activeTab === 'profit'">
-      <app-profit-loss [data]="profitData"></app-profit-loss>
-    </div>
-
-    <!-- ── TOP PRODUCTS ── -->
-    <div *ngIf="!isLoading && activeTab === 'top-products'">
-      <app-top-products [data]="topProducts"></app-top-products>
-    </div>
-
-    <!-- ── CASHFLOW ── -->
-    <div *ngIf="!isLoading && activeTab === 'cashflow'">
-      <app-cashflow [data]="cashflowData"></app-cashflow>
-    </div>
-
-    <!-- ── CUSTOM PRICE ── -->
-    <div *ngIf="!isLoading && activeTab === 'custom-price'">
-      <app-custom-price [data]="customPriceData"></app-custom-price>
-    </div>
-  </div>
-
-</div>

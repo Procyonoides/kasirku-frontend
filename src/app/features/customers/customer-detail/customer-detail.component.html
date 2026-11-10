@@ -1,197 +1,218 @@
 <div class="container-fluid py-4">
 
   <!-- Loading -->
-  <div *ngIf="isLoading" class="text-center py-5">
-    <div class="spinner-border text-primary"></div>
-  </div>
+  @if (isLoading) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary"></div>
+    </div>
+  }
 
-  <div *ngIf="!isLoading && customer">
-
-    <!-- Header -->
-    <div class="d-flex align-items-center gap-3 mb-4">
-      <a routerLink="/customers" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-arrow-left"></i>
-      </a>
-      <div>
-        <h4 class="fw-bold mb-0" style="color: #1e3a5f">Detail Pelanggan</h4>
-        <p class="text-muted small mb-0">Riwayat transaksi dan hutang</p>
+  @if (!isLoading && customer) {
+    <div>
+      <!-- Header -->
+      <div class="d-flex align-items-center gap-3 mb-4">
+        <a routerLink="/customers" class="btn btn-outline-secondary btn-sm">
+          <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+          <h4 class="fw-bold mb-0" style="color: #1e3a5f">Detail Pelanggan</h4>
+          <p class="text-muted small mb-0">Riwayat transaksi dan hutang</p>
+        </div>
+      </div>
+      <div class="row g-4">
+        <!-- Profile Card -->
+        <div class="col-12 col-md-4">
+          <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-4">
+              <div class="customer-avatar mx-auto mb-3">
+                {{ customer.name.charAt(0).toUpperCase() }}
+              </div>
+              <h5 class="fw-bold mb-1">{{ customer.name }}</h5>
+              <span class="badge mb-3" [ngClass]="getTierBadge(customer.customerTier)">
+                {{ customer.customerTier | titlecase }}
+              </span>
+              <div class="customer-info-list">
+                @if (customer.phone) {
+                  <div class="customer-info-item">
+                    <i class="bi bi-telephone text-primary"></i>
+                    <span>{{ customer.phone }}</span>
+                  </div>
+                }
+                @if (customer.address) {
+                  <div class="customer-info-item">
+                    <i class="bi bi-geo-alt text-primary"></i>
+                    <span>{{ customer.address }}</span>
+                  </div>
+                }
+                <div class="customer-info-item">
+                  <i class="bi bi-calendar text-primary"></i>
+                  <span>Bergabung {{ customer.createdAt | date:'dd MMM yyyy' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Stats -->
+          <div class="card border-0 shadow-sm mt-3">
+            <div class="card-body">
+              <h6 class="fw-bold mb-3">Statistik</h6>
+              <div class="stat-row">
+                <span class="text-muted small">Total Belanja</span>
+                <span class="fw-bold">{{ customer.totalSpent | rupiah }}</span>
+              </div>
+              <div class="stat-row">
+                <span class="text-muted small">Total Transaksi</span>
+                <span class="fw-bold">{{ customer.totalTransactions }}</span>
+              </div>
+              <div class="stat-row">
+                <span class="text-muted small">Poin</span>
+                <span class="fw-bold text-warning">{{ customer.points }} poin</span>
+              </div>
+              @if (customer.currentDebt > 0) {
+                <div class="stat-row">
+                  <span class="text-muted small">Hutang</span>
+                  <span class="fw-bold text-danger">{{ customer.currentDebt | rupiah }}</span>
+                </div>
+              }
+            </div>
+          </div>
+          <!-- Debt Warning -->
+          @if (customer.currentDebt > 0) {
+            <div class="alert alert-danger mt-3">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>
+              <strong>Ada hutang!</strong><br>
+              <span class="small">Total hutang: {{ customer.currentDebt | rupiah }}</span>
+              <div class="mt-2">
+                @if (getDebtTransactions().length > 0) {
+                  <button class="btn btn-sm btn-danger w-100"
+                    (click)="openPayDebt(getDebtTransactions()[0])">
+                    <i class="bi bi-cash-coin me-1"></i>Bayar Hutang
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+        <!-- Transaction History + Point History -->
+        <div class="col-12 col-md-8">
+          <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+              <ul class="nav nav-tabs card-header-tabs">
+                <li class="nav-item">
+                  <button class="nav-link" [class.active]="activeTab === 'transactions'"
+                    (click)="activeTab = 'transactions'">
+                    <i class="bi bi-receipt me-2"></i>Riwayat Transaksi
+                  </button>
+                </li>
+                <li class="nav-item">
+                  <button class="nav-link" [class.active]="activeTab === 'points'"
+                    (click)="activeTab = 'points'">
+                    <i class="bi bi-star-fill me-2 text-warning"></i>Riwayat Poin
+                    <span class="badge bg-warning text-dark ms-1">{{ currentPoints }} poin</span>
+                  </button>
+                </li>
+              </ul>
+            </div>
+            <div class="card-body p-0">
+              <!-- Tab Transaksi -->
+              @if (activeTab === 'transactions') {
+                <div>
+                  @if (transactions.length === 0) {
+                    <div class="text-center py-5 text-muted">
+                      <i class="bi bi-receipt fs-1 d-block mb-2"></i>
+                      Belum ada transaksi
+                    </div>
+                  }
+                  @if (transactions.length > 0) {
+                    <div class="table-responsive">
+                      <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                          <tr>
+                            <th class="ps-4">Invoice</th>
+                            <th>Total</th>
+                            <th>Pembayaran</th>
+                            <th>Status</th>
+                            <th>Tanggal</th>
+                            <th class="text-center">Aksi</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          @for (tx of transactions; track tx) {
+                            <tr>
+                              <td class="ps-4 fw-semibold" style="color:#1e3a5f">{{ tx.invoiceNumber }}</td>
+                              <td>{{ tx.grandTotal | rupiah }}</td>
+                              <td>{{ tx.paymentMethod | titlecase }}</td>
+                              <td>
+                                <span class="badge" [ngClass]="getStatusClass(tx.status)">
+                                  {{ tx.status | titlecase }}
+                                </span>
+                              </td>
+                              <td class="text-muted small">{{ tx.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                              <td class="text-center">
+                                @if (tx.status === 'hutang') {
+                                  <button
+                                    class="btn btn-sm btn-warning"
+                                    (click)="openPayDebt(tx)">
+                                    <i class="bi bi-cash-coin me-1"></i>Bayar
+                                  </button>
+                                }
+                              </td>
+                            </tr>
+                          }
+                        </tbody>
+                      </table>
+                    </div>
+                  }
+                </div>
+              }
+              <!-- Tab Poin -->
+              @if (activeTab === 'points') {
+                <div>
+                  @if (pointHistory.length === 0) {
+                    <div class="text-center py-5 text-muted">
+                      <i class="bi bi-star fs-1 d-block mb-2"></i>
+                      Belum ada riwayat poin
+                    </div>
+                  }
+                  @if (pointHistory.length > 0) {
+                    <div class="table-responsive">
+                      <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                          <tr>
+                            <th class="ps-4">Tanggal</th>
+                            <th>Keterangan</th>
+                            <th>Poin</th>
+                            <th>Saldo Sebelum</th>
+                            <th>Saldo Sesudah</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          @for (h of pointHistory; track h) {
+                            <tr>
+                              <td class="ps-4 text-muted small">{{ h.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                              <td>{{ h.description }}</td>
+                              <td>
+                                <span class="fw-bold"
+                                  [class.text-success]="h.type === 'earned'"
+                                  [class.text-danger]="h.type === 'used'">
+                                  {{ h.type === 'earned' ? '+' : '-' }}{{ h.points }} poin
+                                </span>
+                              </td>
+                              <td class="text-muted">{{ h.balanceBefore }} poin</td>
+                              <td class="fw-semibold">{{ h.balanceAfter }} poin</td>
+                            </tr>
+                          }
+                        </tbody>
+                      </table>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-
-    <div class="row g-4">
-
-      <!-- Profile Card -->
-      <div class="col-12 col-md-4">
-        <div class="card border-0 shadow-sm">
-          <div class="card-body text-center py-4">
-            <div class="customer-avatar mx-auto mb-3">
-              {{ customer.name.charAt(0).toUpperCase() }}
-            </div>
-            <h5 class="fw-bold mb-1">{{ customer.name }}</h5>
-            <span class="badge mb-3" [ngClass]="getTierBadge(customer.customerTier)">
-              {{ customer.customerTier | titlecase }}
-            </span>
-            <div class="customer-info-list">
-              <div class="customer-info-item" *ngIf="customer.phone">
-                <i class="bi bi-telephone text-primary"></i>
-                <span>{{ customer.phone }}</span>
-              </div>
-              <div class="customer-info-item" *ngIf="customer.address">
-                <i class="bi bi-geo-alt text-primary"></i>
-                <span>{{ customer.address }}</span>
-              </div>
-              <div class="customer-info-item">
-                <i class="bi bi-calendar text-primary"></i>
-                <span>Bergabung {{ customer.createdAt | date:'dd MMM yyyy' }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Stats -->
-        <div class="card border-0 shadow-sm mt-3">
-          <div class="card-body">
-            <h6 class="fw-bold mb-3">Statistik</h6>
-            <div class="stat-row">
-              <span class="text-muted small">Total Belanja</span>
-              <span class="fw-bold">{{ customer.totalSpent | rupiah }}</span>
-            </div>
-            <div class="stat-row">
-              <span class="text-muted small">Total Transaksi</span>
-              <span class="fw-bold">{{ customer.totalTransactions }}</span>
-            </div>
-            <div class="stat-row">
-              <span class="text-muted small">Poin</span>
-              <span class="fw-bold text-warning">{{ customer.points }} poin</span>
-            </div>
-            <div class="stat-row" *ngIf="customer.currentDebt > 0">
-              <span class="text-muted small">Hutang</span>
-              <span class="fw-bold text-danger">{{ customer.currentDebt | rupiah }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Debt Warning -->
-        <div class="alert alert-danger mt-3" *ngIf="customer.currentDebt > 0">
-          <i class="bi bi-exclamation-triangle-fill me-2"></i>
-          <strong>Ada hutang!</strong><br>
-          <span class="small">Total hutang: {{ customer.currentDebt | rupiah }}</span>
-          <div class="mt-2">
-            <button class="btn btn-sm btn-danger w-100"
-              *ngIf="getDebtTransactions().length > 0"
-              (click)="openPayDebt(getDebtTransactions()[0])">
-              <i class="bi bi-cash-coin me-1"></i>Bayar Hutang
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Transaction History + Point History -->
-      <div class="col-12 col-md-8">
-        <div class="card border-0 shadow-sm">
-          <div class="card-header bg-white py-3">
-            <ul class="nav nav-tabs card-header-tabs">
-              <li class="nav-item">
-                <button class="nav-link" [class.active]="activeTab === 'transactions'"
-                  (click)="activeTab = 'transactions'">
-                  <i class="bi bi-receipt me-2"></i>Riwayat Transaksi
-                </button>
-              </li>
-              <li class="nav-item">
-                <button class="nav-link" [class.active]="activeTab === 'points'"
-                  (click)="activeTab = 'points'">
-                  <i class="bi bi-star-fill me-2 text-warning"></i>Riwayat Poin
-                  <span class="badge bg-warning text-dark ms-1">{{ currentPoints }} poin</span>
-                </button>
-              </li>
-            </ul>
-          </div>
-          <div class="card-body p-0">
-
-            <!-- Tab Transaksi -->
-            <div *ngIf="activeTab === 'transactions'">
-              <div *ngIf="transactions.length === 0" class="text-center py-5 text-muted">
-                <i class="bi bi-receipt fs-1 d-block mb-2"></i>
-                Belum ada transaksi
-              </div>
-              <div class="table-responsive" *ngIf="transactions.length > 0">
-                <table class="table table-hover align-middle mb-0">
-                  <thead class="table-light">
-                    <tr>
-                      <th class="ps-4">Invoice</th>
-                      <th>Total</th>
-                      <th>Pembayaran</th>
-                      <th>Status</th>
-                      <th>Tanggal</th>
-                      <th class="text-center">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr *ngFor="let tx of transactions">
-                      <td class="ps-4 fw-semibold" style="color:#1e3a5f">{{ tx.invoiceNumber }}</td>
-                      <td>{{ tx.grandTotal | rupiah }}</td>
-                      <td>{{ tx.paymentMethod | titlecase }}</td>
-                      <td>
-                        <span class="badge" [ngClass]="getStatusClass(tx.status)">
-                          {{ tx.status | titlecase }}
-                        </span>
-                      </td>
-                      <td class="text-muted small">{{ tx.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
-                      <td class="text-center">
-                        <button *ngIf="tx.status === 'hutang'"
-                          class="btn btn-sm btn-warning"
-                          (click)="openPayDebt(tx)">
-                          <i class="bi bi-cash-coin me-1"></i>Bayar
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <!-- Tab Poin -->
-            <div *ngIf="activeTab === 'points'">
-              <div *ngIf="pointHistory.length === 0" class="text-center py-5 text-muted">
-                <i class="bi bi-star fs-1 d-block mb-2"></i>
-                Belum ada riwayat poin
-              </div>
-              <div class="table-responsive" *ngIf="pointHistory.length > 0">
-                <table class="table table-hover align-middle mb-0">
-                  <thead class="table-light">
-                    <tr>
-                      <th class="ps-4">Tanggal</th>
-                      <th>Keterangan</th>
-                      <th>Poin</th>
-                      <th>Saldo Sebelum</th>
-                      <th>Saldo Sesudah</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr *ngFor="let h of pointHistory">
-                      <td class="ps-4 text-muted small">{{ h.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
-                      <td>{{ h.description }}</td>
-                      <td>
-                        <span class="fw-bold"
-                          [class.text-success]="h.type === 'earned'"
-                          [class.text-danger]="h.type === 'used'">
-                          {{ h.type === 'earned' ? '+' : '-' }}{{ h.points }} poin
-                        </span>
-                      </td>
-                      <td class="text-muted">{{ h.balanceBefore }} poin</td>
-                      <td class="fw-semibold">{{ h.balanceAfter }} poin</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
+  }
 </div>
 
 <!-- Pay Debt Modal -->

@@ -4,7 +4,7 @@
 
       <!-- Header -->
       <div class="d-flex align-items-center gap-3 mb-4">
-        <a routerLink="/products" 
+        <a routerLink="/products"
           class="btn btn-outline-secondary btn-sm"
           aria-label="Kembali ke halaman produk">
           <i class="bi bi-arrow-left" aria-hidden="true"></i>
@@ -20,277 +20,277 @@
       </div>
 
       <!-- Loading -->
-      <div *ngIf="isLoading" 
-        class="text-center py-5"
-        role="status"
-        aria-live="polite"
-        aria-label="Memuat form produk">
-        <div class="spinner-border text-primary"></div>
-      </div>
-
-      <form *ngIf="!isLoading" 
-        [formGroup]="form" 
-        (ngSubmit)="onSubmit()"
-        novalidate>
-
-        <!-- Error -->
-        <div *ngIf="errorMsg" 
-          class="alert alert-danger mb-4"
-          role="alert"
-          aria-live="assertive"
-          aria-atomic="true">
-          <i class="bi bi-exclamation-circle me-2" aria-hidden="true"></i>{{ errorMsg }}
+      @if (isLoading) {
+        <div
+          class="text-center py-5"
+          role="status"
+          aria-live="polite"
+          aria-label="Memuat form produk">
+          <div class="spinner-border text-primary"></div>
         </div>
+      }
 
-        <div class="row g-4">
-
-          <!-- Info Dasar -->
-          <div class="col-12">
-            <div class="card border-0 shadow-sm">
-              <div class="card-header bg-white py-3">
-                <h6 class="fw-bold mb-0">
-                  <i class="bi bi-info-circle me-2 text-primary" aria-hidden="true"></i>Informasi Dasar
-                </h6>
-              </div>
-              <div class="card-body">
-                <div class="row g-3">
-
-                  <div class="col-12">
-                    <label for="product-name" class="form-label fw-semibold">
-                      Nama Produk <span class="text-danger" aria-label="required">*</span>
-                    </label>
-                    <input id="product-name"
-                      type="text" 
-                      class="form-control" 
-                      formControlName="name"
-                      placeholder="cth: Aqua 600ml"
-                      [class.is-invalid]="isInvalid('name')"
-                      [attr.aria-invalid]="isInvalid('name')"
-                      aria-required="true"
-                      aria-describedby="product-name-error" />
-                    <div id="product-name-error" 
-                      class="invalid-feedback"
-                      *ngIf="isInvalid('name')">
-                      Nama produk wajib diisi (min. 2 karakter)
-                    </div>
-                  </div>
-
-                  <div class="col-12 col-md-6">
-                    <label for="product-sku" class="form-label fw-semibold">SKU</label>
-                    <input id="product-sku"
-                      type="text" 
-                      class="form-control" 
-                      formControlName="sku"
-                      placeholder="Auto-generate jika kosong"
-                      aria-describedby="product-sku-help" />
-                    <div id="product-sku-help" class="form-text">
-                      Kode unik produk (opsional)
-                    </div>
-                  </div>
-
-                  <div class="col-12 col-md-6">
-                    <label for="product-barcode" class="form-label fw-semibold">Barcode</label>
-                    <input id="product-barcode"
-                      type="text" 
-                      class="form-control" 
-                      formControlName="barcode"
-                      placeholder="Scan atau isi manual"
-                      aria-describedby="product-barcode-help" />
-                    <div id="product-barcode-help" class="form-text">
-                      Barcode produk (opsional)
-                    </div>
-                  </div>
-
-                  <div class="col-12 col-md-6">
-                    <label for="product-category" class="form-label fw-semibold">
-                      Kategori <span class="text-danger" aria-label="required">*</span>
-                    </label>
-                    <select id="product-category"
-                      class="form-select" 
-                      formControlName="category"
-                      [class.is-invalid]="isInvalid('category')"
-                      [attr.aria-invalid]="isInvalid('category')"
-                      aria-required="true"
-                      aria-describedby="product-category-error">
-                      <option value="">-- Pilih Kategori --</option>
-                      <option *ngFor="let cat of categories" [value]="cat._id">
-                        {{ cat.name }}
-                      </option>
-                    </select>
-                    <div id="product-category-error" 
-                      class="invalid-feedback"
-                      *ngIf="isInvalid('category')">
-                      Kategori wajib dipilih
-                    </div>
-                  </div>
-
-                  <div class="col-12 col-md-6">
-                    <label for="product-unit" class="form-label fw-semibold">
-                      Satuan <span class="text-danger" aria-label="required">*</span>
-                    </label>
-                    <select id="product-unit"
-                      class="form-select" 
-                      formControlName="unit"
-                      [class.is-invalid]="isInvalid('unit')"
-                      [attr.aria-invalid]="isInvalid('unit')"
-                      aria-required="true"
-                      aria-describedby="product-unit-error">
-                      <option value="">-- Pilih Satuan --</option>
-                      <option *ngFor="let u of units" [value]="u._id">
-                        {{ u.name }}
-                      </option>
-                    </select>
-                    <div id="product-unit-error" 
-                      class="invalid-feedback"
-                      *ngIf="isInvalid('unit')">
-                      Satuan wajib dipilih
-                    </div>
-                    <div class="form-text" *ngIf="units.length === 0">
-                      Belum ada satuan. <a routerLink="/products/units">Tambah satuan dulu</a>.
-                    </div>
-                  </div>
-
-                  <div class="col-12">
-                    <label class="form-label fw-semibold">Foto Produk</label>
-                    <div class="image-upload-wrap">
-
-                      <!-- Preview -->
-                      <div *ngIf="imagePreview" class="image-preview-wrap mb-2">
-                        <img [src]="imagePreview" alt="Preview" class="image-preview" />
-                        <button type="button" class="btn btn-sm btn-outline-danger mt-2" (click)="removeImage()">
-                          <i class="bi bi-trash me-1"></i>Hapus Foto
-                        </button>
-                      </div>
-
-                      <!-- Upload Area -->
-                      <div *ngIf="!imagePreview" class="image-dropzone" (click)="fileInput.click()">
-                        <i class="bi bi-cloud-upload fs-1 text-muted"></i>
-                        <div class="mt-2 text-muted small">Klik untuk upload foto</div>
-                        <div class="text-muted" style="font-size:11px">JPG, PNG, WEBP — Maks. 2MB</div>
-                      </div>
-
-                      <input #fileInput type="file" accept=".jpg,.jpeg,.png,.webp"
-                        style="display:none" (change)="onFileSelected($event)" />
-
-                    </div>
-                  </div>
-
-                  <div class="col-12">
-                    <label class="form-label fw-semibold">Deskripsi</label>
-                    <textarea class="form-control" formControlName="description"
-                      rows="3" placeholder="Deskripsi produk (opsional)"></textarea>
-                  </div>
-
-                </div>
-              </div>
+      @if (!isLoading) {
+        <form
+          [formGroup]="form"
+          (ngSubmit)="onSubmit()"
+          novalidate>
+          <!-- Error -->
+          @if (errorMsg) {
+            <div
+              class="alert alert-danger mb-4"
+              role="alert"
+              aria-live="assertive"
+              aria-atomic="true">
+              <i class="bi bi-exclamation-circle me-2" aria-hidden="true"></i>{{ errorMsg }}
             </div>
-          </div>
-
-          <!-- Harga -->
-          <div class="col-12">
-            <div class="card border-0 shadow-sm">
-              <div class="card-header bg-white py-3">
-                <h6 class="fw-bold mb-0">
-                  <i class="bi bi-cash-coin me-2 text-primary"></i>Harga
-                </h6>
-              </div>
-              <div class="card-body">
-                <div class="row g-3">
-
-                  <div class="col-12 col-md-6">
-                    <label class="form-label fw-semibold">Harga Beli <span class="text-danger">*</span></label>
-                    <div class="input-group">
-                      <span class="input-group-text">Rp</span>
-                      <input type="number" class="form-control" formControlName="buyPrice"
-                        min="0" [class.is-invalid]="isInvalid('buyPrice')"
-                        (focus)="onFocusNumber('buyPrice')"
-                        (blur)="onBlurNumber('buyPrice')" />
-                      <div class="invalid-feedback">Harga beli tidak valid</div>
-                    </div>
-                  </div>
-
-                  <div class="col-12 col-md-6">
-                    <label class="form-label fw-semibold">Harga Jual <span class="text-danger">*</span></label>
-                    <div class="input-group">
-                      <span class="input-group-text">Rp</span>
-                      <input type="number" class="form-control" formControlName="sellPrice"
-                        min="1" [class.is-invalid]="isInvalid('sellPrice')"
-                        (focus)="onFocusNumber('sellPrice')"
-                        (blur)="onBlurNumber('sellPrice')" />
-                      <div class="invalid-feedback">Harga jual harus lebih dari 0</div>
-                    </div>
-                  </div>
-
-                  <!-- Profit Preview -->
-                  <div class="col-12">
-                    <div class="profit-preview" [class.profit-positive]="profit > 0" [class.profit-negative]="profit < 0">
-                      <div class="d-flex justify-content-between align-items-center">
-                        <span class="fw-semibold">Estimasi Keuntungan</span>
-                        <div class="text-end">
-                          <span class="fw-bold fs-5">
-                            Rp {{ profit | number }}
-                          </span>
-                          <span class="ms-2 badge" [class.bg-success]="profit > 0" [class.bg-danger]="profit <= 0">
-                            {{ profitPercent }}%
-                          </span>
+          }
+          <div class="row g-4">
+            <!-- Info Dasar -->
+            <div class="col-12">
+              <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                  <h6 class="fw-bold mb-0">
+                    <i class="bi bi-info-circle me-2 text-primary" aria-hidden="true"></i>Informasi Dasar
+                  </h6>
+                </div>
+                <div class="card-body">
+                  <div class="row g-3">
+                    <div class="col-12">
+                      <label for="product-name" class="form-label fw-semibold">
+                        Nama Produk <span class="text-danger" aria-label="required">*</span>
+                      </label>
+                      <input id="product-name"
+                        type="text"
+                        class="form-control"
+                        formControlName="name"
+                        placeholder="cth: Aqua 600ml"
+                        [class.is-invalid]="isInvalid('name')"
+                        [attr.aria-invalid]="isInvalid('name')"
+                        aria-required="true"
+                        aria-describedby="product-name-error" />
+                        @if (isInvalid('name')) {
+                          <div id="product-name-error"
+                            class="invalid-feedback"
+                            >
+                            Nama produk wajib diisi (min. 2 karakter)
+                          </div>
+                        }
+                      </div>
+                      <div class="col-12 col-md-6">
+                        <label for="product-sku" class="form-label fw-semibold">SKU</label>
+                        <input id="product-sku"
+                          type="text"
+                          class="form-control"
+                          formControlName="sku"
+                          placeholder="Auto-generate jika kosong"
+                          aria-describedby="product-sku-help" />
+                          <div id="product-sku-help" class="form-text">
+                            Kode unik produk (opsional)
+                          </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                          <label for="product-barcode" class="form-label fw-semibold">Barcode</label>
+                          <input id="product-barcode"
+                            type="text"
+                            class="form-control"
+                            formControlName="barcode"
+                            placeholder="Scan atau isi manual"
+                            aria-describedby="product-barcode-help" />
+                            <div id="product-barcode-help" class="form-text">
+                              Barcode produk (opsional)
+                            </div>
+                          </div>
+                          <div class="col-12 col-md-6">
+                            <label for="product-category" class="form-label fw-semibold">
+                              Kategori <span class="text-danger" aria-label="required">*</span>
+                            </label>
+                            <select id="product-category"
+                              class="form-select"
+                              formControlName="category"
+                              [class.is-invalid]="isInvalid('category')"
+                              [attr.aria-invalid]="isInvalid('category')"
+                              aria-required="true"
+                              aria-describedby="product-category-error">
+                              <option value="">-- Pilih Kategori --</option>
+                              @for (cat of categories; track cat) {
+                                <option [value]="cat._id">
+                                  {{ cat.name }}
+                                </option>
+                              }
+                            </select>
+                            @if (isInvalid('category')) {
+                              <div id="product-category-error"
+                                class="invalid-feedback"
+                                >
+                                Kategori wajib dipilih
+                              </div>
+                            }
+                          </div>
+                          <div class="col-12 col-md-6">
+                            <label for="product-unit" class="form-label fw-semibold">
+                              Satuan <span class="text-danger" aria-label="required">*</span>
+                            </label>
+                            <select id="product-unit"
+                              class="form-select"
+                              formControlName="unit"
+                              [class.is-invalid]="isInvalid('unit')"
+                              [attr.aria-invalid]="isInvalid('unit')"
+                              aria-required="true"
+                              aria-describedby="product-unit-error">
+                              <option value="">-- Pilih Satuan --</option>
+                              @for (u of units; track u) {
+                                <option [value]="u._id">
+                                  {{ u.name }}
+                                </option>
+                              }
+                            </select>
+                            @if (isInvalid('unit')) {
+                              <div id="product-unit-error"
+                                class="invalid-feedback"
+                                >
+                                Satuan wajib dipilih
+                              </div>
+                            }
+                            @if (units.length === 0) {
+                              <div class="form-text">
+                                Belum ada satuan. <a routerLink="/products/units">Tambah satuan dulu</a>.
+                              </div>
+                            }
+                          </div>
+                          <div class="col-12">
+                            <label class="form-label fw-semibold">Foto Produk</label>
+                            <div class="image-upload-wrap">
+                              <!-- Preview -->
+                              @if (imagePreview) {
+                                <div class="image-preview-wrap mb-2">
+                                  <img [src]="imagePreview" alt="Preview" class="image-preview" />
+                                  <button type="button" class="btn btn-sm btn-outline-danger mt-2" (click)="removeImage()">
+                                    <i class="bi bi-trash me-1"></i>Hapus Foto
+                                  </button>
+                                </div>
+                              }
+                              <!-- Upload Area -->
+                              @if (!imagePreview) {
+                                <div class="image-dropzone" (click)="fileInput.click()">
+                                  <i class="bi bi-cloud-upload fs-1 text-muted"></i>
+                                  <div class="mt-2 text-muted small">Klik untuk upload foto</div>
+                                  <div class="text-muted" style="font-size:11px">JPG, PNG, WEBP — Maks. 2MB</div>
+                                </div>
+                              }
+                              <input #fileInput type="file" accept=".jpg,.jpeg,.png,.webp"
+                                style="display:none" (change)="onFileSelected($event)" />
+                              </div>
+                            </div>
+                            <div class="col-12">
+                              <label class="form-label fw-semibold">Deskripsi</label>
+                              <textarea class="form-control" formControlName="description"
+                              rows="3" placeholder="Deskripsi produk (opsional)"></textarea>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                    <!-- Harga -->
+                    <div class="col-12">
+                      <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white py-3">
+                          <h6 class="fw-bold mb-0">
+                            <i class="bi bi-cash-coin me-2 text-primary"></i>Harga
+                          </h6>
+                        </div>
+                        <div class="card-body">
+                          <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                              <label class="form-label fw-semibold">Harga Beli <span class="text-danger">*</span></label>
+                              <div class="input-group">
+                                <span class="input-group-text">Rp</span>
+                                <input type="number" class="form-control" formControlName="buyPrice"
+                                  min="0" [class.is-invalid]="isInvalid('buyPrice')"
+                                  (focus)="onFocusNumber('buyPrice')"
+                                  (blur)="onBlurNumber('buyPrice')" />
+                                  <div class="invalid-feedback">Harga beli tidak valid</div>
+                                </div>
+                              </div>
+                              <div class="col-12 col-md-6">
+                                <label class="form-label fw-semibold">Harga Jual <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                  <span class="input-group-text">Rp</span>
+                                  <input type="number" class="form-control" formControlName="sellPrice"
+                                    min="1" [class.is-invalid]="isInvalid('sellPrice')"
+                                    (focus)="onFocusNumber('sellPrice')"
+                                    (blur)="onBlurNumber('sellPrice')" />
+                                    <div class="invalid-feedback">Harga jual harus lebih dari 0</div>
+                                  </div>
+                                </div>
+                                <!-- Profit Preview -->
+                                <div class="col-12">
+                                  <div class="profit-preview" [class.profit-positive]="profit > 0" [class.profit-negative]="profit < 0">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                      <span class="fw-semibold">Estimasi Keuntungan</span>
+                                      <div class="text-end">
+                                        <span class="fw-bold fs-5">
+                                          Rp {{ profit | number }}
+                                        </span>
+                                        <span class="ms-2 badge" [class.bg-success]="profit > 0" [class.bg-danger]="profit <= 0">
+                                          {{ profitPercent }}%
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <!-- Stok -->
+                        <div class="col-12">
+                          <div class="card border-0 shadow-sm">
+                            <div class="card-header bg-white py-3">
+                              <h6 class="fw-bold mb-0">
+                                <i class="bi bi-box-seam me-2 text-primary"></i>Stok
+                              </h6>
+                            </div>
+                            <div class="card-body">
+                              <div class="row g-3">
+                                <div class="col-12 col-md-6">
+                                  <label class="form-label fw-semibold">Stok Awal <span class="text-danger">*</span></label>
+                                  <input type="number" class="form-control" formControlName="stock"
+                                    min="0" [class.is-invalid]="isInvalid('stock')"
+                                    (focus)="onFocusNumber('stock')"
+                                    (blur)="onBlurNumber('stock')" />
+                                    <div class="invalid-feedback">Stok tidak boleh negatif</div>
+                                  </div>
+                                  <div class="col-12 col-md-6">
+                                    <label class="form-label fw-semibold">Stok Minimum <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" formControlName="minStock" min="0"
+                                      (focus)="onFocusNumber('minStock')"
+                                      (blur)="onBlurNumber('minStock')" />
+                                      <div class="form-text">Peringatan akan muncul jika stok ≤ nilai ini</div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <!-- Actions -->
+                            <div class="col-12 d-flex gap-3 justify-content-end pb-4">
+                              <a routerLink="/products" class="btn btn-outline-secondary px-4">
+                                Batal
+                              </a>
+                              <button type="submit" class="btn btn-primary px-4" [disabled]="isSubmitting">
+                                @if (isSubmitting) {
+                                  <span class="spinner-border spinner-border-sm me-2"></span>
+                                }
+                                @if (!isSubmitting) {
+                                  <i class="bi bi-check-lg me-2"></i>
+                                }
+                                {{ isEditMode ? 'Simpan Perubahan' : 'Tambah Produk' }}
+                              </button>
+                            </div>
+                          </div>
+                        </form>
+                      }
 
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Stok -->
-          <div class="col-12">
-            <div class="card border-0 shadow-sm">
-              <div class="card-header bg-white py-3">
-                <h6 class="fw-bold mb-0">
-                  <i class="bi bi-box-seam me-2 text-primary"></i>Stok
-                </h6>
-              </div>
-              <div class="card-body">
-                <div class="row g-3">
-
-                  <div class="col-12 col-md-6">
-                    <label class="form-label fw-semibold">Stok Awal <span class="text-danger">*</span></label>
-                    <input type="number" class="form-control" formControlName="stock"
-                      min="0" [class.is-invalid]="isInvalid('stock')"
-                      (focus)="onFocusNumber('stock')"
-                      (blur)="onBlurNumber('stock')" />
-                    <div class="invalid-feedback">Stok tidak boleh negatif</div>
-                  </div>
-
-                  <div class="col-12 col-md-6">
-                    <label class="form-label fw-semibold">Stok Minimum <span class="text-danger">*</span></label>
-                    <input type="number" class="form-control" formControlName="minStock" min="0"
-                      (focus)="onFocusNumber('minStock')"
-                      (blur)="onBlurNumber('minStock')" />
-                    <div class="form-text">Peringatan akan muncul jika stok ≤ nilai ini</div>
-                  </div>
-
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Actions -->
-          <div class="col-12 d-flex gap-3 justify-content-end pb-4">
-            <a routerLink="/products" class="btn btn-outline-secondary px-4">
-              Batal
-            </a>
-            <button type="submit" class="btn btn-primary px-4" [disabled]="isSubmitting">
-              <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
-              <i *ngIf="!isSubmitting" class="bi bi-check-lg me-2"></i>
-              {{ isEditMode ? 'Simpan Perubahan' : 'Tambah Produk' }}
-            </button>
-          </div>
-
-        </div>
-      </form>
-
-    </div>
-  </div>
-</div>

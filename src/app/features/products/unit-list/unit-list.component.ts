@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { UnitService } from '../../../core/services/api.service';
@@ -11,12 +11,11 @@ import { ToastService } from '../../../core/services/toast.service';
 @Component({
     selector: 'app-unit-list',
     imports: [
-        CommonModule,
-        FormsModule,
-        RouterLink,
-        ConfirmDialogComponent,
-        LoadingSpinnerComponent
-    ],
+    FormsModule,
+    RouterLink,
+    ConfirmDialogComponent,
+    LoadingSpinnerComponent
+],
     templateUrl: './unit-list.component.html',
     styleUrl: './unit-list.component.css'
 })

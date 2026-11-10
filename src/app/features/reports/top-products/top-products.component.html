@@ -6,31 +6,35 @@
   </div>
   <div class="card-body">
 
-    <div *ngIf="data.length === 0" class="text-center py-4 text-muted">
-      <i class="bi bi-box-seam fs-1 d-block mb-2"></i>
-      Belum ada data
-    </div>
-
-    <div *ngFor="let p of data; let i = index" class="top-product-row">
-      <div class="top-rank"
-        [class.rank-gold]="i===0"
-        [class.rank-silver]="i===1"
-        [class.rank-bronze]="i===2">
-        {{ i + 1 }}
+    @if (data.length === 0) {
+      <div class="text-center py-4 text-muted">
+        <i class="bi bi-box-seam fs-1 d-block mb-2"></i>
+        Belum ada data
       </div>
-      <div class="flex-grow-1">
-        <div class="d-flex justify-content-between mb-1">
-          <span class="fw-semibold">{{ p.productName }}</span>
-          <span class="text-muted small">{{ p.totalQty ?? p.totalQuantity }} terjual</span>
+    }
+
+    @for (p of data; track p; let i = $index) {
+      <div class="top-product-row">
+        <div class="top-rank"
+          [class.rank-gold]="i===0"
+          [class.rank-silver]="i===1"
+          [class.rank-bronze]="i===2">
+          {{ i + 1 }}
         </div>
-        <div class="progress" style="height:6px;">
-          <div class="progress-bar bg-primary"
-            [style.width.%]="((p.totalQty ?? p.totalQuantity) / getMaxQty()) * 100">
+        <div class="flex-grow-1">
+          <div class="d-flex justify-content-between mb-1">
+            <span class="fw-semibold">{{ p.productName }}</span>
+            <span class="text-muted small">{{ p.totalQty ?? p.totalQuantity }} terjual</span>
+          </div>
+          <div class="progress" style="height:6px;">
+            <div class="progress-bar bg-primary"
+              [style.width.%]="((p.totalQty ?? p.totalQuantity) / getMaxQty()) * 100">
+            </div>
           </div>
         </div>
+        <div class="top-revenue">{{ p.totalRevenue | rupiah }}</div>
       </div>
-      <div class="top-revenue">{{ p.totalRevenue | rupiah }}</div>
-    </div>
+    }
 
   </div>
 </div>

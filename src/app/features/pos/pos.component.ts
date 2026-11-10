@@ -1,5 +1,5 @@
 import { Component, OnInit, AfterViewInit, OnDestroy, HostListener, ViewChild, ElementRef } from '@angular/core';
-import { CommonModule, NgClass } from '@angular/common';
+import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ProductService, CustomerService, TransactionService, CategoryService } from '../../core/services/api.service';
@@ -39,7 +39,7 @@ interface HeldCart {
 
 @Component({
     selector: 'app-pos',
-    imports: [CommonModule, FormsModule, RupiahPipe, NgClass, ConfirmDialogComponent],
+    imports: [FormsModule, RupiahPipe, NgClass, ConfirmDialogComponent],
     templateUrl: './pos.component.html',
     styleUrl: './pos.component.css'
 })

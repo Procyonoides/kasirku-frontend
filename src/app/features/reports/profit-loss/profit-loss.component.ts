@@ -1,10 +1,10 @@
 import { Component, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { RupiahPipe } from '../../../shared/pipes';
 
 @Component({
     selector: 'app-profit-loss',
-    imports: [CommonModule, RupiahPipe],
+    imports: [RupiahPipe],
     templateUrl: './profit-loss.component.html',
     styleUrl: './profit-loss.component.css'
 })

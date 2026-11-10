@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { CategoryService } from '../../../core/services/api.service';
@@ -10,7 +10,7 @@ import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
     selector: 'app-category-list',
-    imports: [CommonModule, FormsModule, RouterLink, ConfirmDialogComponent, LoadingSpinnerComponent],
+    imports: [FormsModule, RouterLink, ConfirmDialogComponent, LoadingSpinnerComponent],
     templateUrl: './category-list.component.html',
     styleUrl: './category-list.component.css'
 })

@@ -1,24 +1,20 @@
-<ng-container *ngIf="show">
+@if (show) {
   <!-- Backdrop -->
   <div class="confirm-backdrop" (click)="onCancel()"></div>
-
   <!-- Dialog -->
   <div class="confirm-wrapper">
     <div class="confirm-dialog">
-
       <!-- Icon -->
       <div class="confirm-icon" [class]="'icon-' + type">
         <i class="bi" [class.bi-trash3]="type === 'danger'"
           [class.bi-exclamation-triangle]="type === 'warning'"
-          [class.bi-question-circle]="type === 'primary'"></i>
+        [class.bi-question-circle]="type === 'primary'"></i>
       </div>
-
       <!-- Content -->
       <div class="confirm-content">
         <h5 class="confirm-title">{{ title }}</h5>
         <p class="confirm-message">{{ message }}</p>
       </div>
-
       <!-- Actions -->
       <div class="confirm-actions">
         <button class="btn btn-outline-secondary" (click)="onCancel()">
@@ -31,7 +27,6 @@
           {{ confirmText }}
         </button>
       </div>
-
     </div>
   </div>
-</ng-container>
+}

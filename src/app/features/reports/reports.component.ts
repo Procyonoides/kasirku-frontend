@@ -1,5 +1,5 @@
 import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
-import { CommonModule, NgClass } from '@angular/common';
+import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReportService } from '../../core/services/api.service';
 import { RupiahPipe } from '../../shared/pipes';
@@ -16,17 +16,16 @@ import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner
 @Component({
     selector: 'app-reports',
     imports: [
-        CommonModule,
-        FormsModule,
-        RupiahPipe,
-        NgClass,
-        ProfitLossComponent,
-        TopProductsComponent,
-        SalesComponent,
-        CashflowComponent,
-        CustomPriceComponent,
-        LoadingSpinnerComponent
-    ],
+    FormsModule,
+    RupiahPipe,
+    NgClass,
+    ProfitLossComponent,
+    TopProductsComponent,
+    SalesComponent,
+    CashflowComponent,
+    CustomPriceComponent,
+    LoadingSpinnerComponent
+],
     templateUrl: './reports.component.html',
     styleUrl: './reports.component.css'
 })

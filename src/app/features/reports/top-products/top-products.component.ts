@@ -1,10 +1,10 @@
 import { Component,Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { RupiahPipe } from '../../../shared/pipes';
 
 @Component({
     selector: 'app-top-products',
-    imports: [CommonModule, RupiahPipe],
+    imports: [RupiahPipe],
     templateUrl: './top-products.component.html',
     styleUrl: './top-products.component.css'
 })

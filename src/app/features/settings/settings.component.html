@@ -23,23 +23,27 @@
               <i class="bi bi-shield-lock"></i>
               <span>Password</span>
             </button>
-            <button *ngIf="authService.hasRole('owner')"
-              class="settings-menu-item" [class.active]="activeTab === 'store'"
-              (click)="activeTab = 'store'">
-              <i class="bi bi-shop"></i>
-              <span>Info Toko</span>
-            </button>
+            @if (authService.hasRole('owner')) {
+              <button
+                class="settings-menu-item" [class.active]="activeTab === 'store'"
+                (click)="activeTab = 'store'">
+                <i class="bi bi-shop"></i>
+                <span>Info Toko</span>
+              </button>
+            }
             <button class="settings-menu-item" [class.active]="activeTab === 'appearance'"
               (click)="activeTab = 'appearance'">
               <i class="bi bi-palette"></i>
               <span>Tampilan</span>
             </button>
-            <button *ngIf="authService.hasRole('owner')"
-              class="settings-menu-item" [class.active]="activeTab === 'backup'"
-              (click)="activeTab = 'backup'; loadBackupList()">
-              <i class="bi bi-database"></i>
-              <span>Backup & Restore</span>
-            </button>
+            @if (authService.hasRole('owner')) {
+              <button
+                class="settings-menu-item" [class.active]="activeTab === 'backup'"
+                (click)="activeTab = 'backup'; loadBackupList()">
+                <i class="bi bi-database"></i>
+                <span>Backup & Restore</span>
+              </button>
+            }
           </div>
         </div>
 
@@ -47,389 +51,421 @@
         <div class="col-12 col-md-9">
 
           <!-- Profile Tab -->
-          <div *ngIf="activeTab === 'profile'">
-            <div class="card border-0 shadow-sm">
-              <div class="card-header bg-white py-3">
-                <h6 class="fw-bold mb-0">
-                  <i class="bi bi-person-circle me-2 text-primary"></i>Informasi Profil
-                </h6>
-              </div>
-              <div class="card-body">
-
-                <!-- Profile Banner -->
-                <div class="profile-banner mb-4">
-                  <div class="profile-avatar">
-                    {{ authService.currentUser()?.name?.charAt(0)?.toUpperCase() }}
-                  </div>
-                  <div>
-                    <div class="profile-banner-name">{{ authService.currentUser()?.name }}</div>
-                    <div class="profile-banner-role">{{ authService.currentUser()?.role | titlecase }}</div>
-                  </div>
+          @if (activeTab === 'profile') {
+            <div>
+              <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                  <h6 class="fw-bold mb-0">
+                    <i class="bi bi-person-circle me-2 text-primary"></i>Informasi Profil
+                  </h6>
                 </div>
-
-                <form [formGroup]="profileForm" (ngSubmit)="submitProfile()">
-                  <div class="row g-3">
-                    <div class="col-12">
-                      <label class="form-label fw-semibold">Nama Lengkap <span class="text-danger">*</span></label>
-                      <input type="text" class="form-control" formControlName="name"
-                        [class.is-invalid]="isInvalid(profileForm, 'name')" />
-                      <div class="invalid-feedback">Nama wajib diisi (min. 2 karakter)</div>
-                    </div>
-                    <div class="col-12">
-                      <label class="form-label fw-semibold">Username <span class="text-danger">*</span></label>
-                      <input type="text" class="form-control" formControlName="username"
-                        [class.is-invalid]="isInvalid(profileForm, 'username')" />
-                      <div class="invalid-feedback">Username wajib diisi (min. 3 karakter)</div>
-                    </div>
-                    <div class="col-12">
-                      <label class="form-label fw-semibold">Email</label>
-                      <input type="email" class="form-control" formControlName="email"
-                        placeholder="email@contoh.com"
-                        [class.is-invalid]="isInvalid(profileForm, 'email')" />
-                      <div class="invalid-feedback">Format email tidak valid</div>
-                    </div>
-                    <div class="col-12">
-                      <button type="submit" class="btn btn-primary px-4" [disabled]="profileSubmitting">
-                        <span *ngIf="profileSubmitting" class="spinner-border spinner-border-sm me-2"></span>
-                        <i *ngIf="!profileSubmitting" class="bi bi-check-lg me-2"></i>
-                        Simpan Perubahan
-                      </button>
-                    </div>
-                  </div>
-                </form>
-
-              </div>
-            </div>
-          </div>
-
-          <!-- Password Tab -->
-          <div *ngIf="activeTab === 'password'">
-            <div class="card border-0 shadow-sm">
-              <div class="card-header bg-white py-3">
-                <h6 class="fw-bold mb-0">
-                  <i class="bi bi-shield-lock me-2 text-primary"></i>Ganti Password
-                </h6>
-              </div>
-              <div class="card-body">
-
-                <form [formGroup]="passwordForm" (ngSubmit)="submitPassword()">
-                  <div class="row g-3">
-                    <div class="col-12">
-                      <label class="form-label fw-semibold">Password Saat Ini <span class="text-danger">*</span></label>
-                      <div class="input-group">
-                        <input [type]="showCurrentPassword ? 'text' : 'password'"
-                          class="form-control" formControlName="currentPassword"
-                          [class.is-invalid]="isInvalid(passwordForm, 'currentPassword')" />
-                        <button type="button" class="btn btn-outline-secondary"
-                          (click)="showCurrentPassword = !showCurrentPassword">
-                          <i class="bi" [class.bi-eye]="!showCurrentPassword" [class.bi-eye-slash]="showCurrentPassword"></i>
-                        </button>
-                        <div class="invalid-feedback">Password saat ini wajib diisi</div>
-                      </div>
-                    </div>
-                    <div class="col-12">
-                      <label class="form-label fw-semibold">Password Baru <span class="text-danger">*</span></label>
-                      <div class="input-group">
-                        <input [type]="showNewPassword ? 'text' : 'password'"
-                          class="form-control" formControlName="newPassword"
-                          [class.is-invalid]="isInvalid(passwordForm, 'newPassword')" />
-                        <button type="button" class="btn btn-outline-secondary"
-                          (click)="showNewPassword = !showNewPassword">
-                          <i class="bi" [class.bi-eye]="!showNewPassword" [class.bi-eye-slash]="showNewPassword"></i>
-                        </button>
-                        <div class="invalid-feedback">Password baru min. 6 karakter</div>
-                      </div>
-                    </div>
-                    <div class="col-12">
-                      <label class="form-label fw-semibold">Konfirmasi Password <span class="text-danger">*</span></label>
-                      <div class="input-group">
-                        <input [type]="showConfirmPassword ? 'text' : 'password'"
-                          class="form-control" formControlName="confirmPassword"
-                          [class.is-invalid]="passwordForm.hasError('mismatch') && passwordForm.get('confirmPassword')?.touched" />
-                        <button type="button" class="btn btn-outline-secondary"
-                          (click)="showConfirmPassword = !showConfirmPassword">
-                          <i class="bi" [class.bi-eye]="!showConfirmPassword" [class.bi-eye-slash]="showConfirmPassword"></i>
-                        </button>
-                        <div class="invalid-feedback">Password tidak cocok</div>
-                      </div>
-                    </div>
-                    <div class="col-12">
-                      <button type="submit" class="btn btn-primary px-4" [disabled]="passwordSubmitting">
-                        <span *ngIf="passwordSubmitting" class="spinner-border spinner-border-sm me-2"></span>
-                        <i *ngIf="!passwordSubmitting" class="bi bi-shield-check me-2"></i>
-                        Ganti Password
-                      </button>
-                    </div>
-                  </div>
-                </form>
-
-              </div>
-            </div>
-          </div>
-
-          <!-- Store Tab -->
-          <div *ngIf="activeTab === 'store'">
-            <div class="card border-0 shadow-sm">
-              <div class="card-header bg-white py-3">
-                <h6 class="fw-bold mb-0">
-                  <i class="bi bi-shop me-2 text-primary"></i>Informasi Toko
-                </h6>
-              </div>
-              <div class="card-body">
-
-                <div *ngIf="storeSuccess" class="alert alert-success py-2 small mb-3">
-                  <i class="bi bi-check-circle me-1"></i>Informasi toko berhasil disimpan!
-                </div>
-                <div *ngIf="storeError" class="alert alert-danger py-2 small mb-3">
-                  <i class="bi bi-exclamation-circle me-1"></i>{{ storeError }}
-                </div>
-
-                <form [formGroup]="storeForm" (ngSubmit)="submitStore()">
-                  <div class="row g-3">
-
-                    <div class="col-12">
-                      <label class="form-label fw-semibold">Nama Toko <span class="text-danger">*</span></label>
-                      <input type="text" class="form-control" formControlName="storeName"
-                        placeholder="cth: Toko Maju Jaya"
-                        [class.is-invalid]="isInvalid(storeForm, 'storeName')" />
-                      <div class="invalid-feedback">Nama toko wajib diisi</div>
-                    </div>
-
-                    <div class="col-12">
-                      <label class="form-label fw-semibold">Alamat</label>
-                      <textarea class="form-control" formControlName="storeAddress"
-                        rows="2" placeholder="Alamat lengkap toko"></textarea>
-                    </div>
-
-                    <div class="col-12 col-md-6">
-                      <label class="form-label fw-semibold">Nomor Telepon</label>
-                      <input type="text" class="form-control" formControlName="storePhone"
-                        placeholder="cth: 0812-3456-7890" />
-                    </div>
-
-                    <div class="col-12 col-md-6">
-                      <label class="form-label fw-semibold">Email Toko</label>
-                      <input type="email" class="form-control" formControlName="storeEmail"
-                        placeholder="cth: toko@email.com"
-                        [class.is-invalid]="isInvalid(storeForm, 'storeEmail')" />
-                      <div class="invalid-feedback">Format email tidak valid</div>
-                    </div>
-
-                    <div class="col-12 col-md-6">
-                      <label class="form-label fw-semibold">Simbol Mata Uang</label>
-                      <input type="text" class="form-control" formControlName="currency"
-                        placeholder="cth: Rp" />
-                    </div>
-
-                    <div class="col-12">
-                      <label class="form-label fw-semibold">Deskripsi Toko</label>
-                      <textarea class="form-control" formControlName="storeDescription"
-                        rows="2" placeholder="Deskripsi singkat toko (opsional)"></textarea>
-                    </div>
-
-                    <div class="col-12">
-                      <button type="submit" class="btn btn-primary px-4" [disabled]="storeSubmitting">
-                        <span *ngIf="storeSubmitting" class="spinner-border spinner-border-sm me-2"></span>
-                        <i *ngIf="!storeSubmitting" class="bi bi-check-lg me-2"></i>
-                        Simpan Perubahan
-                      </button>
-                    </div>
-
-                  </div>
-                </form>
-
-              </div>
-            </div>
-          </div>
-
-          <!-- Appearance Tab -->
-          <div *ngIf="activeTab === 'appearance'">
-            <div class="card border-0 shadow-sm">
-              <div class="card-header bg-white py-3">
-                <h6 class="fw-bold mb-0">
-                  <i class="bi bi-palette me-2 text-primary"></i>Tampilan
-                </h6>
-              </div>
-              <div class="card-body">
-
-                <!-- Dark Mode Toggle -->
-                <div class="appearance-row">
-                  <div class="d-flex align-items-center gap-3">
-                    <div class="rounded-circle d-flex align-items-center justify-content-center"
-                      style="width:44px; height:44px; background: linear-gradient(135deg, #1e3a5f, #2563eb); flex-shrink:0">
-                      <i class="bi" [class.bi-moon-fill]="!themeService.isDark()"
-                        [class.bi-sun-fill]="themeService.isDark()"
-                        style="color:white; font-size:20px;"></i>
+                <div class="card-body">
+                  <!-- Profile Banner -->
+                  <div class="profile-banner mb-4">
+                    <div class="profile-avatar">
+                      {{ authService.currentUser()?.name?.charAt(0)?.toUpperCase() }}
                     </div>
                     <div>
-                      <div class="fw-semibold" style="font-size:15px">Dark Mode</div>
-                      <div class="text-muted" style="font-size:13px">
-                        {{ themeService.isDark() ? 'Tema gelap aktif' : 'Tema terang aktif' }}
+                      <div class="profile-banner-name">{{ authService.currentUser()?.name }}</div>
+                      <div class="profile-banner-role">{{ authService.currentUser()?.role | titlecase }}</div>
+                    </div>
+                  </div>
+                  <form [formGroup]="profileForm" (ngSubmit)="submitProfile()">
+                    <div class="row g-3">
+                      <div class="col-12">
+                        <label class="form-label fw-semibold">Nama Lengkap <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" formControlName="name"
+                          [class.is-invalid]="isInvalid(profileForm, 'name')" />
+                          <div class="invalid-feedback">Nama wajib diisi (min. 2 karakter)</div>
+                        </div>
+                        <div class="col-12">
+                          <label class="form-label fw-semibold">Username <span class="text-danger">*</span></label>
+                          <input type="text" class="form-control" formControlName="username"
+                            [class.is-invalid]="isInvalid(profileForm, 'username')" />
+                            <div class="invalid-feedback">Username wajib diisi (min. 3 karakter)</div>
+                          </div>
+                          <div class="col-12">
+                            <label class="form-label fw-semibold">Email</label>
+                            <input type="email" class="form-control" formControlName="email"
+                              placeholder="email@contoh.com"
+                              [class.is-invalid]="isInvalid(profileForm, 'email')" />
+                              <div class="invalid-feedback">Format email tidak valid</div>
+                            </div>
+                            <div class="col-12">
+                              <button type="submit" class="btn btn-primary px-4" [disabled]="profileSubmitting">
+                                @if (profileSubmitting) {
+                                  <span class="spinner-border spinner-border-sm me-2"></span>
+                                }
+                                @if (!profileSubmitting) {
+                                  <i class="bi bi-check-lg me-2"></i>
+                                }
+                                Simpan Perubahan
+                              </button>
+                            </div>
+                          </div>
+                        </form>
                       </div>
                     </div>
                   </div>
-                  <div class="form-check form-switch mb-0">
-                    <input class="form-check-input" type="checkbox" role="switch"
-                      style="width: 48px; height: 26px; cursor: pointer;"
-                      [checked]="themeService.isDark()"
-                      (change)="themeService.toggle()" />
-                  </div>
-                </div>
+                }
 
-                <!-- Preview -->
-                <div class="rounded-3 p-3"
-                  style="background: var(--bg-primary, #f8fafc); border: 1px solid var(--border-color, #e2e8f0)">
-                  <div class="text-muted small fw-semibold mb-2 text-uppercase" style="letter-spacing:0.5px">
-                    <i class="bi bi-eye me-1"></i>Preview
-                  </div>
-                  <div class="d-flex gap-2 flex-wrap">
-                    <span class="badge" style="background: linear-gradient(135deg, #1e3a5f, #2563eb)">
-                      Tema Aktif
-                    </span>
-                    <span class="badge bg-success">Stok Aman</span>
-                    <span class="badge bg-warning text-dark">Stok Menipis</span>
-                    <span class="badge bg-danger">Stok Habis</span>
-                  </div>
-                  <div class="mt-2 p-2 rounded" style="background: var(--bg-card, white); border: 1px solid var(--border-color, #e2e8f0)">
-                    <div class="small fw-semibold" style="color: var(--text-primary, #1e293b)">Contoh Card</div>
-                    <div class="small" style="color: var(--text-secondary, #64748b)">Ini adalah contoh tampilan teks dalam card</div>
-                  </div>
-                </div>
+                <!-- Password Tab -->
+                @if (activeTab === 'password') {
+                  <div>
+                    <div class="card border-0 shadow-sm">
+                      <div class="card-header bg-white py-3">
+                        <h6 class="fw-bold mb-0">
+                          <i class="bi bi-shield-lock me-2 text-primary"></i>Ganti Password
+                        </h6>
+                      </div>
+                      <div class="card-body">
+                        <form [formGroup]="passwordForm" (ngSubmit)="submitPassword()">
+                          <div class="row g-3">
+                            <div class="col-12">
+                              <label class="form-label fw-semibold">Password Saat Ini <span class="text-danger">*</span></label>
+                              <div class="input-group">
+                                <input [type]="showCurrentPassword ? 'text' : 'password'"
+                                  class="form-control" formControlName="currentPassword"
+                                  [class.is-invalid]="isInvalid(passwordForm, 'currentPassword')" />
+                                  <button type="button" class="btn btn-outline-secondary"
+                                    (click)="showCurrentPassword = !showCurrentPassword">
+                                    <i class="bi" [class.bi-eye]="!showCurrentPassword" [class.bi-eye-slash]="showCurrentPassword"></i>
+                                  </button>
+                                  <div class="invalid-feedback">Password saat ini wajib diisi</div>
+                                </div>
+                              </div>
+                              <div class="col-12">
+                                <label class="form-label fw-semibold">Password Baru <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                  <input [type]="showNewPassword ? 'text' : 'password'"
+                                    class="form-control" formControlName="newPassword"
+                                    [class.is-invalid]="isInvalid(passwordForm, 'newPassword')" />
+                                    <button type="button" class="btn btn-outline-secondary"
+                                      (click)="showNewPassword = !showNewPassword">
+                                      <i class="bi" [class.bi-eye]="!showNewPassword" [class.bi-eye-slash]="showNewPassword"></i>
+                                    </button>
+                                    <div class="invalid-feedback">Password baru min. 6 karakter</div>
+                                  </div>
+                                </div>
+                                <div class="col-12">
+                                  <label class="form-label fw-semibold">Konfirmasi Password <span class="text-danger">*</span></label>
+                                  <div class="input-group">
+                                    <input [type]="showConfirmPassword ? 'text' : 'password'"
+                                      class="form-control" formControlName="confirmPassword"
+                                      [class.is-invalid]="passwordForm.hasError('mismatch') && passwordForm.get('confirmPassword')?.touched" />
+                                      <button type="button" class="btn btn-outline-secondary"
+                                        (click)="showConfirmPassword = !showConfirmPassword">
+                                        <i class="bi" [class.bi-eye]="!showConfirmPassword" [class.bi-eye-slash]="showConfirmPassword"></i>
+                                      </button>
+                                      <div class="invalid-feedback">Password tidak cocok</div>
+                                    </div>
+                                  </div>
+                                  <div class="col-12">
+                                    <button type="submit" class="btn btn-primary px-4" [disabled]="passwordSubmitting">
+                                      @if (passwordSubmitting) {
+                                        <span class="spinner-border spinner-border-sm me-2"></span>
+                                      }
+                                      @if (!passwordSubmitting) {
+                                        <i class="bi bi-shield-check me-2"></i>
+                                      }
+                                      Ganti Password
+                                    </button>
+                                  </div>
+                                </div>
+                              </form>
+                            </div>
+                          </div>
+                        </div>
+                      }
 
-              </div>
-            </div>
-          </div>
+                      <!-- Store Tab -->
+                      @if (activeTab === 'store') {
+                        <div>
+                          <div class="card border-0 shadow-sm">
+                            <div class="card-header bg-white py-3">
+                              <h6 class="fw-bold mb-0">
+                                <i class="bi bi-shop me-2 text-primary"></i>Informasi Toko
+                              </h6>
+                            </div>
+                            <div class="card-body">
+                              @if (storeSuccess) {
+                                <div class="alert alert-success py-2 small mb-3">
+                                  <i class="bi bi-check-circle me-1"></i>Informasi toko berhasil disimpan!
+                                </div>
+                              }
+                              @if (storeError) {
+                                <div class="alert alert-danger py-2 small mb-3">
+                                  <i class="bi bi-exclamation-circle me-1"></i>{{ storeError }}
+                                </div>
+                              }
+                              <form [formGroup]="storeForm" (ngSubmit)="submitStore()">
+                                <div class="row g-3">
+                                  <div class="col-12">
+                                    <label class="form-label fw-semibold">Nama Toko <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" formControlName="storeName"
+                                      placeholder="cth: Toko Maju Jaya"
+                                      [class.is-invalid]="isInvalid(storeForm, 'storeName')" />
+                                      <div class="invalid-feedback">Nama toko wajib diisi</div>
+                                    </div>
+                                    <div class="col-12">
+                                      <label class="form-label fw-semibold">Alamat</label>
+                                      <textarea class="form-control" formControlName="storeAddress"
+                                      rows="2" placeholder="Alamat lengkap toko"></textarea>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                      <label class="form-label fw-semibold">Nomor Telepon</label>
+                                      <input type="text" class="form-control" formControlName="storePhone"
+                                        placeholder="cth: 0812-3456-7890" />
+                                      </div>
+                                      <div class="col-12 col-md-6">
+                                        <label class="form-label fw-semibold">Email Toko</label>
+                                        <input type="email" class="form-control" formControlName="storeEmail"
+                                          placeholder="cth: toko@email.com"
+                                          [class.is-invalid]="isInvalid(storeForm, 'storeEmail')" />
+                                          <div class="invalid-feedback">Format email tidak valid</div>
+                                        </div>
+                                        <div class="col-12 col-md-6">
+                                          <label class="form-label fw-semibold">Simbol Mata Uang</label>
+                                          <input type="text" class="form-control" formControlName="currency"
+                                            placeholder="cth: Rp" />
+                                          </div>
+                                          <div class="col-12">
+                                            <label class="form-label fw-semibold">Deskripsi Toko</label>
+                                            <textarea class="form-control" formControlName="storeDescription"
+                                            rows="2" placeholder="Deskripsi singkat toko (opsional)"></textarea>
+                                          </div>
+                                          <div class="col-12">
+                                            <button type="submit" class="btn btn-primary px-4" [disabled]="storeSubmitting">
+                                              @if (storeSubmitting) {
+                                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                              }
+                                              @if (!storeSubmitting) {
+                                                <i class="bi bi-check-lg me-2"></i>
+                                              }
+                                              Simpan Perubahan
+                                            </button>
+                                          </div>
+                                        </div>
+                                      </form>
+                                    </div>
+                                  </div>
+                                </div>
+                              }
 
-          <!-- Backup & Restore Tab -->
-          <div *ngIf="activeTab === 'backup'">
-            <div class="card border-0 shadow-sm mb-4">
-              <div class="card-header bg-white py-3">
-                <h6 class="fw-bold mb-0">
-                  <i class="bi bi-folder-check me-2 text-primary"></i>Simpan Backup ke Folder
-                </h6>
-              </div>
-              <div class="card-body">
-                <p class="text-muted small mb-3">
-                  Backup disimpan langsung di komputer server (komputer yang menjalankan KasirKu),
-                  di folder yang kamu pilih.
-                </p>
+                              <!-- Appearance Tab -->
+                              @if (activeTab === 'appearance') {
+                                <div>
+                                  <div class="card border-0 shadow-sm">
+                                    <div class="card-header bg-white py-3">
+                                      <h6 class="fw-bold mb-0">
+                                        <i class="bi bi-palette me-2 text-primary"></i>Tampilan
+                                      </h6>
+                                    </div>
+                                    <div class="card-body">
+                                      <!-- Dark Mode Toggle -->
+                                      <div class="appearance-row">
+                                        <div class="d-flex align-items-center gap-3">
+                                          <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                            style="width:44px; height:44px; background: linear-gradient(135deg, #1e3a5f, #2563eb); flex-shrink:0">
+                                            <i class="bi" [class.bi-moon-fill]="!themeService.isDark()"
+                                              [class.bi-sun-fill]="themeService.isDark()"
+                                            style="color:white; font-size:20px;"></i>
+                                          </div>
+                                          <div>
+                                            <div class="fw-semibold" style="font-size:15px">Dark Mode</div>
+                                            <div class="text-muted" style="font-size:13px">
+                                              {{ themeService.isDark() ? 'Tema gelap aktif' : 'Tema terang aktif' }}
+                                            </div>
+                                          </div>
+                                        </div>
+                                        <div class="form-check form-switch mb-0">
+                                          <input class="form-check-input" type="checkbox" role="switch"
+                                            style="width: 48px; height: 26px; cursor: pointer;"
+                                            [checked]="themeService.isDark()"
+                                            (change)="themeService.toggle()" />
+                                          </div>
+                                        </div>
+                                        <!-- Preview -->
+                                        <div class="rounded-3 p-3"
+                                          style="background: var(--bg-primary, #f8fafc); border: 1px solid var(--border-color, #e2e8f0)">
+                                          <div class="text-muted small fw-semibold mb-2 text-uppercase" style="letter-spacing:0.5px">
+                                            <i class="bi bi-eye me-1"></i>Preview
+                                          </div>
+                                          <div class="d-flex gap-2 flex-wrap">
+                                            <span class="badge" style="background: linear-gradient(135deg, #1e3a5f, #2563eb)">
+                                              Tema Aktif
+                                            </span>
+                                            <span class="badge bg-success">Stok Aman</span>
+                                            <span class="badge bg-warning text-dark">Stok Menipis</span>
+                                            <span class="badge bg-danger">Stok Habis</span>
+                                          </div>
+                                          <div class="mt-2 p-2 rounded" style="background: var(--bg-card, white); border: 1px solid var(--border-color, #e2e8f0)">
+                                            <div class="small fw-semibold" style="color: var(--text-primary, #1e293b)">Contoh Card</div>
+                                            <div class="small" style="color: var(--text-secondary, #64748b)">Ini adalah contoh tampilan teks dalam card</div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                }
 
-                <label class="form-label fw-semibold">Folder tujuan</label>
-                <div class="input-group mb-1">
-                  <input type="text" class="form-control" [(ngModel)]="backupDir"
-                    placeholder="D:\Backup KasirKu" [class.is-invalid]="!!backupDirError"
-                    (keyup.enter)="saveBackupDir()" />
-                  <button class="btn btn-outline-primary" (click)="saveBackupDir()"
-                    [disabled]="isSavingDir || !backupDirChanged">
-                    <span *ngIf="isSavingDir" class="spinner-border spinner-border-sm me-1"></span>Simpan Folder
-                  </button>
-                </div>
-                <div class="text-danger small mb-1" *ngIf="backupDirError">{{ backupDirError }}</div>
-                <div class="form-text mb-3">Folder dibuat otomatis kalau belum ada.</div>
+                                <!-- Backup & Restore Tab -->
+                                @if (activeTab === 'backup') {
+                                  <div>
+                                    <div class="card border-0 shadow-sm mb-4">
+                                      <div class="card-header bg-white py-3">
+                                        <h6 class="fw-bold mb-0">
+                                          <i class="bi bi-folder-check me-2 text-primary"></i>Simpan Backup ke Folder
+                                        </h6>
+                                      </div>
+                                      <div class="card-body">
+                                        <p class="text-muted small mb-3">
+                                          Backup disimpan langsung di komputer server (komputer yang menjalankan KasirKu),
+                                          di folder yang kamu pilih.
+                                        </p>
+                                        <label class="form-label fw-semibold">Folder tujuan</label>
+                                        <div class="input-group mb-1">
+                                          <input type="text" class="form-control" [(ngModel)]="backupDir"
+                                            placeholder="D:\Backup KasirKu" [class.is-invalid]="!!backupDirError"
+                                            (keyup.enter)="saveBackupDir()" />
+                                            <button class="btn btn-outline-primary" (click)="saveBackupDir()"
+                                              [disabled]="isSavingDir || !backupDirChanged">
+                                              @if (isSavingDir) {
+                                                <span class="spinner-border spinner-border-sm me-1"></span>
+                                                }Simpan Folder
+                                              </button>
+                                            </div>
+                                            @if (backupDirError) {
+                                              <div class="text-danger small mb-1">{{ backupDirError }}</div>
+                                            }
+                                            <div class="form-text mb-3">Folder dibuat otomatis kalau belum ada.</div>
+                                            <button class="btn btn-primary" (click)="saveBackupToFolder()"
+                                              [disabled]="isSavingToFolder || backupDirChanged">
+                                              @if (isSavingToFolder) {
+                                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                              }
+                                              @if (!isSavingToFolder) {
+                                                <i class="bi bi-save me-2"></i>
+                                              }
+                                              {{ isSavingToFolder ? 'Memproses...' : 'Backup Sekarang' }}
+                                            </button>
+                                            @if (backupDirChanged) {
+                                              <span class="text-muted small ms-2">Simpan folder dulu.</span>
+                                            }
+                                            @if (lastSavedBackup) {
+                                              <div class="alert alert-success small mt-3 mb-0">
+                                                <i class="bi bi-check-circle me-1"></i>Tersimpan di:
+                                                <code>{{ lastSavedBackup.path }}</code> ({{ formatSize(lastSavedBackup.size) }})
+                                              </div>
+                                            }
+                                            @if (backupList) {
+                                              <div class="mt-4">
+                                                <div class="fw-semibold small mb-2">Backup di folder ini</div>
+                                                @if (!backupList.exists) {
+                                                  <div class="text-muted small">
+                                                    Folder belum ada. Akan dibuat saat backup pertama.
+                                                  </div>
+                                                }
+                                                @if (backupList.exists && backupList.files.length === 0) {
+                                                  <div class="text-muted small">
+                                                    Belum ada file backup.
+                                                  </div>
+                                                }
+                                                @if (backupList.files.length > 0) {
+                                                  <div class="table-responsive">
+                                                    <table class="table table-sm align-middle mb-0">
+                                                      <thead class="table-light">
+                                                        <tr><th>File</th><th>Waktu</th><th class="text-end">Ukuran</th></tr>
+                                                      </thead>
+                                                      <tbody>
+                                                        @for (f of backupList.files; track f) {
+                                                          <tr>
+                                                            <td>{{ f.fileName }}</td>
+                                                            <td>{{ f.modifiedAt | date:'dd MMM yyyy HH:mm' }}</td>
+                                                            <td class="text-end">{{ formatSize(f.size) }}</td>
+                                                          </tr>
+                                                        }
+                                                      </tbody>
+                                                    </table>
+                                                  </div>
+                                                }
+                                              </div>
+                                            }
+                                          </div>
+                                        </div>
+                                        <div class="card border-0 shadow-sm mb-4">
+                                          <div class="card-header bg-white py-3">
+                                            <h6 class="fw-bold mb-0">
+                                              <i class="bi bi-database-down me-2 text-primary"></i>Backup Database
+                                            </h6>
+                                          </div>
+                                          <div class="card-body">
+                                            <p class="text-muted small mb-3">
+                                              Download semua data aplikasi sebagai file backup (.zip) lewat browser.
+                                              File masuk ke folder Download browser, bukan ke folder di atas.
+                                            </p>
+                                            <button class="btn btn-primary" (click)="downloadBackup()" [disabled]="isBackingUp">
+                                              @if (isBackingUp) {
+                                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                              }
+                                              @if (!isBackingUp) {
+                                                <i class="bi bi-download me-2"></i>
+                                              }
+                                              {{ isBackingUp ? 'Memproses...' : 'Download Backup' }}
+                                            </button>
+                                          </div>
+                                        </div>
+                                        <div class="card border-0 shadow-sm">
+                                          <div class="card-header bg-white py-3">
+                                            <h6 class="fw-bold mb-0">
+                                              <i class="bi bi-database-up me-2 text-warning"></i>Restore Database
+                                            </h6>
+                                          </div>
+                                          <div class="card-body">
+                                            <div class="alert alert-warning py-2 small mb-3">
+                                              <i class="bi bi-exclamation-triangle me-1"></i>
+                                              <strong>Perhatian!</strong> Restore akan menimpa semua data yang ada sekarang.
+                                              Pastikan kamu sudah backup data terbaru sebelum restore.
+                                            </div>
+                                            @if (restoreError) {
+                                              <div class="alert alert-danger py-2 small mb-3">
+                                                <i class="bi bi-x-circle me-1"></i>{{ restoreError }}
+                                              </div>
+                                            }
+                                            @if (restoreSuccess) {
+                                              <div class="alert alert-success py-2 small mb-3">
+                                                <i class="bi bi-check-circle me-1"></i>{{ restoreSuccess }}
+                                              </div>
+                                            }
+                                            <div class="mb-3">
+                                              <label class="form-label fw-semibold">Pilih File Backup (.zip)</label>
+                                              <input type="file" class="form-control" accept=".zip"
+                                                #restoreInput
+                                                (change)="onRestoreFileSelected($event)" />
+                                                @if (restoreFile) {
+                                                  <div class="form-text">
+                                                    <i class="bi bi-file-zip me-1 text-primary"></i>{{ restoreFile.name }}
+                                                  </div>
+                                                }
+                                              </div>
+                                              <button class="btn btn-warning" (click)="submitRestore()"
+                                                [disabled]="isRestoring || !restoreFile">
+                                                @if (isRestoring) {
+                                                  <span class="spinner-border spinner-border-sm me-2"></span>
+                                                }
+                                                @if (!isRestoring) {
+                                                  <i class="bi bi-database-up me-2"></i>
+                                                }
+                                                {{ isRestoring ? 'Memproses...' : 'Restore Database' }}
+                                              </button>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      }
 
-                <button class="btn btn-primary" (click)="saveBackupToFolder()"
-                  [disabled]="isSavingToFolder || backupDirChanged">
-                  <span *ngIf="isSavingToFolder" class="spinner-border spinner-border-sm me-2"></span>
-                  <i *ngIf="!isSavingToFolder" class="bi bi-save me-2"></i>
-                  {{ isSavingToFolder ? 'Memproses...' : 'Backup Sekarang' }}
-                </button>
-                <span class="text-muted small ms-2" *ngIf="backupDirChanged">Simpan folder dulu.</span>
+                                    </div>
+                                  </div>
 
-                <div *ngIf="lastSavedBackup" class="alert alert-success small mt-3 mb-0">
-                  <i class="bi bi-check-circle me-1"></i>Tersimpan di:
-                  <code>{{ lastSavedBackup.path }}</code> ({{ formatSize(lastSavedBackup.size) }})
-                </div>
-
-                <div class="mt-4" *ngIf="backupList">
-                  <div class="fw-semibold small mb-2">Backup di folder ini</div>
-                  <div *ngIf="!backupList.exists" class="text-muted small">
-                    Folder belum ada. Akan dibuat saat backup pertama.
-                  </div>
-                  <div *ngIf="backupList.exists && backupList.files.length === 0" class="text-muted small">
-                    Belum ada file backup.
-                  </div>
-                  <div class="table-responsive" *ngIf="backupList.files.length > 0">
-                    <table class="table table-sm align-middle mb-0">
-                      <thead class="table-light">
-                        <tr><th>File</th><th>Waktu</th><th class="text-end">Ukuran</th></tr>
-                      </thead>
-                      <tbody>
-                        <tr *ngFor="let f of backupList.files">
-                          <td>{{ f.fileName }}</td>
-                          <td>{{ f.modifiedAt | date:'dd MMM yyyy HH:mm' }}</td>
-                          <td class="text-end">{{ formatSize(f.size) }}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="card border-0 shadow-sm mb-4">
-              <div class="card-header bg-white py-3">
-                <h6 class="fw-bold mb-0">
-                  <i class="bi bi-database-down me-2 text-primary"></i>Backup Database
-                </h6>
-              </div>
-              <div class="card-body">
-                <p class="text-muted small mb-3">
-                  Download semua data aplikasi sebagai file backup (.zip) lewat browser.
-                  File masuk ke folder Download browser, bukan ke folder di atas.
-                </p>
-                <button class="btn btn-primary" (click)="downloadBackup()" [disabled]="isBackingUp">
-                  <span *ngIf="isBackingUp" class="spinner-border spinner-border-sm me-2"></span>
-                  <i *ngIf="!isBackingUp" class="bi bi-download me-2"></i>
-                  {{ isBackingUp ? 'Memproses...' : 'Download Backup' }}
-                </button>
-              </div>
-            </div>
-
-            <div class="card border-0 shadow-sm">
-              <div class="card-header bg-white py-3">
-                <h6 class="fw-bold mb-0">
-                  <i class="bi bi-database-up me-2 text-warning"></i>Restore Database
-                </h6>
-              </div>
-              <div class="card-body">
-
-                <div class="alert alert-warning py-2 small mb-3">
-                  <i class="bi bi-exclamation-triangle me-1"></i>
-                  <strong>Perhatian!</strong> Restore akan menimpa semua data yang ada sekarang. 
-                  Pastikan kamu sudah backup data terbaru sebelum restore.
-                </div>
-
-                <div *ngIf="restoreError" class="alert alert-danger py-2 small mb-3">
-                  <i class="bi bi-x-circle me-1"></i>{{ restoreError }}
-                </div>
-
-                <div *ngIf="restoreSuccess" class="alert alert-success py-2 small mb-3">
-                  <i class="bi bi-check-circle me-1"></i>{{ restoreSuccess }}
-                </div>
-
-                <div class="mb-3">
-                  <label class="form-label fw-semibold">Pilih File Backup (.zip)</label>
-                  <input type="file" class="form-control" accept=".zip"
-                    #restoreInput
-                    (change)="onRestoreFileSelected($event)" />
-                  <div class="form-text" *ngIf="restoreFile">
-                    <i class="bi bi-file-zip me-1 text-primary"></i>{{ restoreFile.name }}
-                  </div>
-                </div>
-
-                <button class="btn btn-warning" (click)="submitRestore()" 
-                  [disabled]="isRestoring || !restoreFile">
-                  <span *ngIf="isRestoring" class="spinner-border spinner-border-sm me-2"></span>
-                  <i *ngIf="!isRestoring" class="bi bi-database-up me-2"></i>
-                  {{ isRestoring ? 'Memproses...' : 'Restore Database' }}
-                </button>
-
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-    </div>
-  </div>
-</div>
+                                </div>
+                              </div>
+                            </div>

@@ -40,9 +40,9 @@
     <div class="card-body">
       <div class="d-flex gap-2 mb-3">
         <button type="button" class="btn btn-sm btn-outline-primary"
-          [class.active]="activeRange === 'today'" (click)="setDateRange('today')">Hari ini</button>
+        [class.active]="activeRange === 'today'" (click)="setDateRange('today')">Hari ini</button>
         <button type="button" class="btn btn-sm btn-outline-primary"
-          [class.active]="activeRange === 'month'" (click)="setDateRange('month')">Bulan ini</button>
+        [class.active]="activeRange === 'month'" (click)="setDateRange('month')">Bulan ini</button>
       </div>
       <div class="row g-3">
         <div class="col-12 col-md-3">
@@ -66,7 +66,9 @@
           <label class="form-label small fw-semibold text-muted">Kategori</label>
           <select class="form-select" [(ngModel)]="selectedCategory">
             <option value="">Semua Kategori</option>
-            <option *ngFor="let c of categories" [value]="c._id">{{ c.name }}</option>
+            @for (c of categories; track c) {
+              <option [value]="c._id">{{ c.name }}</option>
+            }
           </select>
         </div>
         <div class="col-12 col-md-4">
@@ -76,201 +78,226 @@
             [(ngModel)]="productQuery"
             (keyup.enter)="onFilter()"
             autocomplete="off" />
+          </div>
+          <div class="col-12 col-md-5">
+            <label class="form-label small fw-semibold text-muted">Cari Transaksi</label>
+            <input type="text" class="form-control"
+              placeholder="Invoice, nama pelanggan, atau catatan"
+              [(ngModel)]="searchText"
+              (keyup.enter)="onFilter()"
+              autocomplete="off" />
+            </div>
+            <div class="col-12 col-md-3 d-flex align-items-end gap-2">
+              <button class="btn btn-primary filter-btn flex-grow-1" (click)="onFilter()">
+                <i class="bi bi-funnel me-1"></i>Filter
+              </button>
+              <button class="btn btn-outline-secondary filter-btn filter-btn-icon" (click)="resetFilter()"
+                title="Reset filter" aria-label="Reset filter">
+                <i class="bi bi-arrow-counterclockwise"></i>
+              </button>
+            </div>
+          </div>
         </div>
-        <div class="col-12 col-md-5">
-          <label class="form-label small fw-semibold text-muted">Cari Transaksi</label>
-          <input type="text" class="form-control"
-            placeholder="Invoice, nama pelanggan, atau catatan"
-            [(ngModel)]="searchText"
-            (keyup.enter)="onFilter()"
-            autocomplete="off" />
+      </div>
+
+      <!-- Ringkasan penjualan produk (muncul saat mencari produk) -->
+      @if (!isLoading && productSummary?.byProduct?.length) {
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-body">
+            <h6 class="fw-bold mb-3" style="color: #1e3a5f">
+              <i class="bi bi-bar-chart-line me-2"></i>Penjualan {{ summaryTitle }}
+            </h6>
+            <div class="row g-3 mb-3">
+              <div class="col-12 col-md-4">
+                <div class="text-muted small">Total Terjual</div>
+                <div class="fs-4 fw-bold" style="color: #2563eb">{{ productSummary.totals.totalQty }}</div>
+              </div>
+              <div class="col-12 col-md-4">
+                <div class="text-muted small">Pendapatan</div>
+                <div class="fs-4 fw-bold text-success">{{ productSummary.totals.totalRevenue | rupiah }}</div>
+              </div>
+              <div class="col-12 col-md-4">
+                <div class="text-muted small">Jumlah Transaksi</div>
+                <div class="fs-4 fw-bold">{{ productSummary.totals.transactionCount }}</div>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>Produk</th>
+                    <th class="text-end">Terjual</th>
+                    <th class="text-end">Pendapatan</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (p of productSummary.byProduct; track p) {
+                    <tr>
+                      <td>{{ p.productName }}</td>
+                      <td class="text-end fw-semibold">{{ p.totalQty }}</td>
+                      <td class="text-end">{{ p.totalRevenue | rupiah }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+            <small class="text-muted d-block mt-2">Transaksi dibatalkan tidak dihitung.</small>
+          </div>
         </div>
-        <div class="col-12 col-md-3 d-flex align-items-end gap-2">
-          <button class="btn btn-primary filter-btn flex-grow-1" (click)="onFilter()">
-            <i class="bi bi-funnel me-1"></i>Filter
-          </button>
-          <button class="btn btn-outline-secondary filter-btn filter-btn-icon" (click)="resetFilter()"
-            title="Reset filter" aria-label="Reset filter">
-            <i class="bi bi-arrow-counterclockwise"></i>
-          </button>
+      }
+
+      <!-- Total hutang belum lunas (muncul saat filter status Hutang) -->
+      @if (!isLoading && debtSummary) {
+        <div class="debt-banner mb-3">
+          <i class="bi bi-clock-history me-2" aria-hidden="true"></i>
+          <strong>{{ debtSummary.count }}</strong> hutang belum lunas
+          · Total sisa <strong>{{ debtSummary.totalRemaining | rupiah }}</strong>
+        </div>
+      }
+
+      <!-- Table -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+
+          <!-- Loading -->
+          @if (isLoading) {
+            <app-loading-spinner message="Memuat transaksi..."></app-loading-spinner>
+          }
+
+          @if (!isLoading && transactions.length === 0) {
+            <div class="text-center py-5 text-muted">
+              <i class="bi bi-receipt fs-1 d-block mb-2"></i>
+              <p>Tidak ada transaksi pada periode ini</p>
+              <a routerLink="/pos" class="btn btn-primary btn-sm">Buat Transaksi</a>
+            </div>
+          }
+
+          @if (!isLoading && transactions.length > 0) {
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th class="ps-4">Invoice</th>
+                    <th>Pelanggan</th>
+                    <th>Pembayaran</th>
+                    <th>Items</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Waktu</th>
+                    <th class="text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (tx of transactions; track tx) {
+                    <tr>
+                      <td class="ps-4">
+                        <a [routerLink]="['/transactions', tx._id]" class="fw-semibold text-decoration-none" style="color:#1e3a5f">
+                          {{ tx.invoiceNumber }}
+                        </a>
+                      </td>
+                      <td>
+                        {{ tx.customerName || 'Umum' }}
+                        @if (tx.status === 'hutang' && getDebtNote(tx)) {
+                          <small class="text-muted d-block debt-note"
+                          [title]="getDebtNote(tx)">{{ getDebtNote(tx) }}</small>
+                        }
+                      </td>
+                      <td>
+                        <i class="bi {{ getPaymentIcon(tx.paymentMethod) }} me-1 text-primary"></i>
+                        {{ tx.paymentMethod | titlecase }}
+                      </td>
+                      <td>
+                        <span class="badge bg-light text-dark border">
+                          {{ tx.items.length || 0 }} item
+                        </span>
+                        @if (tx.status === 'hutang') {
+                          <small class="text-muted d-block items-summary"
+                            [title]="getItemsSummary(tx)">{{ getItemsSummary(tx) }}
+                          </small>
+                        }
+                      </td>
+                      <td class="fw-semibold">
+                        {{ tx.grandTotal | rupiah }}
+                        @if (tx.status === 'hutang') {
+                          <small class="d-block debt-left">Sisa {{ getDebtRemaining(tx) | rupiah }}</small>
+                        }
+                      </td>
+                      <td>
+                        <span class="badge" [ngClass]="getStatusClass(tx.status)">
+                          {{ tx.status | titlecase }}
+                        </span>
+                      </td>
+                      <td class="text-muted small">
+                        {{ tx.createdAt | date:'dd/MM HH:mm' }}
+                      </td>
+                      <td class="text-center text-nowrap">
+                        @if (tx.status === 'hutang') {
+                          <button
+                            class="btn btn-sm btn-warning me-1"
+                            (click)="openPayDebt(tx)"
+                            title="Bayar hutang">
+                            <i class="bi bi-cash-coin me-1"></i>Bayar
+                          </button>
+                        }
+                        @if (tx.status === 'selesai' || tx.status === 'hutang') {
+                          <button
+                            class="btn btn-sm btn-outline-danger"
+                            (click)="cancelTransaction(tx._id, tx.invoiceNumber)"
+                            title="Batalkan">
+                            <i class="bi bi-x-circle"></i>
+                          </button>
+                        }
+                        @if (tx.status === 'dibatalkan' && authService.hasRole('owner')) {
+                          <button
+                            class="btn btn-sm btn-outline-secondary"
+                            (click)="deleteTransaction(tx._id, tx.invoiceNumber)"
+                            title="Hapus permanen">
+                            <i class="bi bi-trash"></i>
+                          </button>
+                        }
+                        @if (tx.status === 'dibatalkan' && !authService.hasRole('owner')) {
+                          <span class="text-muted small">-</span>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+
+          <!-- Pagination -->
+          @if (!isLoading) {
+            <app-pagination
+              [currentPage]="currentPage"
+              [totalPages]="totalPages"
+              [totalItems]="totalItems"
+              [pageSize]="pageSize"
+              itemLabel="transaksi"
+              (pageChange)="changePage($event)"
+              (pageSizeChange)="changePageSize($event)">
+            </app-pagination>
+          }
+
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Ringkasan penjualan produk (muncul saat mencari produk) -->
-  <div class="card border-0 shadow-sm mb-4" *ngIf="!isLoading && productSummary?.byProduct?.length">
-    <div class="card-body">
-      <h6 class="fw-bold mb-3" style="color: #1e3a5f">
-        <i class="bi bi-bar-chart-line me-2"></i>Penjualan {{ summaryTitle }}
-      </h6>
+    <!-- Confirm Dialog -->
+    <app-confirm-dialog
+      [show]="showConfirm"
+      [title]="confirmTitle"
+      [message]="confirmMessage"
+      confirmText="Ya, Batalkan"
+      type="warning"
+      (confirmed)="onConfirmed()"
+      (cancelled)="onCancelled()">
+    </app-confirm-dialog>
 
-      <div class="row g-3 mb-3">
-        <div class="col-12 col-md-4">
-          <div class="text-muted small">Total Terjual</div>
-          <div class="fs-4 fw-bold" style="color: #2563eb">{{ productSummary.totals.totalQty }}</div>
-        </div>
-        <div class="col-12 col-md-4">
-          <div class="text-muted small">Pendapatan</div>
-          <div class="fs-4 fw-bold text-success">{{ productSummary.totals.totalRevenue | rupiah }}</div>
-        </div>
-        <div class="col-12 col-md-4">
-          <div class="text-muted small">Jumlah Transaksi</div>
-          <div class="fs-4 fw-bold">{{ productSummary.totals.transactionCount }}</div>
-        </div>
-      </div>
-
-      <div class="table-responsive">
-        <table class="table table-sm align-middle mb-0">
-          <thead>
-            <tr>
-              <th>Produk</th>
-              <th class="text-end">Terjual</th>
-              <th class="text-end">Pendapatan</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let p of productSummary.byProduct">
-              <td>{{ p.productName }}</td>
-              <td class="text-end fw-semibold">{{ p.totalQty }}</td>
-              <td class="text-end">{{ p.totalRevenue | rupiah }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <small class="text-muted d-block mt-2">Transaksi dibatalkan tidak dihitung.</small>
-    </div>
-  </div>
-
-  <!-- Total hutang belum lunas (muncul saat filter status Hutang) -->
-  <div class="debt-banner mb-3" *ngIf="!isLoading && debtSummary">
-    <i class="bi bi-clock-history me-2" aria-hidden="true"></i>
-    <strong>{{ debtSummary.count }}</strong> hutang belum lunas
-    · Total sisa <strong>{{ debtSummary.totalRemaining | rupiah }}</strong>
-  </div>
-
-  <!-- Table -->
-  <div class="card border-0 shadow-sm">
-    <div class="card-body p-0">
-
-      <!-- Loading -->
-      <app-loading-spinner *ngIf="isLoading" message="Memuat transaksi..."></app-loading-spinner>
-
-      <div *ngIf="!isLoading && transactions.length === 0" class="text-center py-5 text-muted">
-        <i class="bi bi-receipt fs-1 d-block mb-2"></i>
-        <p>Tidak ada transaksi pada periode ini</p>
-        <a routerLink="/pos" class="btn btn-primary btn-sm">Buat Transaksi</a>
-      </div>
-
-      <div *ngIf="!isLoading && transactions.length > 0" class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="table-light">
-            <tr>
-              <th class="ps-4">Invoice</th>
-              <th>Pelanggan</th>
-              <th>Pembayaran</th>
-              <th>Items</th>
-              <th>Total</th>
-              <th>Status</th>
-              <th>Waktu</th>
-              <th class="text-center">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let tx of transactions">
-              <td class="ps-4">
-                <a [routerLink]="['/transactions', tx._id]" class="fw-semibold text-decoration-none" style="color:#1e3a5f">
-                  {{ tx.invoiceNumber }}
-                </a>
-              </td>
-              <td>
-                {{ tx.customerName || 'Umum' }}
-                <small *ngIf="tx.status === 'hutang' && getDebtNote(tx)" class="text-muted d-block debt-note"
-                  [title]="getDebtNote(tx)">{{ getDebtNote(tx) }}</small>
-              </td>
-              <td>
-                <i class="bi {{ getPaymentIcon(tx.paymentMethod) }} me-1 text-primary"></i>
-                {{ tx.paymentMethod | titlecase }}
-              </td>
-              <td>
-                <span class="badge bg-light text-dark border">
-                  {{ tx.items.length || 0 }} item
-                </span>
-                <small *ngIf="tx.status === 'hutang'" class="text-muted d-block items-summary"
-                  [title]="getItemsSummary(tx)">{{ getItemsSummary(tx) }}
-                </small>
-              </td>
-              <td class="fw-semibold">
-                {{ tx.grandTotal | rupiah }}
-                <small *ngIf="tx.status === 'hutang'" class="d-block debt-left">Sisa {{ getDebtRemaining(tx) | rupiah }}</small>
-              </td>
-              <td>
-                <span class="badge" [ngClass]="getStatusClass(tx.status)">
-                  {{ tx.status | titlecase }}
-                </span>
-              </td>
-              <td class="text-muted small">
-                {{ tx.createdAt | date:'dd/MM HH:mm' }}
-              </td>
-              <td class="text-center text-nowrap">
-                <button
-                  *ngIf="tx.status === 'hutang'"
-                  class="btn btn-sm btn-warning me-1"
-                  (click)="openPayDebt(tx)"
-                  title="Bayar hutang">
-                  <i class="bi bi-cash-coin me-1"></i>Bayar
-                </button>
-                <button
-                  *ngIf="tx.status === 'selesai' || tx.status === 'hutang'"
-                  class="btn btn-sm btn-outline-danger"
-                  (click)="cancelTransaction(tx._id, tx.invoiceNumber)"
-                  title="Batalkan">
-                  <i class="bi bi-x-circle"></i>
-                </button>
-                <button
-                  *ngIf="tx.status === 'dibatalkan' && authService.hasRole('owner')"
-                  class="btn btn-sm btn-outline-secondary"
-                  (click)="deleteTransaction(tx._id, tx.invoiceNumber)"
-                  title="Hapus permanen">
-                  <i class="bi bi-trash"></i>
-                </button>
-                <span *ngIf="tx.status === 'dibatalkan' && !authService.hasRole('owner')" class="text-muted small">-</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Pagination -->
-      <app-pagination *ngIf="!isLoading"
-        [currentPage]="currentPage"
-        [totalPages]="totalPages"
-        [totalItems]="totalItems"
-        [pageSize]="pageSize"
-        itemLabel="transaksi"
-        (pageChange)="changePage($event)"
-        (pageSizeChange)="changePageSize($event)">
-      </app-pagination>
-
-    </div>
-  </div>
-</div>
-
-<!-- Confirm Dialog -->
-<app-confirm-dialog
-  [show]="showConfirm"
-  [title]="confirmTitle"
-  [message]="confirmMessage"
-  confirmText="Ya, Batalkan"
-  type="warning"
-  (confirmed)="onConfirmed()"
-  (cancelled)="onCancelled()">
-</app-confirm-dialog>
-
-<!-- Bayar Hutang -->
-<app-pay-debt-modal
-  [show]="showPayDebt"
-  [transactionId]="payDebtTxId"
-  (paid)="onDebtPaid()"
-  (closed)="closePayDebt()">
-</app-pay-debt-modal>
+    <!-- Bayar Hutang -->
+    <app-pay-debt-modal
+      [show]="showPayDebt"
+      [transactionId]="payDebtTxId"
+      (paid)="onDebtPaid()"
+      (closed)="closePayDebt()">
+    </app-pay-debt-modal>

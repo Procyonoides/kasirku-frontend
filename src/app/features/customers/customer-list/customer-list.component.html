@@ -24,155 +24,176 @@
               placeholder="Cari nama atau nomor HP..."
               [(ngModel)]="searchQuery"
               (keyup.enter)="onSearch()" />
+            </div>
+          </div>
+          <div class="col-12 col-md-6 d-flex gap-2">
+            <button class="btn btn-primary" (click)="onSearch()">
+              <i class="bi bi-search me-1"></i>Cari
+            </button>
+            <button class="btn"
+              [class.btn-warning]="filterDebt"
+              [class.btn-outline-warning]="!filterDebt"
+              (click)="toggleDebtFilter()">
+              <i class="bi bi-exclamation-circle me-1"></i>
+              {{ filterDebt ? 'Semua Pelanggan' : 'Ada Hutang' }}
+            </button>
           </div>
         </div>
-        <div class="col-12 col-md-6 d-flex gap-2">
-          <button class="btn btn-primary" (click)="onSearch()">
-            <i class="bi bi-search me-1"></i>Cari
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-0">
+
+        <!-- Loading -->
+        @if (isLoading) {
+          <app-loading-spinner message="Memuat pelanggan..."></app-loading-spinner>
+        }
+
+        @if (!isLoading && customers.length === 0) {
+          <div class="text-center py-5 text-muted">
+            <i class="bi bi-people fs-1 d-block mb-2"></i>
+            <p>Tidak ada pelanggan ditemukan</p>
+            <button class="btn btn-primary btn-sm" (click)="openAdd()">Tambah Pelanggan</button>
+          </div>
+        }
+
+        @if (!isLoading && customers.length > 0) {
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th class="ps-4">Pelanggan</th>
+                  <th>No. HP</th>
+                  <th>Tier</th>
+                  <th>Total Belanja</th>
+                  <th>Hutang</th>
+                  <th class="text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (c of customers; track c) {
+                  <tr>
+                    <td class="ps-4">
+                      <div class="d-flex align-items-center gap-3">
+                        <div class="customer-avatar">
+                          {{ c.name.charAt(0).toUpperCase() }}
+                        </div>
+                        <div>
+                          <div class="fw-semibold">{{ c.name }}</div>
+                          <div class="text-muted small">{{ c.address || '-' }}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>{{ c.phone || '-' }}</td>
+                    <td>
+                      <span class="badge" [ngClass]="getTierBadge(c.customerTier || '')">
+                        {{ c.customerTier | titlecase }}
+                      </span>
+                    </td>
+                    <td>{{ c.totalSpent | rupiah }}</td>
+                    <td>
+                      @if (c.currentDebt > 0) {
+                        <span class="fw-semibold text-danger">
+                          {{ c.currentDebt | rupiah }}
+                        </span>
+                      }
+                      @if (c.currentDebt === 0) {
+                        <span class="text-muted">-</span>
+                      }
+                    </td>
+                    <td class="text-center">
+                      <div class="d-flex justify-content-center gap-2">
+                        <button class="btn btn-sm btn-outline-primary" (click)="openEdit(c)" title="Edit">
+                          <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" (click)="deleteCustomer(c._id, c.name)" title="Hapus">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                        <a [routerLink]="['/customers', c._id]" class="btn btn-sm btn-outline-info" title="Detail">
+                          <i class="bi bi-eye"></i>
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+
+        <!-- Pagination -->
+        @if (!isLoading) {
+          <app-pagination
+            [currentPage]="currentPage"
+            [totalPages]="totalPages"
+            [totalItems]="totalItems"
+            [pageSize]="pageSize"
+            itemLabel="pelanggan"
+            (pageChange)="changePage($event)"
+            (pageSizeChange)="changePageSize($event)">
+          </app-pagination>
+        }
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Tambah/Edit -->
+  @if (showModal) {
+    <div class="modal-backdrop-custom" (click)="closeModal()"></div>
+  }
+  @if (showModal) {
+    <div class="modal-custom">
+      <div class="modal-custom-dialog">
+        <div class="modal-custom-header">
+          <h6 class="fw-bold mb-0">
+            {{ modalMode === 'add' ? 'Tambah Pelanggan' : 'Edit Pelanggan' }}
+          </h6>
+          <button class="btn-close-custom" (click)="closeModal()">
+            <i class="bi bi-x-lg"></i>
           </button>
-          <button class="btn"
-            [class.btn-warning]="filterDebt"
-            [class.btn-outline-warning]="!filterDebt"
-            (click)="toggleDebtFilter()">
-            <i class="bi bi-exclamation-circle me-1"></i>
-            {{ filterDebt ? 'Semua Pelanggan' : 'Ada Hutang' }}
+        </div>
+        <div class="modal-custom-body">
+          @if (formError) {
+            <div class="alert alert-danger py-2 small">
+              <i class="bi bi-exclamation-circle me-1"></i>{{ formError }}
+            </div>
+          }
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Nama <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" [(ngModel)]="formName" placeholder="Nama pelanggan" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">No. HP</label>
+            <input type="text" class="form-control" [(ngModel)]="formPhone" placeholder="cth: 08123456789" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Alamat</label>
+            <textarea class="form-control" [(ngModel)]="formAddress" rows="2" placeholder="Alamat (opsional)"></textarea>
+          </div>
+        </div>
+        <div class="modal-custom-footer">
+          <button class="btn btn-outline-secondary" (click)="closeModal()">Batal</button>
+          <button class="btn btn-primary" (click)="submitForm()" [disabled]="formSubmitting">
+            @if (formSubmitting) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+            {{ modalMode === 'add' ? 'Tambah' : 'Simpan' }}
           </button>
         </div>
       </div>
     </div>
-  </div>
+  }
 
-  <!-- Table -->
-  <div class="card border-0 shadow-sm">
-    <div class="card-body p-0">
-
-      <!-- Loading -->
-      <app-loading-spinner *ngIf="isLoading" message="Memuat pelanggan..."></app-loading-spinner>
-
-      <div *ngIf="!isLoading && customers.length === 0" class="text-center py-5 text-muted">
-        <i class="bi bi-people fs-1 d-block mb-2"></i>
-        <p>Tidak ada pelanggan ditemukan</p>
-        <button class="btn btn-primary btn-sm" (click)="openAdd()">Tambah Pelanggan</button>
-      </div>
-
-      <div *ngIf="!isLoading && customers.length > 0" class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="table-light">
-            <tr>
-              <th class="ps-4">Pelanggan</th>
-              <th>No. HP</th>
-              <th>Tier</th>
-              <th>Total Belanja</th>
-              <th>Hutang</th>
-              <th class="text-center">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let c of customers">
-                <td class="ps-4">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="customer-avatar">
-                            {{ c.name.charAt(0).toUpperCase() }}
-                        </div>
-                        <div>
-                            <div class="fw-semibold">{{ c.name }}</div>
-                            <div class="text-muted small">{{ c.address || '-' }}</div>
-                        </div>
-                    </div>
-                </td>
-                <td>{{ c.phone || '-' }}</td>
-                <td>
-                    <span class="badge" [ngClass]="getTierBadge(c.customerTier || '')">
-                        {{ c.customerTier | titlecase }}
-                    </span>
-                </td>
-                <td>{{ c.totalSpent | rupiah }}</td>
-                <td>
-                    <span *ngIf="c.currentDebt > 0" class="fw-semibold text-danger">
-                        {{ c.currentDebt | rupiah }}
-                    </span>
-                    <span *ngIf="c.currentDebt === 0" class="text-muted">-</span>
-                </td>
-                <td class="text-center">
-                    <div class="d-flex justify-content-center gap-2">
-                        <button class="btn btn-sm btn-outline-primary" (click)="openEdit(c)" title="Edit">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" (click)="deleteCustomer(c._id, c.name)" title="Hapus">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                        <a [routerLink]="['/customers', c._id]" class="btn btn-sm btn-outline-info" title="Detail">
-                            <i class="bi bi-eye"></i>
-                        </a>
-                    </div>
-                    
-                </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Pagination -->
-      <app-pagination *ngIf="!isLoading"
-        [currentPage]="currentPage"
-        [totalPages]="totalPages"
-        [totalItems]="totalItems"
-        [pageSize]="pageSize"
-        itemLabel="pelanggan"
-        (pageChange)="changePage($event)"
-        (pageSizeChange)="changePageSize($event)">
-      </app-pagination>
-
-    </div>
-  </div>
-</div>
-
-<!-- Modal Tambah/Edit -->
-<div class="modal-backdrop-custom" *ngIf="showModal" (click)="closeModal()"></div>
-<div class="modal-custom" *ngIf="showModal">
-  <div class="modal-custom-dialog">
-    <div class="modal-custom-header">
-      <h6 class="fw-bold mb-0">
-        {{ modalMode === 'add' ? 'Tambah Pelanggan' : 'Edit Pelanggan' }}
-      </h6>
-      <button class="btn-close-custom" (click)="closeModal()">
-        <i class="bi bi-x-lg"></i>
-      </button>
-    </div>
-    <div class="modal-custom-body">
-      <div *ngIf="formError" class="alert alert-danger py-2 small">
-        <i class="bi bi-exclamation-circle me-1"></i>{{ formError }}
-      </div>
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Nama <span class="text-danger">*</span></label>
-        <input type="text" class="form-control" [(ngModel)]="formName" placeholder="Nama pelanggan" />
-      </div>
-      <div class="mb-3">
-        <label class="form-label fw-semibold">No. HP</label>
-        <input type="text" class="form-control" [(ngModel)]="formPhone" placeholder="cth: 08123456789" />
-      </div>
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Alamat</label>
-        <textarea class="form-control" [(ngModel)]="formAddress" rows="2" placeholder="Alamat (opsional)"></textarea>
-      </div>
-    </div>
-    <div class="modal-custom-footer">
-      <button class="btn btn-outline-secondary" (click)="closeModal()">Batal</button>
-      <button class="btn btn-primary" (click)="submitForm()" [disabled]="formSubmitting">
-        <span *ngIf="formSubmitting" class="spinner-border spinner-border-sm me-1"></span>
-        {{ modalMode === 'add' ? 'Tambah' : 'Simpan' }}
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- Confirm Dialog -->
-<app-confirm-dialog
-  [show]="showConfirm"
-  [title]="confirmTitle"
-  [message]="confirmMessage"
-  confirmText="Ya, Hapus"
-  type="danger"
-  (confirmed)="onConfirmed()"
-  (cancelled)="onCancelled()">
-</app-confirm-dialog>
+  <!-- Confirm Dialog -->
+  <app-confirm-dialog
+    [show]="showConfirm"
+    [title]="confirmTitle"
+    [message]="confirmMessage"
+    confirmText="Ya, Hapus"
+    type="danger"
+    (confirmed)="onConfirmed()"
+    (cancelled)="onCancelled()">
+  </app-confirm-dialog>
