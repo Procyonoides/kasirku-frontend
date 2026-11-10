@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -17,6 +17,7 @@ import { ToastService } from '../../../core/services/toast.service';
     LoadingSpinnerComponent
 ],
     templateUrl: './unit-list.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './unit-list.component.css'
 })
 export class UnitListComponent implements OnInit {

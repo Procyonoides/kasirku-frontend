@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UserService } from '../../../core/services/api.service';
@@ -10,6 +10,7 @@ import { ToastService } from '../../../core/services/toast.service';
     selector: 'app-user-management',
     imports: [CommonModule, FormsModule, NgClass, ConfirmDialogComponent, LoadingSpinnerComponent],
     templateUrl: './user-management.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './user-management.component.css'
 })
 export class UserManagementComponent implements OnInit {

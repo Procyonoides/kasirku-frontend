@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FinanceService } from '../../core/services/api.service';
@@ -12,6 +12,7 @@ import { ToastService } from '../../core/services/toast.service';
     selector: 'app-finance',
     imports: [CommonModule, FormsModule, RupiahPipe, NgClass, ConfirmDialogComponent, LoadingSpinnerComponent, PaginationComponent],
     templateUrl: './finance.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './finance.component.css'
 })
 export class FinanceComponent implements OnInit {

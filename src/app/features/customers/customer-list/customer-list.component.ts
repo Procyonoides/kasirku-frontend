@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, NgClass } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -14,6 +14,7 @@ import { ToastService } from '../../../core/services/toast.service';
     selector: 'app-customer-list',
     imports: [CommonModule, NgClass, RouterLink, FormsModule, RupiahPipe, ConfirmDialogComponent, LoadingSpinnerComponent, PaginationComponent],
     templateUrl: './customer-list.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './customer-list.component.css'
 })
 export class CustomerListComponent implements OnInit {

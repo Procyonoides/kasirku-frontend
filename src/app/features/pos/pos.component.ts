@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, OnDestroy, HostListener, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, HostListener, ViewChild, ElementRef, ChangeDetectionStrategy } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -41,6 +41,7 @@ interface HeldCart {
     selector: 'app-pos',
     imports: [FormsModule, RupiahPipe, NgClass, ConfirmDialogComponent],
     templateUrl: './pos.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './pos.component.css'
 })
 export class PosComponent implements OnInit, AfterViewInit, OnDestroy {

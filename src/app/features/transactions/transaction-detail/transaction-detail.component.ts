@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, NgClass } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TransactionService } from '../../../core/services/api.service';
@@ -11,6 +11,7 @@ import { PayDebtModalComponent } from '../../../shared/components/pay-debt-modal
     selector: 'app-transaction-detail',
     imports: [CommonModule, NgClass, RouterLink, RupiahPipe, PayDebtModalComponent],
     templateUrl: './transaction-detail.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './transaction-detail.component.css'
 })
 export class TransactionDetailComponent implements OnInit {

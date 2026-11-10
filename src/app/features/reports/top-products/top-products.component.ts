@@ -1,4 +1,4 @@
-import { Component,Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 
 import { RupiahPipe } from '../../../shared/pipes';
 
@@ -6,6 +6,7 @@ import { RupiahPipe } from '../../../shared/pipes';
     selector: 'app-top-products',
     imports: [RupiahPipe],
     templateUrl: './top-products.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './top-products.component.css'
 })
 export class TopProductsComponent {

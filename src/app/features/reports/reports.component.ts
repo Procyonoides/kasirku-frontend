@@ -1,4 +1,4 @@
-import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReportService } from '../../core/services/api.service';
@@ -27,6 +27,7 @@ import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner
     LoadingSpinnerComponent
 ],
     templateUrl: './reports.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './reports.component.css'
 })
 export class ReportsComponent implements OnInit {

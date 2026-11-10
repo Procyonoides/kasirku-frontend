@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -12,6 +12,7 @@ import { ToastService } from '../../../core/services/toast.service';
     selector: 'app-category-list',
     imports: [FormsModule, RouterLink, ConfirmDialogComponent, LoadingSpinnerComponent],
     templateUrl: './category-list.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './category-list.component.css'
 })
 export class CategoryListComponent implements OnInit {

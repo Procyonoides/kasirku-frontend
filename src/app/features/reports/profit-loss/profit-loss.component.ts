@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 
 import { RupiahPipe } from '../../../shared/pipes';
 
@@ -6,6 +6,7 @@ import { RupiahPipe } from '../../../shared/pipes';
     selector: 'app-profit-loss',
     imports: [RupiahPipe],
     templateUrl: './profit-loss.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './profit-loss.component.css'
 })
 export class ProfitLossComponent{

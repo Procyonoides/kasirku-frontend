@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
@@ -11,6 +11,7 @@ import { ToastService } from '../../../core/services/toast.service';
     selector: 'app-product-form',
     imports: [CommonModule, ReactiveFormsModule, RouterLink],
     templateUrl: './product-form.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './product-form.component.css'
 })
 export class ProductFormComponent implements OnInit {

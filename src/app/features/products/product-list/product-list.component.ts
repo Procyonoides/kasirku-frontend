@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, NgClass } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -14,6 +14,7 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
     selector: 'app-product-list',
     imports: [CommonModule, NgClass, RouterLink, FormsModule, RupiahPipe, ConfirmDialogComponent, LoadingSpinnerComponent, PaginationComponent],
     templateUrl: './product-list.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './product-list.component.css'
 })
 export class ProductListComponent implements OnInit {

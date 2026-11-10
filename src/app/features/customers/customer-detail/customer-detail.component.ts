@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, NgClass } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -10,6 +10,7 @@ import { PayDebtModalComponent } from '../../../shared/components/pay-debt-modal
     selector: 'app-customer-detail',
     imports: [CommonModule, FormsModule, RouterLink, RupiahPipe, NgClass, PayDebtModalComponent],
     templateUrl: './customer-detail.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './customer-detail.component.css'
 })
 export class CustomerDetailComponent implements OnInit {

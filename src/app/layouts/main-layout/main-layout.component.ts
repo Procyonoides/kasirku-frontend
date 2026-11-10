@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
 import { AuthService } from '../../core/auth/auth.service';
@@ -10,6 +10,7 @@ import { ClickOutsideDirective } from '../../shared/directives/click-outside.dir
     selector: 'app-main-layout',
     imports: [CommonModule, DatePipe, RouterOutlet, RouterLink, RouterLinkActive, ToastComponent, ClickOutsideDirective],
     templateUrl: './main-layout.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './main-layout.component.css'
 })
 export class MainLayoutComponent implements OnInit, OnDestroy {

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TransactionService } from '../../../core/services/api.service';
@@ -9,6 +9,7 @@ import { RupiahPipe } from '../../pipes';
     selector: 'app-pay-debt-modal',
     imports: [CommonModule, FormsModule, RupiahPipe],
     templateUrl: './pay-debt-modal.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './pay-debt-modal.component.css'
 })
 export class PayDebtModalComponent implements OnChanges {

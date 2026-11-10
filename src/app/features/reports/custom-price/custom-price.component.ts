@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RupiahPipe } from '../../../shared/pipes';
 
@@ -6,6 +6,7 @@ import { RupiahPipe } from '../../../shared/pipes';
     selector: 'app-custom-price',
     imports: [CommonModule, RupiahPipe],
     templateUrl: './custom-price.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './custom-price.component.css'
 })
 export class CustomPriceComponent {

@@ -1,5 +1,5 @@
 import { Chart, registerables } from 'chart.js';
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, ChangeDetectionStrategy } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { CommonModule, NgClass } from '@angular/common';
@@ -22,6 +22,7 @@ Chart.register(...registerables);
         LoadingSpinnerComponent
     ],
     templateUrl: './dashboard.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './dashboard.component.css'
 })
 export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {

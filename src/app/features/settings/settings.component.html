@@ -67,7 +67,7 @@
                     </div>
                     <div>
                       <div class="profile-banner-name">{{ authService.currentUser()?.name }}</div>
-                      <div class="profile-banner-role">{{ authService.currentUser()?.role | titlecase }}</div>
+                      <div class="profile-banner-role">{{ $safeNavigationMigration(authService.currentUser()?.role) | titlecase }}</div>
                     </div>
                   </div>
                   <form [formGroup]="profileForm" (ngSubmit)="submitProfile()">

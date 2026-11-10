@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, NgClass } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -16,6 +16,7 @@ import { PayDebtModalComponent } from '../../../shared/components/pay-debt-modal
     selector: 'app-transaction-list',
     imports: [CommonModule, NgClass, RouterLink, FormsModule, RupiahPipe, ConfirmDialogComponent, LoadingSpinnerComponent, PaginationComponent, PayDebtModalComponent],
     templateUrl: './transaction-list.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './transaction-list.component.css'
 })
 export class TransactionListComponent implements OnInit {

@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -12,6 +12,7 @@ import { environment } from '../../../../environments/environment';
     selector: 'app-settings',
     imports: [CommonModule, FormsModule, ReactiveFormsModule],
     templateUrl: './settings.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './settings.component.css'
 })
 export class SettingsComponent implements OnInit {
